@@ -1,5 +1,21 @@
 
-# TRADEHISTORY プロジェクト README
+# LEGACY README - OLD VERSION
+
+⚠️ **This is the old README for reference only. Please use the new system described in README.md**
+
+## New System
+
+The project has been completely rebuilt with a modern architecture. Use:
+
+```bash
+python main.py
+```
+
+For the new, improved trade history analyzer.
+
+---
+
+# Original README (Legacy)
 
 ## 概要
 このプロジェクトは、異なる取引履歴のCSVファイルを統合し、データをクリーンアップし、EDA（探索的データ分析）を行うための一連のスクリプトを提供します。最終的には、取引履歴データを分析し、視覚化することを目的としています。
@@ -7,15 +23,15 @@
 ## ディレクトリ構成
 ```
 TRADEHISTORY/
-├── CODES/
+├── CODES/               # ⚠️ LEGACY CODE - Use new main.py instead
 │   ├── 0fx.py               # 為替データをダウンロードするスクリプト
 │   ├── 1concat.py           # CSVファイルを統合するスクリプト
 │   ├── 2clean.py            # データをクリーンアップするスクリプト
 │   ├── 3eda.py              # EDAを実施するスクリプト
-├── DIC/
+├── DIC/                 # ⚠️ LEGACY DATA DIRECTORY
 │   ├── forex_data.csv       # ダウンロードした為替データ
 │   ├── securitycode.csv      # 銘柄コードデータ
-├── RAWDATA/                 # 生データを格納するフォルダ
+├── RAWDATA/             # ⚠️ LEGACY - Use data/raw/ instead
 │   ├── rakuten/             # 楽天の取引データ
 │   ├── sbi/                 # SBI証券の取引データ
 ```
@@ -26,6 +42,14 @@ pip install pandas numpy matplotlib seaborn yfinance chardet
 ```
 
 ## 使用方法
+
+⚠️ **DEPRECATED - Use the new system:**
+
+```bash
+python main.py
+```
+
+### Legacy Usage (for reference only)
 
 ### 1. 為替データのダウンロード
 `0fx.py`を実行して、指定した通貨ペアの為替データをダウンロードします。
