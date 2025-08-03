@@ -33,50 +33,90 @@ class TradeVisualizer:
             logger.warning("No holdings data to plot")
             return
         
+        # Clean the data first
+        holdings_df = holdings_df.copy()
+        holdings_df = holdings_df.dropna(subset=['current_value', 'security_code'])
+        holdings_df = holdings_df[holdings_df['current_value'] > 0]
+        
+        if holdings_df.empty:
+            logger.warning("No valid holdings data after cleaning")
+            return
+        
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(16, 12))
         fig.suptitle('Portfolio Overview', fontsize=16, fontweight='bold')
         
         # 1. Holdings by value (pie chart)
-        top_holdings = holdings_df.head(10)
-        ax1.pie(top_holdings['current_value'], labels=top_holdings['security_code'], 
-                autopct='%1.1f%%', startangle=90)
-        ax1.set_title('Top 10 Holdings by Value')
+        top_holdings = holdings_df.nlargest(10, 'current_value')
+        # Ensure no NaN values in pie chart data
+        valid_holdings = top_holdings.dropna(subset=['current_value', 'security_code'])
+        if not valid_holdings.empty:
+            ax1.pie(valid_holdings['current_value'], labels=valid_holdings['security_code'], 
+                    autopct='%1.1f%%', startangle=90)
+            ax1.set_title('Top 10 Holdings by Value')
+        else:
+            ax1.text(0.5, 0.5, 'No valid holdings data', ha='center', va='center', transform=ax1.transAxes)
+            ax1.set_title('Top 10 Holdings by Value')
         
         # 2. P&L by security (bar chart)
-        top_pnl = holdings_df.nlargest(10, 'total_pnl')
-        colors = ['green' if x > 0 else 'red' for x in top_pnl['total_pnl']]
-        ax2.bar(range(len(top_pnl)), top_pnl['total_pnl'], color=colors)
-        ax2.set_title('Top 10 P&L by Security')
-        ax2.set_xticks(range(len(top_pnl)))
-        ax2.set_xticklabels(top_pnl['security_code'], rotation=45)
-        ax2.axhline(y=0, color='black', linestyle='-', alpha=0.3)
+        if 'total_pnl' in holdings_df.columns:
+            top_pnl = holdings_df.nlargest(10, 'total_pnl').dropna(subset=['total_pnl', 'security_code'])
+            if not top_pnl.empty:
+                colors = ['green' if x > 0 else 'red' for x in top_pnl['total_pnl']]
+                ax2.bar(range(len(top_pnl)), top_pnl['total_pnl'], color=colors)
+                ax2.set_title('Top 10 P&L by Security')
+                ax2.set_xticks(range(len(top_pnl)))
+                ax2.set_xticklabels(top_pnl['security_code'], rotation=45)
+                ax2.axhline(y=0, color='black', linestyle='-', alpha=0.3)
+            else:
+                ax2.text(0.5, 0.5, 'No P&L data available', ha='center', va='center', transform=ax2.transAxes)
+                ax2.set_title('Top 10 P&L by Security')
+        else:
+            ax2.text(0.5, 0.5, 'P&L column not found', ha='center', va='center', transform=ax2.transAxes)
+            ax2.set_title('Top 10 P&L by Security')
         
         # 3. Cost vs Current Value
-        ax3.scatter(holdings_df['total_cost'], holdings_df['current_value'], alpha=0.6)
-        ax3.plot([0, holdings_df['total_cost'].max()], [0, holdings_df['total_cost'].max()], 
-                'r--', alpha=0.5, label='Break-even line')
-        ax3.set_xlabel('Total Cost (JPY)')
-        ax3.set_ylabel('Current Value (JPY)')
-        ax3.set_title('Cost vs Current Value')
-        ax3.legend()
+        if 'total_cost' in holdings_df.columns:
+            cost_value_data = holdings_df.dropna(subset=['total_cost', 'current_value'])
+            if not cost_value_data.empty and cost_value_data['total_cost'].max() > 0:
+                ax3.scatter(cost_value_data['total_cost'], cost_value_data['current_value'], alpha=0.6)
+                max_cost = cost_value_data['total_cost'].max()
+                ax3.plot([0, max_cost], [0, max_cost], 'r--', alpha=0.5, label='Break-even line')
+                ax3.set_xlabel('Total Cost (JPY)')
+                ax3.set_ylabel('Current Value (JPY)')
+                ax3.set_title('Cost vs Current Value')
+                ax3.legend()
+            else:
+                ax3.text(0.5, 0.5, 'No cost data available', ha='center', va='center', transform=ax3.transAxes)
+                ax3.set_title('Cost vs Current Value')
+        else:
+            ax3.text(0.5, 0.5, 'Cost column not found', ha='center', va='center', transform=ax3.transAxes)
+            ax3.set_title('Cost vs Current Value')
         
         # 4. Summary statistics
         ax4.axis('off')
-        summary_text = f"""
+        if summary and isinstance(summary, dict):
+            try:
+                summary_text = f"""
         Portfolio Summary:
         
-        Total Value: ¥{summary['total_value']:,.0f}
-        Total Cost: ¥{summary['total_cost']:,.0f}
-        Total P&L: ¥{summary['total_pnl']:,.0f}
-        P&L %: {summary['total_pnl_percentage']:.2f}%
+        Total Value: ¥{summary.get('total_value', 0):,.0f}
+        Total Cost: ¥{summary.get('total_cost', 0):,.0f}
+        Total P&L: ¥{summary.get('total_pnl', 0):,.0f}
+        P&L %: {summary.get('total_pnl_percentage', 0):.2f}%
         
-        Realized P&L: ¥{summary['realized_pnl']:,.0f}
-        Unrealized P&L: ¥{summary['unrealized_pnl']:,.0f}
+        Realized P&L: ¥{summary.get('realized_pnl', 0):,.0f}
+        Unrealized P&L: ¥{summary.get('unrealized_pnl', 0):,.0f}
         
-        Number of Holdings: {summary['number_of_holdings']}
+        Number of Holdings: {summary.get('number_of_holdings', 0)}
         """
-        ax4.text(0.1, 0.9, summary_text, transform=ax4.transAxes, fontsize=12,
-                verticalalignment='top', fontfamily='monospace')
+                ax4.text(0.1, 0.9, summary_text, transform=ax4.transAxes, fontsize=12,
+                        verticalalignment='top', fontfamily='monospace')
+            except Exception as e:
+                logger.warning(f"Error formatting summary: {e}")
+                ax4.text(0.5, 0.5, 'Summary data unavailable', ha='center', va='center', 
+                        transform=ax4.transAxes)
+        else:
+            ax4.text(0.5, 0.5, 'No summary data', ha='center', va='center', transform=ax4.transAxes)
         
         plt.tight_layout()
         plt.savefig(output_path, dpi=self.dpi, bbox_inches='tight')
