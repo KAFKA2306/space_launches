@@ -134,9 +134,12 @@ class TradeVisualizer:
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(16, 12))
         fig.suptitle('Trading Activity Analysis', fontsize=16, fontweight='bold')
         
+        # Determine which amount column to use
+        amount_column = 'amount_jpy' if 'amount_jpy' in trades_df.columns else 'settlement_amount'
+        
         # 1. Monthly trading volume
         trades_df['month'] = trades_df['trade_date'].dt.to_period('M')
-        monthly_volume = trades_df.groupby('month')['amount_jpy'].sum()
+        monthly_volume = trades_df.groupby('month')[amount_column].sum()
         monthly_volume.plot(kind='bar', ax=ax1)
         ax1.set_title('Monthly Trading Volume')
         ax1.set_xlabel('Month')
@@ -157,12 +160,12 @@ class TradeVisualizer:
             ax3.set_xlabel('Number of Trades')
         
         # 4. Trade amount distribution
-        ax4.hist(trades_df['amount_jpy'].dropna(), bins=30, alpha=0.7, edgecolor='black')
+        ax4.hist(trades_df[amount_column].dropna(), bins=30, alpha=0.7, edgecolor='black')
         ax4.set_title('Trade Amount Distribution')
         ax4.set_xlabel('Amount (JPY)')
         ax4.set_ylabel('Frequency')
-        ax4.axvline(trades_df['amount_jpy'].mean(), color='red', linestyle='--', 
-                   label=f'Mean: ¥{trades_df["amount_jpy"].mean():,.0f}')
+        ax4.axvline(trades_df[amount_column].mean(), color='red', linestyle='--', 
+                   label=f'Mean: ¥{trades_df[amount_column].mean():,.0f}')
         ax4.legend()
         
         plt.tight_layout()
@@ -231,7 +234,8 @@ class TradeVisualizer:
         
         # Volume/amount plot
         trade_dates = security_trades['trade_date']
-        trade_amounts = security_trades['amount_jpy']
+        amount_column = 'amount_jpy' if 'amount_jpy' in security_trades.columns else 'settlement_amount'
+        trade_amounts = security_trades[amount_column]
         colors = ['green' if t == 'buy' else 'red' for t in security_trades['transaction_type']]
         
         ax2.bar(trade_dates, trade_amounts, color=colors, alpha=0.7, width=10)
