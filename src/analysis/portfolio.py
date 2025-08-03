@@ -231,16 +231,25 @@ class PortfolioAnalyzer:
     
     def _get_latest_prices(self, price_data: pd.DataFrame) -> Dict[str, float]:
         """Get latest prices for all securities."""
-        if price_data.empty:
+        if price_data is None or price_data.empty:
+            logger.warning("No price data available for latest prices")
             return {}
         
-        latest_prices = price_data.iloc[-1].to_dict()
-        return {k: v for k, v in latest_prices.items() if pd.notna(v)}
+        try:
+            latest_prices = price_data.iloc[-1].to_dict()
+            return {k: v for k, v in latest_prices.items() if pd.notna(v)}
+        except Exception as e:
+            logger.error(f"Error getting latest prices: {e}")
+            return {}
     
     def _get_current_price(self, price_data: pd.DataFrame, security_code: str) -> float:
         """Get current price for a specific security."""
-        if price_data.empty or security_code not in price_data.columns:
+        if price_data is None or price_data.empty or security_code not in price_data.columns:
             return 0
         
-        latest_price = price_data[security_code].iloc[-1]
-        return latest_price if pd.notna(latest_price) else 0
+        try:
+            latest_price = price_data[security_code].iloc[-1]
+            return latest_price if pd.notna(latest_price) else 0
+        except Exception as e:
+            logger.warning(f"Error getting price for {security_code}: {e}")
+            return 0

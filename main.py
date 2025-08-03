@@ -31,20 +31,19 @@ def setup_environment():
     return config, logger
 
 
-def download_market_data(config, logger):
-    """Download forex and stock price data."""
-    logger.info("=== Downloading Market Data ===")
+def update_market_data(config, logger):
+    """Update forex and stock price data incrementally."""
+    logger.info("=== Updating Market Data (Incremental) ===")
     
-    # Download forex data
+    # Update forex data
     forex_manager = ForexDataManager(config)
-    forex_data = forex_manager.download_forex_data()
+    forex_path = config.PROCESSED_DATA_DIR / "forex_data.csv"
+    forex_data = forex_manager.update_forex_data(forex_path)
     
     if not forex_data.empty:
-        forex_path = config.PROCESSED_DATA_DIR / "forex_data.csv"
-        forex_manager.save_forex_data(forex_data, forex_path)
-        logger.info(f"Forex data saved to {forex_path}")
+        logger.info(f"Forex data updated: {len(forex_data)} records")
     else:
-        logger.warning("No forex data downloaded")
+        logger.warning("No forex data available")
         forex_data = None
     
     return forex_data
@@ -70,9 +69,9 @@ def load_and_process_trades(config, logger):
     return trades_df
 
 
-def download_stock_prices(trades_df, config, logger):
-    """Download stock price data for traded securities."""
-    logger.info("=== Downloading Stock Prices ===")
+def update_stock_prices(trades_df, config, logger):
+    """Update stock price data for traded securities incrementally."""
+    logger.info("=== Updating Stock Prices (Incremental) ===")
     
     stock_manager = StockDataManager(config)
     
@@ -83,15 +82,14 @@ def download_stock_prices(trades_df, config, logger):
         logger.warning("No security codes found in trading data")
         return None
     
-    # Download price data
-    price_data = stock_manager.download_stock_prices(security_codes)
+    # Update price data incrementally
+    price_path = config.PROCESSED_DATA_DIR / "stock_prices.csv"
+    price_data = stock_manager.update_stock_prices(price_path, security_codes)
     
     if not price_data.empty:
-        price_path = config.PROCESSED_DATA_DIR / "stock_prices.csv"
-        stock_manager.save_stock_prices(price_data, price_path)
-        logger.info(f"Stock price data saved to {price_path}")
+        logger.info(f"Stock price data updated: {len(price_data)} records for {len(price_data.columns)} securities")
     else:
-        logger.warning("No stock price data downloaded")
+        logger.warning("No stock price data available")
     
     return price_data
 
@@ -252,17 +250,17 @@ def main():
             # Full analysis pipeline
             forex_data = None
             if not args.skip_download:
-                forex_data = download_market_data(config, logger)
+                forex_data = update_market_data(config, logger)
             
             # Load and process trades
             trades_df = load_and_process_trades(config, logger)
             if trades_df is None:
                 return
             
-            # Download stock prices
+            # Update stock prices
             price_data = None
             if not args.skip_download:
-                price_data = download_stock_prices(trades_df, config, logger)
+                price_data = update_stock_prices(trades_df, config, logger)
             
             # Analyze portfolio
             holdings_df, summary, activity, performance_df = analyze_portfolio(

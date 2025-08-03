@@ -19,47 +19,114 @@ class ForexDataManager:
     def __init__(self, config: Config = None):
         self.config = config or Config()
     
-    def download_forex_data(self, pairs: List[str] = None, 
-                          start_date: str = None, 
-                          end_date: str = None) -> pd.DataFrame:
-        """Download forex data from Yahoo Finance."""
+    def update_forex_data(self, forex_file_path: Path,
+                         pairs: List[str] = None, 
+                         retry_count: int = 3,
+                         delay_seconds: float = 2.0) -> pd.DataFrame:
+        """Update forex data incrementally by fetching only new data."""
+        import time
+        
         pairs = pairs or self.config.FOREX_PAIRS
-        start_date = start_date or self.config.MARKET_START_DATE
-        end_date = end_date or (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+        end_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
         
-        logger.info(f"Downloading forex data for pairs: {pairs}")
-        logger.info(f"Date range: {start_date} to {end_date}")
-        
-        forex_data = pd.DataFrame()
-        
-        for pair in pairs:
+        # Load existing data or determine start date
+        existing_data = pd.DataFrame()
+        if forex_file_path.exists():
             try:
-                logger.info(f"Downloading {pair}")
-                data = yf.download(pair, start=start_date, end=end_date)
-                
-                if data.empty:
-                    logger.warning(f"No data available for {pair}")
-                    continue
-                
-                # Clean pair name for column
-                clean_pair = pair.replace('=X', '')
-                forex_data[clean_pair] = data['Close']
-                
-                logger.info(f"Downloaded {len(data)} records for {pair}")
-                
+                existing_data = self.load_forex_data(forex_file_path)
+                if not existing_data.empty:
+                    # Get last date and start from next day
+                    last_date = existing_data.index.max()
+                    start_date = (last_date + timedelta(days=1)).strftime('%Y-%m-%d')
+                    logger.info(f"Found existing data up to {last_date}. Fetching from {start_date}")
+                else:
+                    start_date = self.config.MARKET_START_DATE
+                    logger.info("Existing file is empty. Starting fresh download")
             except Exception as e:
-                logger.error(f"Error downloading {pair}: {e}")
+                logger.warning(f"Error reading existing forex data: {e}. Starting fresh")
+                start_date = self.config.MARKET_START_DATE
+        else:
+            start_date = self.config.MARKET_START_DATE
+            logger.info("No existing forex data found. Starting fresh download")
         
-        if forex_data.empty:
-            logger.error("No forex data was downloaded")
+        # Check if we need to download anything
+        if start_date > end_date:
+            logger.info("Forex data is already up to date")
+            return existing_data
+        
+        logger.info(f"Updating forex data for pairs: {pairs}")
+        logger.info(f"Date range: {start_date} to {end_date}")
+        logger.info(f"Using rate limiting: {delay_seconds}s delay between requests")
+        
+        new_forex_data = pd.DataFrame()
+        successful_downloads = 0
+        
+        for i, pair in enumerate(pairs):
+            if i > 0:
+                logger.info(f"Waiting {delay_seconds}s before next request...")
+                time.sleep(delay_seconds)
+            
+            success = False
+            for attempt in range(retry_count):
+                try:
+                    logger.info(f"Downloading {pair} (attempt {attempt + 1}/{retry_count})")
+                    data = yf.download(pair, start=start_date, end=end_date, progress=False)
+                    
+                    if data.empty:
+                        logger.warning(f"No new data available for {pair}")
+                        # If we have existing data for this pair, mark as success
+                        if not existing_data.empty and pair.replace('=X', '') in existing_data.columns:
+                            success = True
+                        break
+                    
+                    clean_pair = pair.replace('=X', '')
+                    new_forex_data[clean_pair] = data['Close']
+                    
+                    logger.info(f"✅ Downloaded {len(data)} new records for {pair}")
+                    successful_downloads += 1
+                    success = True
+                    break
+                    
+                except Exception as e:
+                    if "rate limit" in str(e).lower() or "429" in str(e):
+                        wait_time = delay_seconds * (2 ** attempt)
+                        logger.warning(f"Rate limit hit for {pair}. Waiting {wait_time}s before retry...")
+                        time.sleep(wait_time)
+                    else:
+                        logger.error(f"Error downloading {pair}: {e}")
+                        break
+            
+            if not success:
+                logger.error(f"❌ Failed to download {pair} after {retry_count} attempts")
+        
+        # Merge existing and new data
+        if existing_data.empty and new_forex_data.empty:
+            logger.warning("No forex data available - continuing with analysis")
             return pd.DataFrame()
+        elif existing_data.empty:
+            combined_data = new_forex_data
+        elif new_forex_data.empty:
+            combined_data = existing_data
+        else:
+            # Ensure timezone-naive datetime index for new data
+            if new_forex_data.index.tz is not None:
+                new_forex_data.index = new_forex_data.index.tz_localize(None)
+            
+            # Combine data
+            combined_data = pd.concat([existing_data, new_forex_data])
+            combined_data = combined_data.sort_index()
+            # Remove any duplicate dates
+            combined_data = combined_data[~combined_data.index.duplicated(keep='last')]
         
-        # Ensure timezone-naive datetime index
-        if forex_data.index.tz is not None:
-            forex_data.index = forex_data.index.tz_localize(None)
+        # Save updated data
+        self.save_forex_data(combined_data, forex_file_path)
         
-        logger.info(f"Successfully downloaded forex data: {list(forex_data.columns)}")
-        return forex_data
+        total_pairs = len(existing_data.columns) if not existing_data.empty else 0
+        new_pairs = len(new_forex_data.columns) if not new_forex_data.empty else 0
+        logger.info(f"✅ Forex data updated: {len(combined_data)} total records")
+        logger.info(f"   Existing pairs: {total_pairs}, New data for: {new_pairs} pairs")
+        
+        return combined_data
     
     def save_forex_data(self, forex_data: pd.DataFrame, output_path: Path):
         """Save forex data to CSV."""

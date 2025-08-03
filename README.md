@@ -126,8 +126,10 @@ trahist/
 - **Trading Activity**: Patterns and frequency analysis
 
 ### Market Data Integration
-- Downloads forex rates (USDJPY, EURJPY) from Yahoo Finance
-- Fetches stock prices for all traded securities
+- **Incremental updates**: Downloads only new data since last update
+- **Rate limit protection**: Automatic delays and retry logic for Yahoo Finance
+- **Batch processing**: Downloads securities in small batches to avoid limits
+- Downloads forex rates (USDJPY, EURJPY) and stock prices
 - Converts all amounts to JPY for consistent analysis
 
 ### Visualizations
@@ -163,9 +165,10 @@ All operations are logged with timestamps. Check console output for:
 ## Tips for Best Results
 
 1. **File Organization**: Keep data files organized in the `data/raw/` directory
-2. **Regular Updates**: Run analysis periodically to get updated market data
+2. **Regular Updates**: Run analysis periodically - only new data will be downloaded
 3. **Data Quality**: Ensure CSV files are properly formatted and complete
 4. **Performance**: Use `--skip-download` for faster re-analysis of existing data
+5. **Rate Limits**: The system automatically handles Yahoo Finance rate limits with delays and retries
 
 ## Troubleshooting
 
@@ -177,7 +180,8 @@ All operations are logged with timestamps. Check console output for:
 
 **Market data download fails**:
 - Check internet connection
-- Yahoo Finance may have rate limits - try again later
+- System automatically handles rate limits with delays
+- Partial failures are handled gracefully - analysis continues
 
 **Encoding errors**:
 - System automatically detects encodings, but you can manually specify in `config.py`

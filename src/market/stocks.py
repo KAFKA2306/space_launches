@@ -2,7 +2,7 @@
 
 import pandas as pd
 import yfinance as yf
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 import logging
 from typing import Set
@@ -44,56 +44,163 @@ class StockDataManager:
         logger.info(f"Extracted {len(codes)} unique security codes")
         return set(codes)
     
-    def download_stock_prices(self, security_codes: Set[str], 
-                            start_date: str = None, 
-                            end_date: str = None) -> pd.DataFrame:
-        """Download stock price data from Yahoo Finance."""
-        start_date = start_date or self.config.MARKET_START_DATE
-        end_date = end_date or datetime.now().strftime('%Y-%m-%d')
+    def update_stock_prices(self, prices_file_path: Path,
+                          security_codes: Set[str], 
+                          batch_size: int = 5,
+                          delay_seconds: float = 3.0,
+                          retry_count: int = 2) -> pd.DataFrame:
+        """Update stock price data incrementally by fetching only new data."""
+        import time
         
-        logger.info(f"Downloading stock prices for {len(security_codes)} securities")
-        logger.info(f"Date range: {start_date} to {end_date}")
+        end_date = datetime.now().strftime('%Y-%m-%d')
         
         if not security_codes:
             logger.warning("No security codes provided")
             return pd.DataFrame()
         
-        codes_list = list(security_codes)
+        # Load existing data or determine start date
+        existing_data = pd.DataFrame()
+        if prices_file_path.exists():
+            try:
+                existing_data = self.load_stock_prices(prices_file_path)
+                if not existing_data.empty:
+                    last_date = existing_data.index.max()
+                    start_date = (last_date + timedelta(days=1)).strftime('%Y-%m-%d')
+                    logger.info(f"Found existing price data up to {last_date}. Fetching from {start_date}")
+                else:
+                    start_date = self.config.MARKET_START_DATE
+                    logger.info("Existing price file is empty. Starting fresh download")
+            except Exception as e:
+                logger.warning(f"Error reading existing price data: {e}. Starting fresh")
+                start_date = self.config.MARKET_START_DATE
+        else:
+            start_date = self.config.MARKET_START_DATE
+            logger.info("No existing price data found. Starting fresh download")
         
-        try:
-            # Download all at once for efficiency
-            data = yf.download(
-                codes_list, 
-                start=start_date, 
-                end=end_date, 
-                group_by='column',
-                ignore_tz=True
-            )
+        # Check if we need to download anything
+        if start_date > end_date:
+            logger.info("Stock price data is already up to date")
+            return existing_data
+        
+        logger.info(f"Updating stock prices for {len(security_codes)} securities")
+        logger.info(f"Date range: {start_date} to {end_date}")
+        logger.info(f"Using batches of {batch_size} with {delay_seconds}s delays")
+        
+        codes_list = list(security_codes)
+        new_price_data = pd.DataFrame()
+        successful_downloads = 0
+        
+        # Process in smaller batches to avoid rate limiting
+        for i in range(0, len(codes_list), batch_size):
+            batch = codes_list[i:i + batch_size]
+            batch_num = (i // batch_size) + 1
+            total_batches = (len(codes_list) + batch_size - 1) // batch_size
             
-            if data.empty:
-                logger.warning("No stock price data downloaded")
-                return pd.DataFrame()
+            logger.info(f"Processing batch {batch_num}/{total_batches}: {len(batch)} securities")
             
-            # Extract adjusted close prices
-            if 'Adj Close' in data.columns:
-                adj_close_data = data['Adj Close'].copy()
-            else:
-                # Fallback to Close if Adj Close not available
-                adj_close_data = data['Close'].copy() if 'Close' in data.columns else data
+            # Add delay between batches
+            if i > 0:
+                logger.info(f"Waiting {delay_seconds}s before next batch...")
+                time.sleep(delay_seconds)
             
-            # Clean column names (remove .T suffix for display)
-            if hasattr(adj_close_data, 'columns'):
-                adj_close_data.columns = [col.rstrip('.T') for col in adj_close_data.columns]
+            success = False
+            for attempt in range(retry_count):
+                try:
+                    logger.info(f"Downloading batch (attempt {attempt + 1}/{retry_count})")
+                    
+                    # Download batch
+                    if len(batch) == 1:
+                        data = yf.download(batch[0], start=start_date, end=end_date, progress=False)
+                        if not data.empty:
+                            batch_data = pd.DataFrame({batch[0]: data['Adj Close'] if 'Adj Close' in data.columns else data['Close']})
+                        else:
+                            batch_data = pd.DataFrame()
+                    else:
+                        data = yf.download(
+                            batch, 
+                            start=start_date, 
+                            end=end_date, 
+                            group_by='column',
+                            progress=False,
+                            ignore_tz=True
+                        )
+                        
+                        if data.empty:
+                            batch_data = pd.DataFrame()
+                        else:
+                            # Extract adjusted close prices
+                            if 'Adj Close' in data.columns:
+                                batch_data = data['Adj Close'].copy()
+                            elif 'Close' in data.columns:
+                                batch_data = data['Close'].copy()
+                            else:
+                                batch_data = data
+                    
+                    if not batch_data.empty:
+                        # Clean column names
+                        if hasattr(batch_data, 'columns'):
+                            batch_data.columns = [col.rstrip('.T') for col in batch_data.columns]
+                        
+                        # Remove columns with all NaN values
+                        batch_data = batch_data.dropna(axis=1, how='all')
+                        
+                        # Merge with new data
+                        if new_price_data.empty:
+                            new_price_data = batch_data
+                        else:
+                            new_price_data = pd.concat([new_price_data, batch_data], axis=1)
+                        
+                        successful_downloads += len(batch_data.columns) if hasattr(batch_data, 'columns') else 1
+                        logger.info(f"✅ Downloaded {len(batch_data.columns) if hasattr(batch_data, 'columns') else 1} securities")
+                    else:
+                        logger.warning(f"No new data returned for batch")
+                    
+                    success = True
+                    break
+                    
+                except Exception as e:
+                    if "rate limit" in str(e).lower() or "429" in str(e):
+                        wait_time = delay_seconds * (2 ** attempt)
+                        logger.warning(f"Rate limit hit. Waiting {wait_time}s before retry...")
+                        time.sleep(wait_time)
+                    else:
+                        logger.error(f"Error downloading batch: {e}")
+                        break
             
-            # Remove columns with all NaN values
-            adj_close_data = adj_close_data.dropna(axis=1, how='all')
-            
-            logger.info(f"Downloaded prices for {len(adj_close_data.columns)} securities")
-            return adj_close_data
-            
-        except Exception as e:
-            logger.error(f"Error downloading stock prices: {e}")
+            if not success:
+                logger.error(f"❌ Failed to download batch {batch_num} after {retry_count} attempts")
+        
+        # Merge existing and new data
+        if existing_data.empty and new_price_data.empty:
+            logger.warning("No stock price data available - continuing with analysis")
             return pd.DataFrame()
+        elif existing_data.empty:
+            combined_data = new_price_data
+        elif new_price_data.empty:
+            combined_data = existing_data
+        else:
+            # Ensure all securities are included
+            all_columns = set(existing_data.columns) | set(new_price_data.columns)
+            
+            # Reindex both dataframes to have all columns
+            existing_data = existing_data.reindex(columns=all_columns)
+            new_price_data = new_price_data.reindex(columns=all_columns)
+            
+            # Combine data
+            combined_data = pd.concat([existing_data, new_price_data])
+            combined_data = combined_data.sort_index()
+            # Remove any duplicate dates
+            combined_data = combined_data[~combined_data.index.duplicated(keep='last')]
+        
+        # Save updated data
+        self.save_stock_prices(combined_data, prices_file_path)
+        
+        existing_securities = len(existing_data.columns) if not existing_data.empty else 0
+        new_securities = len(new_price_data.columns) if not new_price_data.empty else 0
+        logger.info(f"✅ Stock price data updated: {len(combined_data)} total records")
+        logger.info(f"   Existing securities: {existing_securities}, Updated: {new_securities}")
+        
+        return combined_data
     
     def save_stock_prices(self, price_data: pd.DataFrame, output_path: Path):
         """Save stock price data to CSV."""
