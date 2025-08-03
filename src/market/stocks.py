@@ -5,9 +5,11 @@ import yfinance as yf
 from datetime import datetime, timedelta
 from pathlib import Path
 import logging
-from typing import Set
+from typing import Set, Optional
+import os
 
 from config import Config
+from .alternative_data import AlternativeDataFetcher
 
 
 logger = logging.getLogger(__name__)
@@ -16,8 +18,14 @@ logger = logging.getLogger(__name__)
 class StockDataManager:
     """Manage stock price data downloading and processing."""
     
-    def __init__(self, config: Config = None):
+    def __init__(self, config: Config = None, use_alternative_sources: bool = False):
         self.config = config or Config()
+        self.use_alternative_sources = use_alternative_sources
+        self.alternative_fetcher = AlternativeDataFetcher(config) if use_alternative_sources else None
+        
+        # Set up API keys from environment variables
+        if self.alternative_fetcher:
+            self.alternative_fetcher.alpha_vantage_key = os.getenv('ALPHA_VANTAGE_API_KEY')
     
     def process_security_code(self, code: str) -> str:
         """Process and standardize security codes for Yahoo Finance."""
@@ -44,6 +52,103 @@ class StockDataManager:
         logger.info(f"Extracted {len(codes)} unique security codes")
         return set(codes)
     
+    def update_stock_prices_alternative(self, prices_file_path: Path,
+                                       security_codes: Set[str],
+                                       sources: Optional[list] = None) -> pd.DataFrame:
+        """Update stock prices using alternative data sources (not yfinance)."""
+        if not self.alternative_fetcher:
+            logger.warning("Alternative data fetcher not initialized. Using yfinance fallback.")
+            return self.update_stock_prices(prices_file_path, security_codes)
+        
+        if not security_codes:
+            logger.warning("No security codes provided")
+            return pd.DataFrame()
+        
+        logger.info(f"Updating stock prices using alternative sources for {len(security_codes)} securities")
+        
+        # Load existing data or determine start date
+        existing_data = pd.DataFrame()
+        start_date = self.config.HISTORICAL_DATA['default_start_date']
+        
+        if prices_file_path.exists():
+            try:
+                existing_data = self.load_stock_prices(prices_file_path)
+                if not existing_data.empty:
+                    last_date = existing_data.index.max()
+                    start_date = (last_date + timedelta(days=1)).strftime('%Y-%m-%d')
+                    logger.info(f"Found existing data up to {last_date}. Fetching from {start_date}")
+                else:
+                    logger.info("Existing file is empty. Starting fresh download")
+            except Exception as e:
+                logger.warning(f"Error reading existing data: {e}. Starting fresh")
+        else:
+            logger.info("No existing data found. Starting fresh download")
+        
+        # Check if we need to download
+        end_date = datetime.now().strftime('%Y-%m-%d')
+        if start_date > end_date:
+            logger.info("Stock price data is already up to date")
+            return existing_data
+        
+        # Use alternative data fetcher
+        sources = sources or self.config.ALTERNATIVE_DATA_SOURCES['default_sources']
+        delay_seconds = self.config.ALTERNATIVE_DATA_SOURCES['rate_limit_seconds']
+        max_symbols = self.config.ALTERNATIVE_DATA_SOURCES['max_symbols_per_batch']
+        
+        # Process security codes for alternative sources
+        processed_codes = []
+        for code in security_codes:
+            if pd.isna(code) or code == '':
+                continue
+            # For alternative sources, we might need different processing
+            processed_code = str(code).strip()
+            if processed_code.endswith('.T'):
+                processed_code = processed_code[:-2]  # Remove .T for alternative sources
+            processed_codes.append(processed_code)
+        
+        # Fetch historical data
+        historical_data = self.alternative_fetcher.fetch_multiple_symbols(
+            symbols=processed_codes,
+            start_date=start_date,
+            end_date=end_date,
+            sources=sources,
+            delay_seconds=delay_seconds,
+            max_symbols=max_symbols
+        )
+        
+        # Convert to price DataFrame (close prices only)
+        new_price_data = pd.DataFrame()
+        if historical_data:
+            for symbol, df in historical_data.items():
+                if not df.empty and 'Close' in df.columns:
+                    new_price_data[symbol] = df['Close']
+        
+        # Merge with existing data
+        if existing_data.empty and new_price_data.empty:
+            logger.warning("No stock price data available")
+            return pd.DataFrame()
+        elif existing_data.empty:
+            combined_data = new_price_data
+        elif new_price_data.empty:
+            combined_data = existing_data
+        else:
+            # Merge existing and new data
+            all_columns = set(existing_data.columns) | set(new_price_data.columns)
+            existing_data = existing_data.reindex(columns=all_columns)
+            new_price_data = new_price_data.reindex(columns=all_columns)
+            
+            combined_data = pd.concat([existing_data, new_price_data])
+            combined_data = combined_data.sort_index()
+            combined_data = combined_data[~combined_data.index.duplicated(keep='last')]
+        
+        # Save updated data
+        self.save_stock_prices(combined_data, prices_file_path)
+        
+        logger.info(f"✅ Stock price data updated using alternative sources: {len(combined_data)} records")
+        logger.info(f"   Securities: {len(combined_data.columns) if not combined_data.empty else 0}")
+        
+        return combined_data
+    
     def update_stock_prices(self, prices_file_path: Path,
                           security_codes: Set[str], 
                           batch_size: int = 5,
@@ -51,6 +156,11 @@ class StockDataManager:
                           retry_count: int = 2,
                           use_fallback: bool = True) -> pd.DataFrame:
         """Update stock price data incrementally by fetching only new data."""
+        # Route to alternative sources if configured
+        if self.use_alternative_sources:
+            logger.info("Using alternative data sources instead of yfinance")
+            return self.update_stock_prices_alternative(prices_file_path, security_codes)
+        
         import time
         
         end_date = datetime.now().strftime('%Y-%m-%d')

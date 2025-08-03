@@ -19,6 +19,8 @@ from src.utils.helpers import setup_logging, get_timestamp
 from src.data.loaders import DataLoader
 from src.market.forex import ForexDataManager
 from src.market.stocks import StockDataManager
+from src.market.data_converter import DataConverter
+from src.market.alternative_data import AlternativeDataFetcher
 from src.analysis.portfolio import PortfolioAnalyzer
 from src.analysis.visualization import TradeVisualizer
 
@@ -69,11 +71,11 @@ def load_and_process_trades(config, logger):
     return trades_df
 
 
-def update_stock_prices(trades_df, config, logger):
+def update_stock_prices(trades_df, config, logger, use_alternative_sources=False):
     """Update stock price data for traded securities incrementally."""
     logger.info("=== Updating Stock Prices (Incremental) ===")
     
-    stock_manager = StockDataManager(config)
+    stock_manager = StockDataManager(config, use_alternative_sources=use_alternative_sources)
     
     # Extract security codes
     security_codes = stock_manager.extract_security_codes(trades_df)
@@ -92,6 +94,34 @@ def update_stock_prices(trades_df, config, logger):
         logger.warning("No stock price data available")
     
     return price_data
+
+
+def export_to_json(config, logger):
+    """Export processed data to JSON format."""
+    logger.info("=== Exporting Data to JSON ===")
+    
+    converter = DataConverter(config)
+    
+    try:
+        # Export latest processed data to JSON
+        json_output_dir = config.OUTPUT_DIR / config.JSON_EXPORT['export_directory']
+        result_paths = converter.convert_latest_data_to_json(
+            config.PROCESSED_DATA_DIR,
+            json_output_dir
+        )
+        
+        if result_paths:
+            logger.info("JSON export successful. Created files:")
+            for file_type, path in result_paths.items():
+                logger.info(f"  {file_type}: {path}")
+            return result_paths
+        else:
+            logger.warning("No JSON files were created")
+            return {}
+            
+    except Exception as e:
+        logger.error(f"Error during JSON export: {e}")
+        return {}
 
 
 def analyze_portfolio(trades_df, price_data, forex_data, config, logger):
@@ -207,6 +237,21 @@ def main():
         action="store_true", 
         help="Only create charts from existing processed data"
     )
+    parser.add_argument(
+        "--export-json",
+        action="store_true",
+        help="Export processed data to JSON format"
+    )
+    parser.add_argument(
+        "--alternative-data",
+        action="store_true", 
+        help="Use alternative data sources (STOOQ, Yahoo Direct) instead of yfinance"
+    )
+    parser.add_argument(
+        "--json-only",
+        action="store_true",
+        help="Only export data to JSON format without full analysis"
+    )
     
     args = parser.parse_args()
     
@@ -215,7 +260,13 @@ def main():
     logger.info("Starting Trade History Analysis")
     
     try:
-        if args.charts_only:
+        if args.json_only:
+            # Only export to JSON without full analysis
+            logger.info("Exporting data to JSON only")
+            export_to_json(config, logger)
+            logger.info("JSON export completed!")
+            
+        elif args.charts_only:
             # Load existing data and create charts only
             logger.info("Creating charts from existing data")
             
@@ -261,7 +312,8 @@ def main():
             # Update stock prices
             price_data = None
             if not args.skip_download:
-                price_data = update_stock_prices(trades_df, config, logger)
+                price_data = update_stock_prices(trades_df, config, logger, 
+                                               use_alternative_sources=args.alternative_data)
             
             # Analyze portfolio
             holdings_df, summary, activity, performance_df = analyze_portfolio(
@@ -271,6 +323,10 @@ def main():
             # Create visualizations
             create_visualizations(trades_df, holdings_df, summary, activity, 
                                 performance_df, price_data, config, logger)
+            
+            # Export to JSON if requested
+            if args.export_json or config.JSON_EXPORT['enable_auto_export']:
+                export_to_json(config, logger)
             
             # Print summary
             print_summary(summary, activity, logger)

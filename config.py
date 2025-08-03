@@ -128,3 +128,35 @@ class Config:
         'HKD': ['HKD', '香港ドル', 'HK$'],
         'CNY': ['CNY', '中国元', '人民元']
     }
+    
+    # Alternative data sources configuration
+    ALTERNATIVE_DATA_SOURCES = {
+        'default_sources': ['stooq', 'yahoo', 'alpha_vantage'],
+        'rate_limit_seconds': 2.0,
+        'request_timeout': 30,
+        'retry_count': 3,
+        'max_symbols_per_batch': 50
+    }
+    
+    # JSON export settings
+    JSON_EXPORT = {
+        'enable_auto_export': True,
+        'export_directory': 'json_data',
+        'include_metadata': True,
+        'pretty_print': True
+    }
+    
+    # API configuration (use environment variables for actual keys)
+    API_KEYS = {
+        'alpha_vantage_key': None,  # Set via ALPHA_VANTAGE_API_KEY env var
+        'polygon_key': None,        # Set via POLYGON_API_KEY env var
+        'iex_key': None            # Set via IEX_API_KEY env var
+    }
+    
+    # Historical data settings
+    HISTORICAL_DATA = {
+        'default_start_date': '2020-01-01',
+        'max_days_per_request': 365,
+        'enable_caching': True,
+        'cache_directory': 'historical_cache'
+    }
