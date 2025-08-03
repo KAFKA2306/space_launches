@@ -1,10 +1,37 @@
-"*.pyc" 
-"__pycache__/" 
-".env" 
-"*RAWDATA*" 
-"*plots*" 
-"*EDA_results*" 
+# Python
+*.pyc
+__pycache__/
+.env
 
-"*.ipynb"
-"*note*"
-"*.md*"
+# Legacy directories
+*RAWDATA*
+*plots*
+*EDA_results*
+
+# Jupyter notebooks
+*.ipynb
+
+# Notes
+*note*
+
+# Windows Zone Identifier files (avoid filename issues)
+*:Zone.Identifier*
+*:Zone.Identifier:*
+
+# Claude settings
+.claude/
+
+# Data directories (keep structure but ignore contents)
+data/processed/*
+data/output/*
+!data/processed/.gitkeep
+!data/output/.gitkeep
+!data/raw/README.md
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
