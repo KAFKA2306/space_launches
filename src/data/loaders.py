@@ -254,4 +254,28 @@ class DataLoader:
         combined_df = combined_df.sort_values('trade_date').reset_index(drop=True)
         
         logger.info(f"Successfully loaded {len(combined_df)} total records from {len(all_dataframes)} files")
+        
+        # Log detailed statistics
+        logger.info(f"Combined data columns: {list(combined_df.columns)}")
+        logger.info(f"Data date range: {combined_df['trade_date'].min()} to {combined_df['trade_date'].max()}")
+        
+        # Log data source distribution
+        if 'data_source' in combined_df.columns:
+            source_counts = combined_df['data_source'].value_counts()
+            logger.info(f"Records per data source: {source_counts.to_dict()}")
+        
+        # Log transaction type distribution
+        if 'transaction_type' in combined_df.columns:
+            transaction_counts = combined_df['transaction_type'].value_counts()
+            logger.info(f"Transaction types: {transaction_counts.to_dict()}")
+        
+        # Log currency distribution
+        if 'currency' in combined_df.columns:
+            currency_counts = combined_df['currency'].value_counts()
+            logger.info(f"Currencies: {currency_counts.to_dict()}")
+        
+        # Log sample of the data
+        logger.info("Sample of loaded data:")
+        logger.info(f"\n{combined_df[['trade_date', 'security_name', 'transaction_type', 'quantity', 'currency']].head()}")
+        
         return combined_df

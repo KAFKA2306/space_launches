@@ -194,44 +194,143 @@ class ForexDataManager:
             logger.warning("No forex data available for merging")
             return trades_df
         
-        # Prepare forex data for merging
-        forex_for_merge = forex_data.reset_index()
-        forex_for_merge = forex_for_merge.rename(columns={'Date': 'trade_date'})
-        
-        # Merge with trade data
-        merged_df = pd.merge(trades_df, forex_for_merge, on='trade_date', how='left')
-        
-        logger.info("Merged trade data with forex rates")
-        return merged_df
+        try:
+            logger.info("Starting forex data merge process")
+            
+            # Prepare forex data for merging
+            forex_for_merge = forex_data.reset_index()
+            logger.info(f"Forex data shape after reset_index: {forex_for_merge.shape}")
+            logger.info(f"Forex data columns: {list(forex_for_merge.columns)}")
+            
+            # Flexible column name handling for different data sources
+            date_column = None
+            possible_date_columns = ['Date', 'date', 'index', 'trade_date', 'DATE']
+            logger.info(f"Looking for date column among: {possible_date_columns}")
+            
+            for col in possible_date_columns:
+                if col in forex_for_merge.columns:
+                    date_column = col
+                    logger.info(f"Found date column: '{date_column}'")
+                    break
+            
+            if date_column is None:
+                # If no recognizable date column, use the first column
+                if len(forex_for_merge.columns) > 0:
+                    date_column = forex_for_merge.columns[0]
+                    logger.warning(f"No standard date column found. Using first column: '{date_column}'")
+                    logger.info(f"First few values in '{date_column}': {forex_for_merge[date_column].head()}")
+                else:
+                    logger.error("No columns found in forex data")
+                    return trades_df
+            
+            # Rename the date column to 'trade_date' for merging
+            if date_column != 'trade_date':
+                forex_for_merge = forex_for_merge.rename(columns={date_column: 'trade_date'})
+                logger.info(f"Renamed forex date column '{date_column}' to 'trade_date'")
+            
+            # Ensure trade_date is datetime type
+            logger.info(f"Converting '{date_column}' to datetime...")
+            logger.info(f"Sample values before conversion: {forex_for_merge['trade_date'].head()}")
+            forex_for_merge['trade_date'] = pd.to_datetime(forex_for_merge['trade_date'], errors='coerce')
+            
+            # Remove any rows where date conversion failed
+            before_count = len(forex_for_merge)
+            forex_for_merge = forex_for_merge.dropna(subset=['trade_date'])
+            after_count = len(forex_for_merge)
+            
+            if before_count != after_count:
+                logger.warning(f"Dropped {before_count - after_count} rows with invalid dates")
+            
+            if forex_for_merge.empty:
+                logger.error("No valid forex data remaining after date processing")
+                return trades_df
+            
+            logger.info(f"Forex data date range: {forex_for_merge['trade_date'].min()} to {forex_for_merge['trade_date'].max()}")
+            
+            # Ensure trades_df also has proper trade_date
+            if 'trade_date' not in trades_df.columns:
+                logger.error("trades_df missing 'trade_date' column")
+                logger.info(f"Available columns in trades_df: {list(trades_df.columns)}")
+                return trades_df
+            
+            logger.info(f"Trades data date range: {trades_df['trade_date'].min()} to {trades_df['trade_date'].max()}")
+            logger.info(f"Merging {len(trades_df)} trades with {len(forex_for_merge)} forex records")
+            
+            # Merge with trade data
+            merged_df = pd.merge(trades_df, forex_for_merge, on='trade_date', how='left')
+            
+            # Log merge results
+            forex_matches = merged_df['USDJPY'].notna().sum() if 'USDJPY' in merged_df.columns else 0
+            logger.info(f"Merged trade data with forex rates: {forex_matches}/{len(merged_df)} trades have forex data")
+            
+            return merged_df
+            
+        except Exception as e:
+            logger.error(f"Error merging forex data with trades: {e}")
+            logger.info("Continuing without forex data")
+            return trades_df
     
     def calculate_jpy_amounts(self, df: pd.DataFrame) -> pd.DataFrame:
         """Calculate JPY amounts for all trades."""
+        logger.info("Starting JPY amount calculation")
         df = df.copy()
+        
+        # Log currency distribution
+        currency_counts = df['currency'].value_counts()
+        logger.info(f"Currency distribution: {currency_counts.to_dict()}")
+        
+        # Check forex data availability
+        forex_columns = ['USDJPY', 'EURJPY']
+        available_forex = [col for col in forex_columns if col in df.columns]
+        logger.info(f"Available forex columns: {available_forex}")
+        
+        if available_forex:
+            for col in available_forex:
+                non_null_count = df[col].notna().sum()
+                logger.info(f"{col} data available for {non_null_count}/{len(df)} trades")
         
         def convert_to_jpy(row):
             if row['currency'] == 'JPY':
                 # For JPY trades, use settlement amount directly
-                return row['settlement_amount'] if pd.notna(row['settlement_amount']) else 0
+                amount = row['settlement_amount'] if pd.notna(row['settlement_amount']) else 0
+                return amount
             
             elif row['currency'] == 'USD':
                 # For USD trades, convert using USDJPY rate
                 if pd.notna(row.get('USDJPY')) and pd.notna(row['price']) and pd.notna(row['quantity']):
-                    return row['price'] * row['quantity'] * row['USDJPY']
+                    amount = row['price'] * row['quantity'] * row['USDJPY']
+                    return amount
                 else:
-                    return row['settlement_amount'] if pd.notna(row['settlement_amount']) else 0
+                    amount = row['settlement_amount'] if pd.notna(row['settlement_amount']) else 0
+                    return amount
             
             elif row['currency'] == 'EUR':
                 # For EUR trades, convert using EURJPY rate
                 if pd.notna(row.get('EURJPY')) and pd.notna(row['price']) and pd.notna(row['quantity']):
-                    return row['price'] * row['quantity'] * row['EURJPY']
+                    amount = row['price'] * row['quantity'] * row['EURJPY']
+                    return amount
                 else:
-                    return row['settlement_amount'] if pd.notna(row['settlement_amount']) else 0
+                    amount = row['settlement_amount'] if pd.notna(row['settlement_amount']) else 0
+                    return amount
             
             else:
                 # For other currencies, use settlement amount if available
-                return row['settlement_amount'] if pd.notna(row['settlement_amount']) else 0
+                amount = row['settlement_amount'] if pd.notna(row['settlement_amount']) else 0
+                return amount
         
         df['amount_jpy'] = df.apply(convert_to_jpy, axis=1)
         
-        logger.info("Calculated JPY amounts for all trades")
+        # Log calculation results
+        total_amount = df['amount_jpy'].sum()
+        valid_amounts = df['amount_jpy'].notna().sum()
+        logger.info(f"Calculated JPY amounts: {valid_amounts}/{len(df)} trades")
+        logger.info(f"Total JPY amount: ¥{total_amount:,.0f}")
+        
+        # Log per-currency statistics
+        for currency in df['currency'].unique():
+            if pd.notna(currency):
+                currency_df = df[df['currency'] == currency]
+                currency_total = currency_df['amount_jpy'].sum()
+                logger.info(f"{currency} trades: {len(currency_df)} trades, ¥{currency_total:,.0f} total")
+        
         return df
