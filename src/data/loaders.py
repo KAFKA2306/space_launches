@@ -128,47 +128,200 @@ class DataLoader:
         return self._standardize_dataframe(df)
     
     def load_portfolio_data(self, file_path: Path) -> pd.DataFrame:
-        """Load portfolio/asset balance data."""
-        logger.info(f"Loading portfolio data from {file_path}")
+        """Load portfolio/asset balance data as portfolio snapshots."""
+        logger.info(f"Loading portfolio snapshot from {file_path}")
         
         try:
-            # Try different approaches for portfolio files
-            df = None
-            
-            # First try: standard CSV read
-            try:
-                df = safe_read_csv(file_path, encoding='shift_jis')
-            except Exception as e1:
-                logger.info(f"Standard read failed: {e1}, trying with error handling")
-                
-                # Second try: with error handling for malformed CSV
-                try:
-                    df = safe_read_csv(file_path, encoding='shift_jis', on_bad_lines='skip')
-                except Exception as e2:
-                    logger.info(f"Skip bad lines failed: {e2}, trying with different separator")
-                    
-                    # Third try: different approach
-                    try:
-                        df = safe_read_csv(file_path, encoding='shift_jis', sep=None, engine='python')
-                    except Exception as e3:
-                        logger.warning(f"All read attempts failed for {file_path}: {e3}")
-                        return pd.DataFrame()
-            
-            if df is not None and not df.empty:
-                # Portfolio data has different structure, just add metadata
-                df['data_source'] = f'portfolio_{file_path.name}'
-                df['file_type'] = 'portfolio'
-                
-                logger.info(f"Successfully loaded portfolio data: {len(df)} records, {len(df.columns)} columns")
-                logger.info(f"Portfolio columns: {list(df.columns)[:10]}")  # Show first 10 columns
-                return df
+            # Parse based on filename pattern
+            if 'assetbalance' in file_path.name.lower():
+                return self._parse_assetbalance_file(file_path)
+            elif 'new_file' in file_path.name.lower():
+                return self._parse_portfolio_listing_file(file_path)
             else:
-                logger.warning(f"Empty dataframe for {file_path}")
+                logger.warning(f"Unknown portfolio file format: {file_path.name}")
                 return pd.DataFrame()
-            
+                
         except Exception as e:
             logger.warning(f"Failed to load portfolio data from {file_path}: {e}")
             return pd.DataFrame()
+    
+    def _parse_assetbalance_file(self, file_path: Path) -> pd.DataFrame:
+        """Parse assetbalance CSV file format."""
+        import csv
+        portfolio_data = []
+        in_holdings_section = False
+        
+        with open(file_path, 'r', encoding='shift_jis') as file:
+            reader = csv.reader(file)
+            for i, fields in enumerate(reader):
+                if not fields:
+                    continue
+                
+                # Look for holdings section header
+                line_content = ''.join(fields)
+                
+                if '保有商品詳細' in line_content or '保有商品明細' in line_content:
+                    in_holdings_section = True
+                    logger.debug(f"Holdings section detected at row {i}")
+                    continue
+                
+                # Skip column header row
+                if in_holdings_section and '銘柄コード・ティッカー' in line_content:
+                    continue
+                
+                # Look for end of holdings section
+                if in_holdings_section and ('参考相場レート' in line_content or '合計' in fields[0]):
+                    break
+                
+                # Parse holdings data if we're in the right section
+                if in_holdings_section and len(fields) >= 18:
+                    try:
+                        market = fields[0] if fields[0] else ''
+                        security_code = fields[1] if fields[1] and fields[1] != '-' else ''
+                        security_name = fields[2] if len(fields) > 2 else ''
+                        
+                        # Skip summary rows and header rows
+                        if not security_code or security_code in ['銘柄コード・ティッカー', '-'] or '合計' in security_name:
+                            continue
+                        
+                        # Skip non-security entries (like cash balances)
+                        if any(keyword in security_name for keyword in ['円', 'ドル', '現金', '合計']):
+                            continue
+                        
+                        account_type = fields[3] if len(fields) > 3 else ''
+                        quantity = self._safe_numeric(fields[4]) if len(fields) > 4 else 0
+                        unit = fields[5] if len(fields) > 5 else ''
+                        avg_price = self._safe_numeric(fields[6]) if len(fields) > 6 else 0
+                        avg_price_currency = fields[7] if len(fields) > 7 else ''
+                        current_price = self._safe_numeric(fields[8]) if len(fields) > 8 else 0
+                        current_price_currency = fields[9] if len(fields) > 9 else ''
+                        current_value_local = self._safe_numeric(fields[14]) if len(fields) > 14 else 0
+                        pnl_amount = self._safe_numeric(fields[16]) if len(fields) > 16 else 0
+                        pnl_percent = self._safe_numeric(fields[17]) if len(fields) > 17 else 0
+                        
+                        if security_code and quantity > 0:
+                            portfolio_data.append({
+                                'security_code': security_code,
+                                'security_name': security_name,
+                                'market': market,
+                                'account_type': account_type,
+                                'quantity': quantity,
+                                'unit': unit,
+                                'avg_price': avg_price,
+                                'avg_price_currency': avg_price_currency,
+                                'current_price': current_price,
+                                'current_price_currency': current_price_currency,
+                                'current_value': current_value_local,
+                                'pnl_amount': pnl_amount,
+                                'pnl_percent': pnl_percent,
+                                'data_source': f'portfolio_{file_path.name}',
+                                'file_type': 'portfolio_holdings',
+                                'snapshot_date': self._extract_date_from_filename(file_path.name)
+                            })
+                    except Exception as e:
+                        logger.debug(f"Error parsing assetbalance line {i}: {e}")
+                        continue
+        
+        df = pd.DataFrame(portfolio_data)
+        logger.info(f"Parsed {len(df)} holdings from assetbalance file")
+        return df
+    
+    def _parse_portfolio_listing_file(self, file_path: Path) -> pd.DataFrame:
+        """Parse portfolio listing CSV file format."""
+        import csv
+        portfolio_data = []
+        current_section = "unknown"
+        
+        with open(file_path, 'r', encoding='shift_jis') as file:
+            reader = csv.reader(file)
+            for i, fields in enumerate(reader):
+                if not fields or len(fields) < 2:
+                    continue
+                
+                # Detect section headers
+                if any(keyword in fields[0] for keyword in ['ポートフォリオ', '普通', 'NISA', '投資信託']):
+                    current_section = fields[0]
+                    continue
+                
+                # Skip header rows
+                if '銘柄コード' in fields[0] or '合計' in fields[0] or '評価額' in fields[0]:
+                    continue
+                
+                # Look for holdings data (security code + name pattern)
+                if len(fields) >= 8:
+                    security_info = fields[0].strip()
+                    
+                    # Check if this looks like a security holding
+                    if (any(char.isdigit() for char in security_info) and 
+                        not security_info.startswith('--') and
+                        security_info not in ['', '-'] and
+                        '合計' not in security_info and
+                        'ファンド名' not in security_info):
+                        
+                        try:
+                            # Extract security code and name
+                            if ' ' in security_info:
+                                parts = security_info.split(' ', 1)
+                                security_code = parts[0]
+                                security_name = parts[1] if len(parts) > 1 else ''
+                            else:
+                                security_code = security_info
+                                security_name = ''
+                            
+                            trade_date = fields[1] if len(fields) > 1 and fields[1] != '----/--/--' else None
+                            quantity = self._safe_numeric(fields[2]) if len(fields) > 2 else 0
+                            avg_price = self._safe_numeric(fields[3]) if len(fields) > 3 else 0
+                            current_price = self._safe_numeric(fields[4]) if len(fields) > 4 else 0
+                            pnl_amount = self._safe_numeric(fields[5]) if len(fields) > 5 else 0
+                            pnl_percent = self._safe_numeric(fields[6]) if len(fields) > 6 else 0
+                            current_value = self._safe_numeric(fields[9]) if len(fields) > 9 else 0
+                            
+                            # Only include if we have meaningful data
+                            if security_code and (quantity > 0 or current_value > 0):
+                                portfolio_data.append({
+                                    'security_code': security_code,
+                                    'security_name': security_name,
+                                    'account_type': current_section,
+                                    'quantity': quantity,
+                                    'avg_price': avg_price,
+                                    'current_price': current_price,
+                                    'current_value': current_value,
+                                    'pnl_amount': pnl_amount,
+                                    'pnl_percent': pnl_percent,
+                                    'trade_date': trade_date,
+                                    'data_source': f'portfolio_{file_path.name}',
+                                    'file_type': 'portfolio_holdings',
+                                    'snapshot_date': self._extract_date_from_filename(file_path.name)
+                                })
+                        except Exception as e:
+                            logger.debug(f"Error parsing New_file line {i}: {e}")
+                            continue
+        
+        df = pd.DataFrame(portfolio_data)
+        logger.info(f"Parsed {len(df)} holdings from portfolio listing file")
+        return df
+    
+    def _safe_numeric(self, value: str) -> float:
+        """Safely convert string to numeric value."""
+        if not value or value in ['-', '--', '']:
+            return 0
+        
+        # Remove common formatting
+        value = str(value).replace(',', '').replace('+', '').replace('¥', '').replace('円', '')
+        
+        try:
+            return float(value)
+        except (ValueError, TypeError):
+            return 0
+    
+    def _extract_date_from_filename(self, filename: str) -> str:
+        """Extract date from filename."""
+        import re
+        date_match = re.search(r'(\d{8})', filename)
+        if date_match:
+            date_str = date_match.group(1)
+            return f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:8]}"
+        return ""
     
     def detect_file_type(self, file_path: Path) -> str:
         """Detect the file type based on filename patterns."""
