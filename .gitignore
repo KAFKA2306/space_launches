@@ -10,7 +10,7 @@ __pycache__/
 
 # Jupyter notebooks
 *.ipynb
-
+*.log
 # Notes
 *note*
 
@@ -27,6 +27,7 @@ data/output/*
 !data/processed/.gitkeep
 !data/output/.gitkeep
 !data/raw/README.md
+data/raw/*csv
 
 # IDE
 .vscode/

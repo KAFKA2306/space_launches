@@ -55,22 +55,27 @@ class DataLoader:
         logger.info(f"Loading Rakuten investment data from {file_path}")
         
         df = safe_read_csv(file_path, encoding='shift_jis')
+        mapping = self.config.COLUMN_MAPPINGS['rakuten_investment']
         
-        # Map investment fund columns
-        df = df.rename(columns={
-            '約定日': 'trade_date',
-            '受渡日': 'settlement_date',
-            'ファンド名': 'security_name',
-            '取引': 'transaction_type',
-            '数量［口］': 'quantity',
-            '単価': 'price',
-            '受渡金額/(ポイント利用)[円]': 'settlement_amount',
-            '決済通貨': 'currency',
-            '口座': 'account_type'
-        })
-        
+        df = df.rename(columns=mapping)
         df['security_code'] = ''
+        df['currency'] = df.get('currency', 'JPY')
         df['data_source'] = f'rakuten_investment_{file_path.name}'
+        
+        return self._standardize_dataframe(df)
+    
+    def load_rakuten_ch(self, file_path: Path) -> pd.DataFrame:
+        """Load Rakuten China/Hong Kong stock data."""
+        logger.info(f"Loading Rakuten CH data from {file_path}")
+        
+        df = safe_read_csv(file_path, encoding='shift_jis')
+        mapping = self.config.COLUMN_MAPPINGS['rakuten_ch']
+        
+        df = df.rename(columns=mapping)
+        # Set default currency if not present
+        if 'currency' not in df.columns:
+            df['currency'] = 'HKD'
+        df['data_source'] = f'rakuten_ch_{file_path.name}'
         
         return self._standardize_dataframe(df)
     
@@ -79,19 +84,9 @@ class DataLoader:
         logger.info(f"Loading SBI domestic data from {file_path}")
         
         df = safe_read_csv(file_path, encoding='shift_jis', skiprows=8)
+        mapping = self.config.COLUMN_MAPPINGS['sbi_domestic']
         
-        df = df.rename(columns={
-            '約定日': 'trade_date',
-            '受渡日': 'settlement_date',
-            '銘柄コード': 'security_code',
-            '銘柄': 'security_name',
-            '取引': 'transaction_type',
-            '約定数量': 'quantity',
-            '約定単価': 'price',
-            '受渡金額/決済損益': 'settlement_amount',
-            '預り': 'account_type'
-        })
-        
+        df = df.rename(columns=mapping)
         df['currency'] = 'JPY'
         df['data_source'] = f'sbi_domestic_{file_path.name}'
         
@@ -131,6 +126,73 @@ class DataLoader:
         df['data_source'] = f'wise_{file_path.name}'
         
         return self._standardize_dataframe(df)
+    
+    def load_portfolio_data(self, file_path: Path) -> pd.DataFrame:
+        """Load portfolio/asset balance data."""
+        logger.info(f"Loading portfolio data from {file_path}")
+        
+        try:
+            # Try different approaches for portfolio files
+            df = None
+            
+            # First try: standard CSV read
+            try:
+                df = safe_read_csv(file_path, encoding='shift_jis')
+            except Exception as e1:
+                logger.info(f"Standard read failed: {e1}, trying with error handling")
+                
+                # Second try: with error handling for malformed CSV
+                try:
+                    df = safe_read_csv(file_path, encoding='shift_jis', on_bad_lines='skip')
+                except Exception as e2:
+                    logger.info(f"Skip bad lines failed: {e2}, trying with different separator")
+                    
+                    # Third try: different approach
+                    try:
+                        df = safe_read_csv(file_path, encoding='shift_jis', sep=None, engine='python')
+                    except Exception as e3:
+                        logger.warning(f"All read attempts failed for {file_path}: {e3}")
+                        return pd.DataFrame()
+            
+            if df is not None and not df.empty:
+                # Portfolio data has different structure, just add metadata
+                df['data_source'] = f'portfolio_{file_path.name}'
+                df['file_type'] = 'portfolio'
+                
+                logger.info(f"Successfully loaded portfolio data: {len(df)} records, {len(df.columns)} columns")
+                logger.info(f"Portfolio columns: {list(df.columns)[:10]}")  # Show first 10 columns
+                return df
+            else:
+                logger.warning(f"Empty dataframe for {file_path}")
+                return pd.DataFrame()
+            
+        except Exception as e:
+            logger.warning(f"Failed to load portfolio data from {file_path}: {e}")
+            return pd.DataFrame()
+    
+    def detect_file_type(self, file_path: Path) -> str:
+        """Detect the file type based on filename patterns."""
+        filename = file_path.name.lower()
+        
+        # Trading history patterns
+        if 'jp' in filename and 'tradehistory' in filename:
+            return 'rakuten_jp'
+        elif 'us' in filename and 'tradehistory' in filename:
+            return 'rakuten_us'
+        elif 'ch' in filename and 'tradehistory' in filename:
+            return 'rakuten_ch'
+        elif 'invst' in filename and 'tradehistory' in filename:
+            return 'rakuten_investment'
+        elif 'savefile' in filename:
+            return 'sbi_domestic'
+        elif 'yakujo' in filename:
+            return 'sbi_foreign'
+        elif 'wise' in filename:
+            return 'wise'
+        elif 'assetbalance' in filename or 'new_file' in filename:
+            return 'portfolio'
+        else:
+            return 'unknown'
     
     def _standardize_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
         """Standardize dataframe format."""
@@ -185,97 +247,105 @@ class DataLoader:
         return original_currency
     
     def load_all_broker_data(self, raw_data_dir: Path) -> pd.DataFrame:
-        """Load data from all brokers and combine."""
+        """Load data from all brokers and combine using generic file detection."""
         logger.info(f"Loading data from all brokers in {raw_data_dir}")
         logger.info("Searching recursively in all subdirectories...")
         
         all_dataframes = []
+        portfolio_dataframes = []
         
-        # Load Rakuten data - search recursively in all subdirectories
-        for pattern, loader_method in [
-            ('**/*JP*.csv', self.load_rakuten_jp),
-            ('**/*US*.csv', self.load_rakuten_us), 
-            ('**/*INVST*.csv', self.load_rakuten_investment)
-        ]:
-            files = list(raw_data_dir.glob(pattern))
-            logger.info(f"Found {len(files)} files matching pattern '{pattern}'")
-            for file_path in files:
-                try:
-                    logger.info(f"Loading file: {file_path}")
-                    df = loader_method(file_path)
-                    all_dataframes.append(df)
-                    logger.info(f"Successfully loaded {len(df)} records from {file_path.name}")
-                except Exception as e:
-                    logger.error(f"Error loading {file_path}: {e}")
+        # Get all CSV files recursively
+        all_csv_files = list(raw_data_dir.glob('**/*.csv'))
+        logger.info(f"Found {len(all_csv_files)} total CSV files")
         
-        # Load SBI data - search recursively in all subdirectories  
-        for pattern, loader_method in [
-            ('**/SaveFile*.csv', self.load_sbi_domestic),
-            ('**/yakujo*.csv', self.load_sbi_foreign)
-        ]:
-            files = list(raw_data_dir.glob(pattern))
-            logger.info(f"Found {len(files)} files matching pattern '{pattern}'")
-            for file_path in files:
-                try:
-                    logger.info(f"Loading file: {file_path}")
-                    df = loader_method(file_path)
-                    all_dataframes.append(df)
-                    logger.info(f"Successfully loaded {len(df)} records from {file_path.name}")
-                except Exception as e:
-                    logger.error(f"Error loading {file_path}: {e}")
+        # Mapping of file types to loader methods
+        loader_methods = {
+            'rakuten_jp': self.load_rakuten_jp,
+            'rakuten_us': self.load_rakuten_us,
+            'rakuten_ch': self.load_rakuten_ch,
+            'rakuten_investment': self.load_rakuten_investment,
+            'sbi_domestic': self.load_sbi_domestic,
+            'sbi_foreign': self.load_sbi_foreign,
+            'wise': self.load_wise_data,
+            'portfolio': self.load_portfolio_data
+        }
         
-        # Load Wise data - search recursively in all subdirectories
-        wise_files = list(raw_data_dir.glob('**/cleaned_wise_data*.csv'))
-        logger.info(f"Found {len(wise_files)} Wise files")
-        for file_path in wise_files:
+        # Process each file based on detected type
+        for file_path in all_csv_files:
+            # Skip Zone.Identifier files
+            if file_path.name.endswith(':Zone.Identifier'):
+                continue
+                
+            file_type = self.detect_file_type(file_path)
+            logger.info(f"Detected file type '{file_type}' for {file_path.name}")
+            
+            if file_type == 'unknown':
+                logger.warning(f"Unknown file type for {file_path.name}, skipping")
+                continue
+            
+            if file_type not in loader_methods:
+                logger.warning(f"No loader method for file type '{file_type}', skipping")
+                continue
+            
             try:
                 logger.info(f"Loading file: {file_path}")
-                df = self.load_wise_data(file_path)
-                all_dataframes.append(df)
-                logger.info(f"Successfully loaded {len(df)} records from {file_path.name}")
+                df = loader_methods[file_type](file_path)
+                
+                if file_type == 'portfolio':
+                    portfolio_dataframes.append(df)
+                    logger.info(f"Successfully loaded {len(df)} portfolio records from {file_path.name}")
+                else:
+                    all_dataframes.append(df)
+                    logger.info(f"Successfully loaded {len(df)} trading records from {file_path.name}")
+                    
             except Exception as e:
                 logger.error(f"Error loading {file_path}: {e}")
         
+        # Handle trading data
         if not all_dataframes:
-            logger.warning("No data files found in any subdirectories")
-            logger.info("Please check that your CSV files are placed in data/raw/ or its subdirectories")
-            # List all CSV files found for debugging
-            all_csv_files = list(raw_data_dir.glob('**/*.csv'))
-            if all_csv_files:
-                logger.info(f"Found {len(all_csv_files)} total CSV files:")
-                for csv_file in all_csv_files:
-                    logger.info(f"  - {csv_file}")
-            else:
-                logger.info("No CSV files found at all")
-            return pd.DataFrame(columns=self.standard_columns)
+            logger.warning("No trading data files found")
+            trading_df = pd.DataFrame(columns=self.standard_columns)
+        else:
+            # Combine all trading dataframes
+            trading_df = pd.concat(all_dataframes, ignore_index=True)
+            trading_df = trading_df.sort_values('trade_date').reset_index(drop=True)
+            logger.info(f"Successfully loaded {len(trading_df)} total trading records from {len(all_dataframes)} files")
         
-        # Combine all dataframes
-        combined_df = pd.concat(all_dataframes, ignore_index=True)
-        combined_df = combined_df.sort_values('trade_date').reset_index(drop=True)
+        # Handle portfolio data separately 
+        if portfolio_dataframes:
+            portfolio_df = pd.concat(portfolio_dataframes, ignore_index=True)
+            # Save portfolio data separately
+            portfolio_path = self.config.PROCESSED_DATA_DIR / f"portfolio_data_{self._get_timestamp()}.csv"
+            portfolio_df.to_csv(portfolio_path, index=False)
+            logger.info(f"Portfolio data saved to {portfolio_path}")
         
-        logger.info(f"Successfully loaded {len(combined_df)} total records from {len(all_dataframes)} files")
+        # Log detailed statistics for trading data
+        if not trading_df.empty:
+            logger.info(f"Combined trading data columns: {list(trading_df.columns)}")
+            logger.info(f"Trading data date range: {trading_df['trade_date'].min()} to {trading_df['trade_date'].max()}")
+            
+            # Log data source distribution
+            if 'data_source' in trading_df.columns:
+                source_counts = trading_df['data_source'].value_counts()
+                logger.info(f"Records per data source: {source_counts.to_dict()}")
+            
+            # Log transaction type distribution
+            if 'transaction_type' in trading_df.columns:
+                transaction_counts = trading_df['transaction_type'].value_counts()
+                logger.info(f"Transaction types: {transaction_counts.to_dict()}")
+            
+            # Log currency distribution
+            if 'currency' in trading_df.columns:
+                currency_counts = trading_df['currency'].value_counts()
+                logger.info(f"Currencies: {currency_counts.to_dict()}")
+            
+            # Log sample of the data
+            logger.info("Sample of loaded trading data:")
+            logger.info(f"\n{trading_df[['trade_date', 'security_name', 'transaction_type', 'quantity', 'currency']].head()}")
         
-        # Log detailed statistics
-        logger.info(f"Combined data columns: {list(combined_df.columns)}")
-        logger.info(f"Data date range: {combined_df['trade_date'].min()} to {combined_df['trade_date'].max()}")
-        
-        # Log data source distribution
-        if 'data_source' in combined_df.columns:
-            source_counts = combined_df['data_source'].value_counts()
-            logger.info(f"Records per data source: {source_counts.to_dict()}")
-        
-        # Log transaction type distribution
-        if 'transaction_type' in combined_df.columns:
-            transaction_counts = combined_df['transaction_type'].value_counts()
-            logger.info(f"Transaction types: {transaction_counts.to_dict()}")
-        
-        # Log currency distribution
-        if 'currency' in combined_df.columns:
-            currency_counts = combined_df['currency'].value_counts()
-            logger.info(f"Currencies: {currency_counts.to_dict()}")
-        
-        # Log sample of the data
-        logger.info("Sample of loaded data:")
-        logger.info(f"\n{combined_df[['trade_date', 'security_name', 'transaction_type', 'quantity', 'currency']].head()}")
-        
-        return combined_df
+        return trading_df
+    
+    def _get_timestamp(self) -> str:
+        """Get current timestamp for file naming."""
+        from datetime import datetime
+        return datetime.now().strftime("%Y%m%d_%H%M%S")

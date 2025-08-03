@@ -35,11 +35,13 @@ class Config:
     # File patterns for different brokers
     BROKER_PATTERNS = {
         'rakuten_jp': '*JP*.csv',
-        'rakuten_us': '*US*.csv',
+        'rakuten_us': '*US*.csv', 
+        'rakuten_ch': '*CH*.csv',
         'rakuten_investment': '*INVST*.csv',
         'sbi_domestic': 'SaveFile*.csv',
         'sbi_foreign': 'yakujo*.csv',
-        'wise': 'cleaned_wise_data*.csv'
+        'wise': 'cleaned_wise_data*.csv',
+        'portfolio': 'assetbalance*.csv'
     }
     
     # Column mappings for data standardization
@@ -66,6 +68,42 @@ class Config:
             '受渡金額［円］': 'settlement_amount',
             '口座': 'account_type'
         },
+        'rakuten_ch': {
+            '約定日': 'trade_date',
+            '受渡日': 'settlement_date',
+            '銘柄コード': 'security_code',
+            '銘柄名': 'security_name',
+            '通貨': 'currency',
+            '売買区分': 'transaction_type',
+            '信用区分': 'margin_type',
+            '数量［株］': 'quantity',
+            '単価': 'price',
+            '約定金額': 'amount',
+            '為替レート': 'exchange_rate',
+            '受渡金額［円］': 'settlement_amount'
+        },
+        'rakuten_investment': {
+            '約定日': 'trade_date',
+            '受渡日': 'settlement_date',
+            'ファンド名': 'security_name',
+            '取引': 'transaction_type',
+            '数量［口］': 'quantity',
+            '単価': 'price',
+            '受渡金額/(ポイント利用)[円]': 'settlement_amount',
+            '決済通貨': 'currency',
+            '口座': 'account_type'
+        },
+        'sbi_domestic': {
+            '約定日': 'trade_date',
+            '受渡日': 'settlement_date',
+            '銘柄コード': 'security_code',
+            '銘柄': 'security_name',
+            '取引': 'transaction_type',
+            '約定数量': 'quantity',
+            '約定単価': 'price',
+            '受渡金額/決済損益': 'settlement_amount',
+            '預り': 'account_type'
+        },
         'wise': {
             '完了日': 'trade_date',
             '為替レート': 'exchange_rate',
@@ -78,13 +116,15 @@ class Config:
     
     # Transaction type mappings
     TRANSACTION_TYPE_MAPPINGS = {
-        'buy': ['buy', '買付', '買', '買い', '再投資', '入庫'],
-        'sell': ['sell', '売付', '売', '売り', '解約']
+        'buy': ['buy', '買付', '買', '買い', '再投資', '入庫', '積立', '定期積立'],
+        'sell': ['sell', '売付', '売', '売り', '解約', '出庫']
     }
     
     # Currency mappings
     CURRENCY_MAPPINGS = {
-        'JPY': ['JPY', '日本円', '円'],
-        'USD': ['USD', '米国ドル', '米ドル'],
-        'EUR': ['EUR', 'ユーロ']
+        'JPY': ['JPY', '日本円', '円', '¥'],
+        'USD': ['USD', '米国ドル', '米ドル', 'USドル', '$'],
+        'EUR': ['EUR', 'ユーロ', '€'],
+        'HKD': ['HKD', '香港ドル', 'HK$'],
+        'CNY': ['CNY', '中国元', '人民元']
     }

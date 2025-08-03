@@ -8,7 +8,7 @@
 The project has been completely rebuilt with a modern architecture. Use:
 
 ```bash
-python main.py
+python3 main.py
 ```
 
 For the new, improved trade history analyzer.
@@ -46,7 +46,7 @@ pip install pandas numpy matplotlib seaborn yfinance chardet
 ⚠️ **DEPRECATED - Use the new system:**
 
 ```bash
-python main.py
+python3 main.py
 ```
 
 ### Legacy Usage (for reference only)

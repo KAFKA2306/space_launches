@@ -40,17 +40,17 @@ A comprehensive Python tool for analyzing trading history from multiple brokers,
 
 **Full analysis** (downloads market data and analyzes everything):
 ```bash
-python main.py
+python3 main.py
 ```
 
 **Skip market data download** (uses existing data):
 ```bash
-python main.py --skip-download
+python3 main.py --skip-download
 ```
 
 **Create charts only** (from existing processed data):
 ```bash
-python main.py --charts-only
+python3 main.py --charts-only
 ```
 
 ## Project Structure
