@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Dict, List, Set, Optional
 import logging
 from datetime import datetime
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +16,93 @@ class DataConverter:
     
     def __init__(self, config=None):
         self.config = config
+        self.security_mapping = self._load_security_mapping()
+    
+    def _load_security_mapping(self) -> Dict[str, str]:
+        """Load security name to ticker code mapping from DIC/securitycode2.csv."""
+        mapping = {}
+        try:
+            # Load the security mapping file
+            base_dir = Path(__file__).parent.parent.parent
+            mapping_file = base_dir / "DIC" / "securitycode2.csv"
+            
+            if mapping_file.exists():
+                df = pd.read_csv(mapping_file)
+                for _, row in df.iterrows():
+                    security_name = str(row['security_name']).strip()
+                    security_code = str(row['security_code']).strip()
+                    if security_name and security_code:
+                        mapping[security_name] = security_code
+                
+                logger.info(f"Loaded {len(mapping)} security name mappings")
+            else:
+                logger.warning(f"Security mapping file not found: {mapping_file}")
+                
+        except Exception as e:
+            logger.error(f"Error loading security mapping: {e}")
+            
+        return mapping
+    
+    def _find_ticker_for_fund(self, security_name: str) -> Optional[str]:
+        """Find ticker code for investment fund based on security name."""
+        if not security_name:
+            return None
+            
+        # Normalize the security name for matching
+        normalized_name = security_name.strip()
+        
+        # Direct match first
+        if normalized_name in self.security_mapping:
+            return self.security_mapping[normalized_name]
+        
+        # Fuzzy matching for investment funds
+        for mapped_name, ticker in self.security_mapping.items():
+            # Check if key parts of the fund name match
+            if self._names_match(normalized_name, mapped_name):
+                logger.info(f"Matched fund '{security_name}' to ticker '{ticker}' via '{mapped_name}'")
+                return ticker
+        
+        logger.debug(f"No ticker found for fund: {security_name}")
+        return None
+    
+    def _names_match(self, name1: str, name2: str) -> bool:
+        """Check if two fund names are similar enough to be considered a match."""
+        # Remove common variations and normalize
+        def normalize_name(name):
+            # Remove special characters and normalize spaces
+            name = re.sub(r'[（）()＜＞<>【】\[\]・･]', ' ', name)
+            name = re.sub(r'[　\s]+', ' ', name).strip()
+            # Remove common fund suffixes/prefixes
+            name = re.sub(r'(ファンド|Fund|インデックス|Index|ETF|投信)$', '', name)
+            return name.lower()
+        
+        norm1 = normalize_name(name1)
+        norm2 = normalize_name(name2)
+        
+        # Check for exact match after normalization
+        if norm1 == norm2:
+            return True
+        
+        # Check if one name contains the other (for partial matches)
+        if len(norm1) > 10 and len(norm2) > 10:
+            if norm1 in norm2 or norm2 in norm1:
+                return True
+        
+        # Check for key keyword matches
+        keywords1 = set(norm1.split())
+        keywords2 = set(norm2.split())
+        
+        # Remove common stop words
+        stop_words = {'の', 'and', 'or', '・', '株式', '債券', '投資', '投信', 'fund', 'index'}
+        keywords1 = keywords1 - stop_words
+        keywords2 = keywords2 - stop_words
+        
+        if len(keywords1) >= 2 and len(keywords2) >= 2:
+            # If majority of keywords match
+            common_keywords = keywords1 & keywords2
+            return len(common_keywords) >= min(len(keywords1), len(keywords2)) * 0.6
+        
+        return False
         
     def trades_csv_to_json(self, trades_file_path: Path) -> Dict:
         """Convert trades CSV file to JSON format."""
@@ -45,11 +133,21 @@ class DataConverter:
             
             # Convert each trade to dictionary
             for _, row in df.iterrows():
+                security_code = row['security_code'] if pd.notna(row['security_code']) else ""
+                security_name = row['security_name'] if pd.notna(row['security_name']) else ""
+                
+                # If no security code but name exists, try to find ticker for investment funds
+                if not security_code and security_name:
+                    ticker = self._find_ticker_for_fund(security_name)
+                    if ticker:
+                        security_code = ticker
+                        logger.debug(f"Mapped fund '{security_name}' to ticker '{ticker}'")
+                
                 trade = {
                     "trade_date": row['trade_date'].isoformat() if pd.notna(row['trade_date']) else None,
                     "settlement_date": row['settlement_date'].isoformat() if pd.notna(row['settlement_date']) else None,
-                    "security_code": row['security_code'] if pd.notna(row['security_code']) else "",
-                    "security_name": row['security_name'] if pd.notna(row['security_name']) else "",
+                    "security_code": security_code,
+                    "security_name": security_name,
                     "transaction_type": row['transaction_type'] if pd.notna(row['transaction_type']) else "",
                     "quantity": float(row['quantity']) if pd.notna(row['quantity']) else 0.0,
                     "price": float(row['price']) if pd.notna(row['price']) else 0.0,
@@ -101,8 +199,20 @@ class DataConverter:
             
             # Convert each holding to dictionary
             for _, row in df.iterrows():
+                security_code = row['security_code'] if pd.notna(row['security_code']) else ""
+                
+                # If no security code but we can get security name from somewhere, try to find ticker
+                # Note: portfolio CSV might not have security_name column, so this is optional
+                if not security_code and 'security_name' in df.columns:
+                    security_name = row['security_name'] if pd.notna(row['security_name']) else ""
+                    if security_name:
+                        ticker = self._find_ticker_for_fund(security_name)
+                        if ticker:
+                            security_code = ticker
+                            logger.debug(f"Mapped portfolio fund '{security_name}' to ticker '{ticker}'")
+                
                 holding = {
-                    "security_code": row['security_code'] if pd.notna(row['security_code']) else "",
+                    "security_code": security_code,
                     "shares": float(row['shares']) if pd.notna(row['shares']) else 0.0,
                     "avg_cost_per_share": float(row['avg_cost_per_share']) if pd.notna(row['avg_cost_per_share']) else 0.0,
                     "total_cost": float(row['total_cost']) if pd.notna(row['total_cost']) else 0.0,
@@ -126,6 +236,7 @@ class DataConverter:
                             trades_file_path: Path = None, portfolio_file_path: Path = None) -> Set[str]:
         """Extract unique ticker codes from trades and portfolio data."""
         ticker_codes = set()
+        fund_mappings = {}  # Track fund name to ticker mappings found
         
         try:
             # If file paths provided, convert to JSON first
@@ -139,8 +250,15 @@ class DataConverter:
             if trades_json and "trades" in trades_json:
                 for trade in trades_json["trades"]:
                     code = trade.get("security_code", "").strip()
-                    if code:  # Only add non-empty codes
+                    security_name = trade.get("security_name", "").strip()
+                    
+                    if code:  # If security code exists, use it
                         ticker_codes.add(code)
+                    elif security_name:  # If no code but name exists, try to find ticker
+                        ticker = self._find_ticker_for_fund(security_name)
+                        if ticker:
+                            ticker_codes.add(ticker)
+                            fund_mappings[security_name] = ticker
             
             # Extract from portfolio data
             if portfolio_json and "holdings" in portfolio_json:
@@ -148,6 +266,12 @@ class DataConverter:
                     code = holding.get("security_code", "").strip()
                     if code:  # Only add non-empty codes
                         ticker_codes.add(code)
+            
+            # Log fund mappings found
+            if fund_mappings:
+                logger.info(f"Found {len(fund_mappings)} investment fund mappings:")
+                for fund_name, ticker in fund_mappings.items():
+                    logger.info(f"  '{fund_name}' -> {ticker}")
             
             logger.info(f"Extracted {len(ticker_codes)} unique ticker codes: {sorted(ticker_codes)}")
             return ticker_codes
