@@ -37,7 +37,7 @@ class PortfolioAnalyzer:
             security_code = trade['security_code']
             transaction_type = trade['transaction_type']
             quantity = trade['quantity'] if pd.notna(trade['quantity']) else 0
-            amount_jpy = trade['amount_jpy'] if pd.notna(trade['amount_jpy']) else 0
+            amount_jpy = trade['settlement_amount'] if pd.notna(trade['settlement_amount']) else 0
             
             if transaction_type == 'buy':
                 holdings[security_code]['total_shares'] += quantity
@@ -159,8 +159,8 @@ class PortfolioAnalyzer:
         security_activity = trades_df['security_code'].value_counts()
         
         # Amount analysis
-        total_amount_traded = trades_df['amount_jpy'].sum()
-        avg_trade_amount = trades_df['amount_jpy'].mean()
+        total_amount_traded = trades_df['settlement_amount'].sum()
+        avg_trade_amount = trades_df['settlement_amount'].mean()
         
         activity_summary = {
             'total_trades': total_trades,
@@ -190,8 +190,8 @@ class PortfolioAnalyzer:
             
             security_trades = trades_df[trades_df['security_code'] == security_code]
             
-            total_bought = security_trades[security_trades['transaction_type'] == 'buy']['amount_jpy'].sum()
-            total_sold = security_trades[security_trades['transaction_type'] == 'sell']['amount_jpy'].sum()
+            total_bought = security_trades[security_trades['transaction_type'] == 'buy']['settlement_amount'].sum()
+            total_sold = security_trades[security_trades['transaction_type'] == 'sell']['settlement_amount'].sum()
             
             shares_bought = security_trades[security_trades['transaction_type'] == 'buy']['quantity'].sum()
             shares_sold = security_trades[security_trades['transaction_type'] == 'sell']['quantity'].sum()
