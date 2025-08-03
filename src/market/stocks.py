@@ -48,7 +48,8 @@ class StockDataManager:
                           security_codes: Set[str], 
                           batch_size: int = 5,
                           delay_seconds: float = 3.0,
-                          retry_count: int = 2) -> pd.DataFrame:
+                          retry_count: int = 2,
+                          use_fallback: bool = True) -> pd.DataFrame:
         """Update stock price data incrementally by fetching only new data."""
         import time
         
@@ -172,6 +173,16 @@ class StockDataManager:
         
         # Merge existing and new data
         if existing_data.empty and new_price_data.empty:
+            # Try fallback to DIC directory if no data available
+            if use_fallback:
+                logger.info("No stock price data downloaded. Trying fallback to DIC directory...")
+                fallback_data = self._load_fallback_stock_data(security_codes)
+                if not fallback_data.empty:
+                    # Save fallback data to processed location for future use
+                    self.save_stock_prices(fallback_data, prices_file_path)
+                    logger.info("✅ Using fallback stock price data from DIC directory")
+                    return fallback_data
+            
             logger.warning("No stock price data available - continuing with analysis")
             return pd.DataFrame()
         elif existing_data.empty:
@@ -201,6 +212,64 @@ class StockDataManager:
         logger.info(f"   Existing securities: {existing_securities}, Updated: {new_securities}")
         
         return combined_data
+    
+    def _load_fallback_stock_data(self, security_codes: Set[str]) -> pd.DataFrame:
+        """Load stock price data from DIC directory as fallback."""
+        try:
+            # Try to load from DIC directory (legacy location)
+            dic_charts_path = Path(self.config.BASE_DIR) / "DIC" / "charts.csv"
+            
+            if dic_charts_path.exists():
+                logger.info(f"Loading fallback stock data from {dic_charts_path}")
+                fallback_data = pd.read_csv(dic_charts_path, index_col=0, parse_dates=True)
+                
+                # Clean up timezone information if present
+                if fallback_data.index.tz is not None:
+                    fallback_data.index = fallback_data.index.tz_localize(None)
+                
+                # Filter to only include securities we're looking for
+                available_securities = set(fallback_data.columns)
+                requested_securities = set()
+                
+                # Map security codes to available columns
+                for code in security_codes:
+                    # Try different variations of the security code
+                    variations = [
+                        code,  # Original code
+                        code.rstrip('.T'),  # Remove .T suffix
+                        f"{code}.T",  # Add .T suffix
+                        code.replace('.T', ''),  # Replace .T
+                    ]
+                    
+                    for variation in variations:
+                        if variation in available_securities:
+                            requested_securities.add(variation)
+                            break
+                
+                if requested_securities:
+                    # Select only the securities we found
+                    filtered_data = fallback_data[list(requested_securities)]
+                    
+                    # Clean column names to remove .T suffix for consistency
+                    filtered_data.columns = [col.rstrip('.T') for col in filtered_data.columns]
+                    
+                    logger.info(f"Loaded {len(filtered_data)} records for {len(filtered_data.columns)} securities from fallback data")
+                    logger.info(f"Available securities: {list(filtered_data.columns)}")
+                    logger.info(f"Date range: {filtered_data.index.min()} to {filtered_data.index.max()}")
+                    
+                    return filtered_data
+                else:
+                    logger.warning("No matching securities found in fallback data")
+                    logger.info(f"Requested: {list(security_codes)[:10]}{'...' if len(security_codes) > 10 else ''}")
+                    logger.info(f"Available: {list(available_securities)[:10]}{'...' if len(available_securities) > 10 else ''}")
+                    return pd.DataFrame()
+            else:
+                logger.warning(f"Fallback stock data file not found: {dic_charts_path}")
+                return pd.DataFrame()
+                
+        except Exception as e:
+            logger.error(f"Error loading fallback stock data: {e}")
+            return pd.DataFrame()
     
     def save_stock_prices(self, price_data: pd.DataFrame, output_path: Path):
         """Save stock price data to CSV."""

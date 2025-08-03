@@ -76,6 +76,10 @@ trahist/
 │   │   └── visualization.py   # Chart generation
 │   └── utils/                 # Utilities
 │       └── helpers.py         # Helper functions
+├── DIC/                       # Legacy data (fallback source)
+│   ├── forex_data.csv         # Fallback forex data
+│   ├── charts.csv             # Fallback stock prices
+│   └── *.csv                  # Other reference data
 └── CODES/                     # Legacy code (for reference)
 ```
 
@@ -129,6 +133,7 @@ trahist/
 - **Incremental updates**: Downloads only new data since last update
 - **Rate limit protection**: Automatic delays and retry logic for Yahoo Finance
 - **Batch processing**: Downloads securities in small batches to avoid limits
+- **Fallback support**: Uses existing data from DIC directory when downloads fail
 - Downloads forex rates (USDJPY, EURJPY) and stock prices
 - Converts all amounts to JPY for consistent analysis
 
@@ -181,6 +186,7 @@ All operations are logged with timestamps. Check console output for:
 **Market data download fails**:
 - Check internet connection
 - System automatically handles rate limits with delays
+- Falls back to existing data in DIC directory if available
 - Partial failures are handled gracefully - analysis continues
 
 **Encoding errors**:

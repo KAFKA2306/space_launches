@@ -22,7 +22,8 @@ class ForexDataManager:
     def update_forex_data(self, forex_file_path: Path,
                          pairs: List[str] = None, 
                          retry_count: int = 3,
-                         delay_seconds: float = 2.0) -> pd.DataFrame:
+                         delay_seconds: float = 2.0,
+                         use_fallback: bool = True) -> pd.DataFrame:
         """Update forex data incrementally by fetching only new data."""
         import time
         
@@ -101,6 +102,16 @@ class ForexDataManager:
         
         # Merge existing and new data
         if existing_data.empty and new_forex_data.empty:
+            # Try fallback to DIC directory if no data available
+            if use_fallback:
+                logger.info("No forex data downloaded. Trying fallback to DIC directory...")
+                fallback_data = self._load_fallback_forex_data()
+                if not fallback_data.empty:
+                    # Save fallback data to processed location for future use
+                    self.save_forex_data(fallback_data, forex_file_path)
+                    logger.info("✅ Using fallback forex data from DIC directory")
+                    return fallback_data
+            
             logger.warning("No forex data available - continuing with analysis")
             return pd.DataFrame()
         elif existing_data.empty:
@@ -127,6 +138,33 @@ class ForexDataManager:
         logger.info(f"   Existing pairs: {total_pairs}, New data for: {new_pairs} pairs")
         
         return combined_data
+    
+    def _load_fallback_forex_data(self) -> pd.DataFrame:
+        """Load forex data from DIC directory as fallback."""
+        try:
+            # Try to load from DIC directory (legacy location)
+            dic_forex_path = Path(self.config.BASE_DIR) / "DIC" / "forex_data.csv"
+            
+            if dic_forex_path.exists():
+                logger.info(f"Loading fallback forex data from {dic_forex_path}")
+                fallback_data = pd.read_csv(dic_forex_path, index_col=0, parse_dates=True)
+                
+                # Clean up timezone information if present
+                if fallback_data.index.tz is not None:
+                    fallback_data.index = fallback_data.index.tz_localize(None)
+                
+                logger.info(f"Loaded {len(fallback_data)} records from fallback forex data")
+                logger.info(f"Available pairs: {list(fallback_data.columns)}")
+                logger.info(f"Date range: {fallback_data.index.min()} to {fallback_data.index.max()}")
+                
+                return fallback_data
+            else:
+                logger.warning(f"Fallback forex file not found: {dic_forex_path}")
+                return pd.DataFrame()
+                
+        except Exception as e:
+            logger.error(f"Error loading fallback forex data: {e}")
+            return pd.DataFrame()
     
     def save_forex_data(self, forex_data: pd.DataFrame, output_path: Path):
         """Save forex data to CSV."""
