@@ -30,10 +30,11 @@ A comprehensive Python tool for analyzing trading history from multiple brokers,
    └── output/        # Analysis results and charts
    ```
 
-2. **Place your trading data files** in `data/raw/`:
+2. **Place your trading data files** in `data/raw/` (supports subdirectories):
    - Rakuten files: `*JP*.csv`, `*US*.csv`, `*INVST*.csv`
    - SBI files: `SaveFile*.csv`, `yakujo*.csv`
    - Wise files: `cleaned_wise_data*.csv`
+   - **Subdirectories supported**: Files can be in any subfolder structure like `data/raw/RAWDATA/rakuten/`
 
 ### Run Analysis
 
@@ -112,6 +113,7 @@ trahist/
 ## Key Features Explained
 
 ### Data Loading and Standardization
+- **Recursive file search**: Finds CSV files in any subdirectory under `data/raw/`
 - Automatically detects file encodings (handles Shift-JIS, UTF-8, etc.)
 - Standardizes column names across different broker formats
 - Cleans and converts numeric data

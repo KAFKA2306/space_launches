@@ -1,6 +1,6 @@
 # Raw Data Directory
 
-Place your trading history CSV files here.
+Place your trading history CSV files here. **Subdirectories are fully supported!**
 
 ## Supported File Patterns
 
@@ -15,6 +15,25 @@ Place your trading history CSV files here.
 
 ### Wise
 - `cleaned_wise_data*.csv` - Currency exchange data
+
+## Directory Structure Examples
+
+You can organize files in any subdirectory structure:
+
+```
+data/raw/
+├── tradehistory(JP)_20250214.csv           # Direct placement
+├── RAWDATA/                                # Subdirectory (legacy structure)
+│   ├── rakuten/
+│   │   ├── tradehistory(JP)_20250214.csv
+│   │   └── tradehistory(US)_20250214.csv
+│   └── sbi/
+│       └── SaveFile_000001_000122.csv
+└── wise/
+    └── cleaned_wise_data_20240921.csv
+```
+
+**✅ All structures above work perfectly!** The system recursively searches all subdirectories.
 
 ## File Encoding
 The system automatically detects file encodings (Shift-JIS, UTF-8, etc.).

@@ -186,53 +186,72 @@ class DataLoader:
     
     def load_all_broker_data(self, raw_data_dir: Path) -> pd.DataFrame:
         """Load data from all brokers and combine."""
-        logger.info("Loading data from all brokers")
+        logger.info(f"Loading data from all brokers in {raw_data_dir}")
+        logger.info("Searching recursively in all subdirectories...")
         
         all_dataframes = []
         
-        # Load Rakuten data
+        # Load Rakuten data - search recursively in all subdirectories
         for pattern, loader_method in [
-            ('*JP*.csv', self.load_rakuten_jp),
-            ('*US*.csv', self.load_rakuten_us),
-            ('*INVST*.csv', self.load_rakuten_investment)
+            ('**/*JP*.csv', self.load_rakuten_jp),
+            ('**/*US*.csv', self.load_rakuten_us), 
+            ('**/*INVST*.csv', self.load_rakuten_investment)
         ]:
             files = list(raw_data_dir.glob(pattern))
+            logger.info(f"Found {len(files)} files matching pattern '{pattern}'")
             for file_path in files:
                 try:
+                    logger.info(f"Loading file: {file_path}")
                     df = loader_method(file_path)
                     all_dataframes.append(df)
+                    logger.info(f"Successfully loaded {len(df)} records from {file_path.name}")
                 except Exception as e:
                     logger.error(f"Error loading {file_path}: {e}")
         
-        # Load SBI data
+        # Load SBI data - search recursively in all subdirectories  
         for pattern, loader_method in [
-            ('SaveFile*.csv', self.load_sbi_domestic),
-            ('yakujo*.csv', self.load_sbi_foreign)
+            ('**/SaveFile*.csv', self.load_sbi_domestic),
+            ('**/yakujo*.csv', self.load_sbi_foreign)
         ]:
             files = list(raw_data_dir.glob(pattern))
+            logger.info(f"Found {len(files)} files matching pattern '{pattern}'")
             for file_path in files:
                 try:
+                    logger.info(f"Loading file: {file_path}")
                     df = loader_method(file_path)
                     all_dataframes.append(df)
+                    logger.info(f"Successfully loaded {len(df)} records from {file_path.name}")
                 except Exception as e:
                     logger.error(f"Error loading {file_path}: {e}")
         
-        # Load Wise data
-        wise_files = list(raw_data_dir.glob('cleaned_wise_data*.csv'))
+        # Load Wise data - search recursively in all subdirectories
+        wise_files = list(raw_data_dir.glob('**/cleaned_wise_data*.csv'))
+        logger.info(f"Found {len(wise_files)} Wise files")
         for file_path in wise_files:
             try:
+                logger.info(f"Loading file: {file_path}")
                 df = self.load_wise_data(file_path)
                 all_dataframes.append(df)
+                logger.info(f"Successfully loaded {len(df)} records from {file_path.name}")
             except Exception as e:
                 logger.error(f"Error loading {file_path}: {e}")
         
         if not all_dataframes:
-            logger.warning("No data files found")
+            logger.warning("No data files found in any subdirectories")
+            logger.info("Please check that your CSV files are placed in data/raw/ or its subdirectories")
+            # List all CSV files found for debugging
+            all_csv_files = list(raw_data_dir.glob('**/*.csv'))
+            if all_csv_files:
+                logger.info(f"Found {len(all_csv_files)} total CSV files:")
+                for csv_file in all_csv_files:
+                    logger.info(f"  - {csv_file}")
+            else:
+                logger.info("No CSV files found at all")
             return pd.DataFrame(columns=self.standard_columns)
         
         # Combine all dataframes
         combined_df = pd.concat(all_dataframes, ignore_index=True)
         combined_df = combined_df.sort_values('trade_date').reset_index(drop=True)
         
-        logger.info(f"Loaded {len(combined_df)} total records from {len(all_dataframes)} files")
+        logger.info(f"Successfully loaded {len(combined_df)} total records from {len(all_dataframes)} files")
         return combined_df
