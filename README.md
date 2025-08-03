@@ -1,220 +1,304 @@
-# Trade History Analyzer
+# 取引履歴分析ツール
 
-A comprehensive Python tool for analyzing trading history from multiple brokers, calculating portfolio performance, and generating detailed insights and visualizations.
+複数の証券会社から取引履歴を読み込み、ポートフォリオ分析と詳細な可視化を行う包括的なPythonツールです。
 
-## Features
+## 主な機能
 
-- **Multi-Broker Support**: Load and standardize data from Rakuten Securities, SBI Securities, and Wise
-- **Portfolio Analysis**: Calculate holdings, P&L, and performance metrics
-- **Market Data Integration**: Download forex and stock prices from Yahoo Finance
-- **Comprehensive Visualizations**: Generate charts for portfolio overview, trading activity, and individual securities
-- **Clean Architecture**: Modular design with clear separation of concerns
+- **複数証券会社対応**: 楽天証券、SBI証券、Wiseのデータを読み込み・標準化
+- **ポートフォリオ分析**: 保有銘柄、損益、パフォーマンス指標を計算
+- **マーケットデータ統合**: Yahoo Finance/STOOQから為替・株価データをダウンロード
+- **包括的な可視化**: ポートフォリオ概要、取引活動、個別銘柄のチャートを生成
+- **JSONエクスポート**: 取引データを構造化JSONフォーマットで出力
+- **代替データソース**: STOOQメインで日本株により良いカバレッジを提供
 
-## Quick Start
+## クイックスタート
 
-### Installation
+### インストール
 
-1. **Clone or download the project**
-2. **Install dependencies**:
+1. **プロジェクトをクローンまたはダウンロード**
+2. **依存関係をインストール**:
    ```bash
    pip install -r requirements.txt
    ```
 
-### Setup Data
+### データ設定
 
-1. **Create data directories** (done automatically on first run):
+1. **データディレクトリを作成**（初回実行時に自動作成）:
    ```
    data/
-   ├── raw/           # Place your CSV files here
-   ├── processed/     # Processed data files
-   └── output/        # Analysis results and charts
+   ├── raw/           # CSVファイルをここに配置
+   ├── processed/     # 処理済みデータファイル
+   └── output/        # 分析結果とチャート
    ```
 
-2. **Place your trading data files** in `data/raw/` (supports subdirectories):
-   - Rakuten files: `*JP*.csv`, `*US*.csv`, `*INVST*.csv`
-   - SBI files: `SaveFile*.csv`, `yakujo*.csv`
-   - Wise files: `cleaned_wise_data*.csv`
-   - **Subdirectories supported**: Files can be in any subfolder structure like `data/raw/RAWDATA/rakuten/`
+2. **取引データファイルを `data/raw/` に配置**（サブディレクトリ対応）:
+   - 楽天ファイル: `*JP*.csv`, `*US*.csv`, `*INVST*.csv`, `*CH*.csv`
+   - SBIファイル: `SaveFile*.csv`, `yakujo*.csv`
+   - Wiseファイル: `cleaned_wise_data*.csv`
+   - **サブディレクトリ対応**: `data/raw/RAWDATA/rakuten/` 等の任意のフォルダ構造可能
 
-### Run Analysis
+### 分析実行
 
-**Full analysis** (downloads market data and analyzes everything):
+**基本的な使用方法**:
 ```bash
+# 完全分析（マーケットデータダウンロード + 分析）
 python3 main.py
-```
 
-**Skip market data download** (uses existing data):
-```bash
+# STOOQを使用（日本株推奨）
+python3 main.py --alternative-data
+
+# JSONエクスポート付き
+python3 main.py --export-json
+
+# STOOQとJSONエクスポートの組み合わせ（推奨）
+python3 main.py --alternative-data --export-json
+
+# マーケットデータダウンロードをスキップ
 python3 main.py --skip-download
-```
 
-**Create charts only** (from existing processed data):
-```bash
+# JSONのみエクスポート（分析なし）
+python3 main.py --json-only
+
+# チャートのみ作成
 python3 main.py --charts-only
 ```
 
-## Project Structure
+## 新機能詳細
+
+### JSONエクスポート機能
+
+取引データと銘柄コードを構造化されたJSONフォーマットで出力します。
+
+**出力例**:
+```json
+{
+  "metadata": {
+    "total_trades": 14,
+    "date_range": {"start": "2020-09-18", "end": "2025-02-25"},
+    "currencies": ["JPY", "USD", "HKドル"],
+    "data_sources": ["rakuten_us_...", "sbi_domestic_..."]
+  },
+  "trades": [
+    {
+      "trade_date": "2020-09-29T00:00:00",
+      "security_code": "VDE",
+      "security_name": "VA ENERGY",
+      "transaction_type": "buy",
+      "quantity": 2.0,
+      "price": 41.31,
+      "settlement_amount": 8772.0,
+      "currency": "USD"
+    }
+  ]
+}
+```
+
+### STOOQデータソース（推奨）
+
+**日本株での高い成功率**:
+- `2563`: 1,250件の履歴データ
+- `2621`: 1,174件の履歴データ  
+- `2837`: 878件の履歴データ
+
+**設定済み**:
+- STOOQを主要データソースとして設定
+- 1.5秒のレート制限（高速化）
+- 自動フォールバック機能
+
+### データソースカバレッジ
+
+| 資産タイプ | STOOQ | Yahoo Direct | Alpha Vantage | 推奨 |
+|------------|-------|--------------|---------------|------|
+| 日本株（TSE） | ✅ 優秀 | ❌ 限定的 | ✅ 良好 | STOOQ |
+| 米国株/ETF | ⚠️ 限定的 | ✅ 良好 | ✅ 優秀 | Yahoo + Alpha Vantage |
+| 欧州株 | ✅ 良好 | ✅ 良好 | ✅ 良好 | いずれか |
+| アジア市場 | ✅ 良好 | ⚠️ 限定的 | ⚠️ 限定的 | STOOQ |
+
+## プロジェクト構成
 
 ```
 trahist/
-├── main.py                    # Main entry point
-├── config.py                  # Configuration settings
-├── requirements.txt           # Dependencies
-├── README.md                  # This file
-├── data/                      # Data directories
-│   ├── raw/                   # Raw CSV files
-│   ├── processed/             # Processed data
-│   └── output/                # Results and charts
-├── src/                       # Source code
-│   ├── data/                  # Data processing
-│   │   └── loaders.py         # Data loading utilities
-│   ├── market/                # Market data
-│   │   ├── forex.py           # Forex data management
-│   │   └── stocks.py          # Stock price data
-│   ├── analysis/              # Analysis modules
-│   │   ├── portfolio.py       # Portfolio analysis
-│   │   └── visualization.py   # Chart generation
-│   └── utils/                 # Utilities
-│       └── helpers.py         # Helper functions
-├── DIC/                       # Legacy data (fallback source)
-│   ├── forex_data.csv         # Fallback forex data
-│   ├── charts.csv             # Fallback stock prices
-│   └── *.csv                  # Other reference data
-└── CODES/                     # Legacy code (for reference)
+├── main.py                    # メインエントリーポイント
+├── config.py                  # 設定ファイル
+├── requirements.txt           # 依存関係
+├── README.md                  # このファイル
+├── data/                      # データディレクトリ
+│   ├── raw/                   # 生CSVファイル
+│   ├── processed/             # 処理済みデータ
+│   └── output/                # 結果とチャート
+│       ├── charts/            # 可視化チャート
+│       ├── json_data/         # JSONエクスポート
+│       └── historical_data/   # 代替データダウンロード
+├── src/                       # ソースコード
+│   ├── data/                  # データ処理
+│   │   └── loaders.py         # データ読み込みユーティリティ
+│   ├── market/                # マーケットデータ
+│   │   ├── forex.py           # 為替データ管理
+│   │   ├── stocks.py          # 株価データ
+│   │   ├── data_converter.py  # JSONエクスポート
+│   │   └── alternative_data.py # 代替データソース
+│   ├── analysis/              # 分析モジュール
+│   │   ├── portfolio.py       # ポートフォリオ分析
+│   │   └── visualization.py   # チャート生成
+│   └── utils/                 # ユーティリティ
+│       └── helpers.py         # ヘルパー関数
+├── DIC/                       # レガシーデータ（フォールバック）
+│   ├── forex_data.csv         # フォールバック為替データ
+│   ├── charts.csv             # フォールバック株価
+│   └── *.csv                  # その他参照データ
+└── CODES/                     # レガシーコード（参考用）
 ```
 
-## Supported Data Formats
+## 対応データフォーマット
 
-### Rakuten Securities
-- **Japanese Stocks**: `*JP*.csv` files with columns like 約定日, 銘柄コード, 売買区分, etc.
-- **US Stocks**: `*US*.csv` files with columns like 約定日, ティッカー, 売買区分, etc.
-- **Investment Funds**: `*INVST*.csv` files with ファンド名, 取引, etc.
+### 楽天証券
+- **日本株**: `*JP*.csv` - 約定日, 銘柄コード, 売買区分等
+- **米国株**: `*US*.csv` - 約定日, ティッカー, 売買区分等
+- **投資信託**: `*INVST*.csv` - ファンド名, 取引等
+- **中国・香港株**: `*CH*.csv` - 約定日, 銘柄コード, 通貨等
 
-### SBI Securities
-- **Domestic**: `SaveFile*.csv` files (skip 8 rows)
-- **Foreign**: `yakujo*.csv` files (skip 2 rows)
+### SBI証券
+- **国内**: `SaveFile*.csv` ファイル（8行スキップ）
+- **外国**: `yakujo*.csv` ファイル（2行スキップ）
 
-### Wise (Currency Exchange)
-- Pre-processed files: `cleaned_wise_data*.csv`
+### Wise（外貨両替）
+- 前処理済みファイル: `cleaned_wise_data*.csv`
 
-## Output Files
+## 出力ファイル
 
-### Analysis Results
-- `portfolio_holdings_TIMESTAMP.csv` - Current portfolio holdings
-- `security_performance_TIMESTAMP.csv` - Performance by security
-- `trades_TIMESTAMP.csv` - Processed trade data
+### 分析結果
+- `portfolio_holdings_TIMESTAMP.csv` - 現在のポートフォリオ保有銘柄
+- `security_performance_TIMESTAMP.csv` - 銘柄別パフォーマンス
+- `trades_TIMESTAMP.csv` - 処理済み取引データ
 
-### Market Data
-- `forex_data.csv` - Downloaded forex rates
-- `stock_prices.csv` - Downloaded stock prices
+### JSONエクスポート
+- `trades_YYYYMMDD_HHMMSS.json` - 構造化された取引データ
+- `ticker_codes_YYYYMMDD_HHMMSS.json` - 抽出された銘柄コード
 
-### Visualizations
-- `portfolio_overview.png` - Portfolio summary charts
-- `trading_activity.png` - Trading patterns and activity
-- `performance_summary.png` - Performance analysis
-- `securities/` - Individual security charts
+### マーケットデータ
+- `forex_data.csv` - ダウンロード済み為替レート
+- `stock_prices.csv` - ダウンロード済み株価
+- `combined_historical_prices.csv` - 代替ソースからの履歴データ
+- `historical_data_metadata.json` - データソースメタデータ
 
-## Key Features Explained
+### 可視化
+- `portfolio_overview.png` - ポートフォリオサマリーチャート
+- `trading_activity.png` - 取引パターンと活動
+- `performance_summary.png` - パフォーマンス分析
+- `securities/` - 個別銘柄チャート
 
-### Data Loading and Standardization
-- **Recursive file search**: Finds CSV files in any subdirectory under `data/raw/`
-- Automatically detects file encodings (handles Shift-JIS, UTF-8, etc.)
-- Standardizes column names across different broker formats
-- Cleans and converts numeric data
-- Normalizes dates and transaction types
+## 設定
 
-### Portfolio Analysis
-- **Current Holdings**: Shares owned, cost basis, current value
-- **P&L Calculation**: Realized and unrealized gains/losses
-- **Performance Metrics**: Returns by security and overall portfolio
-- **Trading Activity**: Patterns and frequency analysis
+`config.py`で以下をカスタマイズ:
+- データディレクトリ
+- マーケットデータソース（STOOQが主）
+- 異なる証券会社のカラムマッピング
+- 日付範囲やその他設定
 
-### Market Data Integration
-- **Incremental updates**: Downloads only new data since last update
-- **Rate limit protection**: Automatic delays and retry logic for Yahoo Finance
-- **Batch processing**: Downloads securities in small batches to avoid limits
-- **Fallback support**: Uses existing data from DIC directory when downloads fail
-- Downloads forex rates (USDJPY, EURJPY) and stock prices
-- Converts all amounts to JPY for consistent analysis
+### 代替データソース設定
+```python
+ALTERNATIVE_DATA_SOURCES = {
+    'default_sources': ['stooq'],  # STOOQを最優先
+    'rate_limit_seconds': 1.5,     # STOOQは高速
+    'request_timeout': 30,
+    'retry_count': 3,
+    'max_symbols_per_batch': 50
+}
+```
 
-### Visualizations
-- **Portfolio Overview**: Holdings distribution, P&L by security
-- **Trading Activity**: Monthly volumes, buy/sell patterns
-- **Security Charts**: Price movements with trade markers
-- **Performance Analysis**: Returns and trading frequency
+### JSONエクスポート設定
+```python
+JSON_EXPORT = {
+    'enable_auto_export': True,    # 分析後自動エクスポート
+    'export_directory': 'json_data',
+    'include_metadata': True,
+    'pretty_print': True
+}
+```
 
-## Configuration
+## エラーハンドリング
 
-Edit `config.py` to customize:
-- Data directories
-- Market data sources
-- Column mappings for different brokers
-- Date ranges and other settings
+システムは堅牢なエラーハンドリングを含みます:
+- **自動フォールバック**: STOOQが失敗した場合、Yahoo Direct、その後Alpha Vantageを試行
+- **レート制限**: リクエスト間に1.5秒の遅延（API制限回避）
+- **リトライロジック**: 失敗したリクエストを最大3回再試行
+- **グレースフルデグラデーション**: 一部の銘柄が失敗しても分析を続行
+- **詳細ログ**: 成功/失敗の完全な追跡
 
-## Error Handling
+## パフォーマンスのヒント
 
-The system includes robust error handling:
-- Graceful handling of missing files or data
-- Automatic encoding detection
-- Detailed logging of all operations
-- Continues processing even if some securities fail
+1. **日本株には `--alternative-data` を使用** - yfinanceより優れたカバレッジ
+2. **Alpha Vantage APIキーを設定** - 米国市場に最適（無料枠あり）
+3. **クイックエクスポートには `--json-only` を使用** - データのみ必要な場合
+4. **設定テストには `--skip-download` を最初に実行** - ダウンロード前の設定確認
+5. **レート制限を監視** - 制限に引っかかる場合はconfigでdelay_secondsを増加
 
-## Logging
+## 後方互換性
 
-All operations are logged with timestamps. Check console output for:
-- Data loading progress
-- Market data download status
-- Analysis results
-- Error messages and warnings
+- 既存の全機能は変更なし
+- `--alternative-data`を指定しない限りデフォルトはyfinance
+- `--export-json`を使用するか自動エクスポートを有効にしない限りJSONエクスポートはオプション
+- 既存のコマンドライン引数は全て従来通り動作
 
-## Tips for Best Results
+## 外部ツールとの統合
 
-1. **File Organization**: Keep data files organized in the `data/raw/` directory
-2. **Regular Updates**: Run analysis periodically - only new data will be downloaded
-3. **Data Quality**: Ensure CSV files are properly formatted and complete
-4. **Performance**: Use `--skip-download` for faster re-analysis of existing data
-5. **Rate Limits**: The system automatically handles Yahoo Finance rate limits with delays and retries
+JSONフォーマットにより以下との統合が容易:
+- **Webアプリケーション** - 直接JSON消費
+- **データ分析ツール** - PandasでJSONを直接読み込み
+- **API** - 標準REST APIフォーマット
+- **データベース** - NoSQLデータベースへのJSONインポート
+- **可視化ツール** - Chart.js、D3.js等
 
-## Troubleshooting
+## トラブルシューティング
 
-### Common Issues
+### よくある問題
 
-**No data found**: 
-- Check that CSV files are in `data/raw/`
-- Verify file naming matches expected patterns
+**データが見つからない**: 
+- CSVファイルが`data/raw/`にあることを確認
+- ファイル名が期待されるパターンと一致することを確認
 
-**Market data download fails**:
-- Check internet connection
-- System automatically handles rate limits with delays
-- Falls back to existing data in DIC directory if available
-- Partial failures are handled gracefully - analysis continues
+**マーケットデータダウンロードが失敗**:
+- インターネット接続を確認
+- システムは遅延とリトライでレート制限を自動処理
+- 利用可能な場合はDICディレクトリの既存データにフォールバック
+- 部分的な失敗は適切に処理され、分析は継続
 
-**Encoding errors**:
-- System automatically detects encodings, but you can manually specify in `config.py`
+**Yahoo 401エラー**: 使用量が多いと正常な動作、代替としてAlpha Vantageを使用
 
-**Memory issues with large datasets**:
-- Consider processing data in smaller chunks
-- Close other applications to free memory
+**STOOQデータなし**: 一部の銘柄は利用不可、銘柄フォーマットを確認
 
-## Advanced Usage
+**レート制限**: configで`rate_limit_seconds`を増加
 
-### Custom Data Sources
-Extend the `DataLoader` class in `src/data/loaders.py` to support additional broker formats.
+**エンコーディングエラー**:
+- システムは自動でエンコーディングを検出、`config.py`で手動指定も可能
 
-### Custom Analysis
-Add new analysis functions to `src/analysis/portfolio.py` or create new modules.
+### ヘルプ
 
-### Custom Visualizations
-Extend the `TradeVisualizer` class in `src/analysis/visualization.py`.
+詳細なログで実行して詳細な操作を確認:
+```bash
+python3 main.py --alternative-data --export-json 2>&1 | tee analysis.log
+```
 
-## Requirements
+特定のエラーメッセージと成功率についてはログを確認してください。
+
+## 環境変数（オプション）
+
+```bash
+# 追加データソース用APIキーを設定
+export ALPHA_VANTAGE_API_KEY="your_key_here"
+export POLYGON_API_KEY="your_key_here"
+export IEX_API_KEY="your_key_here"
+```
+
+## 要件
 
 - Python 3.8+
-- pandas, numpy for data processing
-- matplotlib, seaborn for visualization
-- yfinance for market data
-- chardet for encoding detection
+- pandas, numpy（データ処理用）
+- matplotlib, seaborn（可視化用）
+- yfinance（マーケットデータ用）
+- requests（代替データソース用）
+- chardet（エンコーディング検出用）
 
-## License
+## ライセンス
 
-This project is for personal use. Ensure compliance with your broker's terms of service when using their data.
+このプロジェクトは個人使用用です。証券会社のデータを使用する際は、各社の利用規約に準拠してください。

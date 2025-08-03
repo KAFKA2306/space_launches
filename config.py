@@ -131,8 +131,8 @@ class Config:
     
     # Alternative data sources configuration
     ALTERNATIVE_DATA_SOURCES = {
-        'default_sources': ['stooq', 'yahoo', 'alpha_vantage'],
-        'rate_limit_seconds': 2.0,
+        'default_sources': ['stooq'],  # STOOQ first for Japanese stocks
+        'rate_limit_seconds': 1.5,     # Faster for STOOQ
         'request_timeout': 30,
         'retry_count': 3,
         'max_symbols_per_batch': 50
