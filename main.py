@@ -108,7 +108,8 @@ def analyze_portfolio(trades_df, price_data, forex_data, config, logger):
     analyzer = PortfolioAnalyzer(config)
     
     # Current holdings
-    holdings_df = analyzer.analyze_holdings(trades_df, price_data or pd.DataFrame())
+    safe_price_data = price_data if price_data is not None and not price_data.empty else pd.DataFrame()
+    holdings_df = analyzer.analyze_holdings(trades_df, safe_price_data)
     if not holdings_df.empty:
         holdings_path = config.OUTPUT_DIR / f"portfolio_holdings_{get_timestamp()}.csv"
         holdings_df.to_csv(holdings_path, index=False)
@@ -121,7 +122,7 @@ def analyze_portfolio(trades_df, price_data, forex_data, config, logger):
     activity = analyzer.analyze_trading_activity(trades_df)
     
     # Security performance
-    performance_df = analyzer.calculate_security_performance(trades_df, price_data or pd.DataFrame())
+    performance_df = analyzer.calculate_security_performance(trades_df, safe_price_data)
     if not performance_df.empty:
         performance_path = config.OUTPUT_DIR / f"security_performance_{get_timestamp()}.csv"
         performance_df.to_csv(performance_path, index=False)
