@@ -7,6 +7,7 @@ from typing import Dict, List, Set, Optional
 import logging
 from datetime import datetime
 import re
+from .currency_converter import CurrencyConverter
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,8 @@ class DataConverter:
     def __init__(self, config=None):
         self.config = config
         self.security_mapping = self._load_security_mapping()
+        self.currency_converter = CurrencyConverter(config)
+        self.fund_mappings = {}  # Track successful fund mappings
     
     def _load_security_mapping(self) -> Dict[str, str]:
         """Load security name to ticker code mapping from DIC/securitycode2.csv."""
@@ -31,10 +34,22 @@ class DataConverter:
                 for _, row in df.iterrows():
                     security_name = str(row['security_name']).strip()
                     security_code = str(row['security_code']).strip()
-                    if security_name and security_code:
-                        mapping[security_name] = security_code
+                    
+                    # Clean up security_code - remove commas and handle special cases
+                    if security_code and security_code != 'nan':
+                        # Remove leading commas and clean up
+                        security_code = security_code.lstrip('，,').strip()
+                        
+                        # Skip if still empty or invalid after cleaning
+                        if security_code and security_code != 'nan' and len(security_code) > 0:
+                            mapping[security_name] = security_code
                 
                 logger.info(f"Loaded {len(mapping)} security name mappings")
+                
+                # Debug: show some sample mappings
+                sample_items = list(mapping.items())[:5]
+                logger.debug(f"Sample mappings: {sample_items}")
+                
             else:
                 logger.warning(f"Security mapping file not found: {mapping_file}")
                 
@@ -83,6 +98,34 @@ class DataConverter:
         if norm1 == norm2:
             return True
         
+        # Asset class validation - prevent mismatches between different asset classes
+        asset_classes = {
+            'reit': ['reit', 'リート', 'j-reit', 'jreit', '不動産'],
+            'gold': ['gold', 'ゴールド', '金'],
+            'bond': ['bond', '債券', 'treasury', '国債'],
+            'europe': ['europe', '欧州', 'european'],
+            'topix': ['topix', 'トピックス'],
+            'sp500': ['s&p500', 'sp500', 's&p', 'sp'],
+            'nasdaq': ['nasdaq', 'ナスダック'],
+            'emerging': ['emerging', '新興国'],
+            'developed': ['developed', '先進国']
+        }
+        
+        def get_asset_class(name):
+            name_lower = name.lower()
+            for asset_class, keywords in asset_classes.items():
+                if any(keyword in name_lower for keyword in keywords):
+                    return asset_class
+            return None
+        
+        class1 = get_asset_class(norm1)
+        class2 = get_asset_class(norm2)
+        
+        # If both have clear asset classes and they differ, don't match
+        if class1 and class2 and class1 != class2:
+            logger.debug(f"Asset class mismatch prevented: '{name1}' ({class1}) vs '{name2}' ({class2})")
+            return False
+        
         # Check if one name contains the other (for partial matches)
         if len(norm1) > 10 and len(norm2) > 10:
             if norm1 in norm2 or norm2 in norm1:
@@ -93,14 +136,15 @@ class DataConverter:
         keywords2 = set(norm2.split())
         
         # Remove common stop words
-        stop_words = {'の', 'and', 'or', '・', '株式', '債券', '投資', '投信', 'fund', 'index'}
+        stop_words = {'の', 'and', 'or', '・', '株式', '債券', '投資', '投信', 'fund', 'index', 'etf'}
         keywords1 = keywords1 - stop_words
         keywords2 = keywords2 - stop_words
         
         if len(keywords1) >= 2 and len(keywords2) >= 2:
-            # If majority of keywords match
+            # If majority of keywords match (increased threshold for better precision)
             common_keywords = keywords1 & keywords2
-            return len(common_keywords) >= min(len(keywords1), len(keywords2)) * 0.6
+            match_ratio = len(common_keywords) / min(len(keywords1), len(keywords2))
+            return match_ratio >= 0.7  # Increased from 0.6 to 0.7 for better precision
         
         return False
         
@@ -131,30 +175,50 @@ class DataConverter:
                 "trades": []
             }
             
-            # Convert each trade to dictionary
+            # Convert each trade to dictionary with unified pricing
             for _, row in df.iterrows():
                 security_code = row['security_code'] if pd.notna(row['security_code']) else ""
                 security_name = row['security_name'] if pd.notna(row['security_name']) else ""
+                original_security_code = security_code  # Keep original for mapping tracking
                 
                 # If no security code but name exists, try to find ticker for investment funds
                 if not security_code and security_name:
                     ticker = self._find_ticker_for_fund(security_name)
                     if ticker:
                         security_code = ticker
+                        self.fund_mappings[security_name] = ticker  # Track mapping
                         logger.debug(f"Mapped fund '{security_name}' to ticker '{ticker}'")
+                
+                # Prepare trade data for currency conversion
+                trade_data = {
+                    'security_name': security_name,
+                    'security_code': security_code,
+                    'currency': row['currency'] if pd.notna(row['currency']) else 'JPY',
+                    'price': float(row['price']) if pd.notna(row['price']) else 0.0,
+                    'quantity': float(row['quantity']) if pd.notna(row['quantity']) else 0.0,
+                    'settlement_amount': float(row['settlement_amount']) if pd.notna(row['settlement_amount']) else 0.0,
+                    'trade_date': row['trade_date'] if pd.notna(row['trade_date']) else None
+                }
+                
+                # Get unified JPY pricing
+                price_jpy, amount_jpy, conversion_info = self.currency_converter.convert_to_jpy_unified_price(trade_data)
                 
                 trade = {
                     "trade_date": row['trade_date'].isoformat() if pd.notna(row['trade_date']) else None,
                     "settlement_date": row['settlement_date'].isoformat() if pd.notna(row['settlement_date']) else None,
                     "security_code": security_code,
+                    "security_code_original": original_security_code,  # Keep original for reference
                     "security_name": security_name,
                     "transaction_type": row['transaction_type'] if pd.notna(row['transaction_type']) else "",
                     "quantity": float(row['quantity']) if pd.notna(row['quantity']) else 0.0,
                     "price": float(row['price']) if pd.notna(row['price']) else 0.0,
+                    "price_jpy_unified": round(price_jpy, 4),  # Unified JPY price
                     "settlement_amount": float(row['settlement_amount']) if pd.notna(row['settlement_amount']) else 0.0,
-                    "currency": row['currency'] if pd.notna(row['currency']) else "",
+                    "amount_jpy_unified": round(amount_jpy, 2),  # Unified JPY amount
+                    "currency": self.currency_converter.normalize_currency_code(row['currency'] if pd.notna(row['currency']) else 'JPY'),
                     "account_type": row['account_type'] if pd.notna(row['account_type']) else "",
-                    "data_source": row['data_source'] if pd.notna(row['data_source']) else ""
+                    "data_source": row['data_source'] if pd.notna(row['data_source']) else "",
+                    "conversion_info": conversion_info  # Include conversion details
                 }
                 json_data["trades"].append(trade)
             
@@ -356,3 +420,117 @@ class DataConverter:
         except Exception as e:
             logger.error(f"Error converting latest data to JSON: {e}")
             raise
+    
+    def save_fund_mapping_table(self, output_dir: Path) -> Path:
+        """Save investment fund name to ticker mapping table as CSV."""
+        try:
+            output_dir = Path(output_dir)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Create mapping table
+            mapping_data = []
+            for fund_name, ticker in self.fund_mappings.items():
+                # Normalize fund name for better matching
+                normalized_name = self.currency_converter.normalize_fund_name(fund_name)
+                
+                # Get asset classification
+                is_fund = self.currency_converter._is_investment_fund(fund_name, ticker)
+                
+                mapping_data.append({
+                    'original_fund_name': fund_name,
+                    'normalized_fund_name': normalized_name,
+                    'ticker_code': ticker,
+                    'is_investment_fund': is_fund,
+                    'mapping_source': 'DIC/securitycode2.csv',
+                    'mapped_at': datetime.now().isoformat()
+                })
+            
+            if mapping_data:
+                df = pd.DataFrame(mapping_data)
+                
+                # Sort by ticker code for easier reading
+                df = df.sort_values('ticker_code')
+                
+                # Save to CSV
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                csv_path = output_dir / f"fund_ticker_mapping_{timestamp}.csv"
+                df.to_csv(csv_path, index=False, encoding='utf-8')
+                
+                logger.info(f"Saved {len(mapping_data)} fund mappings to {csv_path}")
+                return csv_path
+            else:
+                logger.warning("No fund mappings found to save")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error saving fund mapping table: {e}")
+            return None
+    
+    def create_unified_trades_csv(self, processed_data_dir: Path, output_dir: Path) -> Path:
+        """Create a unified trades CSV with JPY pricing and fund mappings."""
+        try:
+            output_dir = Path(output_dir)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Find latest trades file
+            trades_files = list(processed_data_dir.glob("trades_*.csv"))
+            if not trades_files:
+                logger.warning("No trades files found")
+                return None
+                
+            latest_trades_file = max(trades_files, key=lambda x: x.stat().st_mtime)
+            logger.info(f"Processing trades file: {latest_trades_file}")
+            
+            # Read and process trades
+            df = pd.read_csv(latest_trades_file, parse_dates=['trade_date', 'settlement_date'])
+            
+            # Add unified pricing columns
+            df = self.currency_converter.add_unified_pricing_to_dataframe(df)
+            
+            # Add fund mapping information
+            df['ticker_mapped'] = False
+            df['original_security_code'] = df['security_code'].copy()
+            
+            for idx, row in df.iterrows():
+                security_name = str(row.get('security_name', ''))
+                security_code = str(row.get('security_code', ''))
+                
+                # Try to map investment fund names to ticker codes
+                if not security_code or security_code.strip() == "":
+                    ticker = self._find_ticker_for_fund(security_name)
+                    if ticker:
+                        df.at[idx, 'security_code'] = ticker
+                        df.at[idx, 'ticker_mapped'] = True
+                        self.fund_mappings[security_name] = ticker
+            
+            # Reorder columns for better readability
+            column_order = [
+                'trade_date', 'settlement_date', 'security_code', 'original_security_code',
+                'security_name', 'transaction_type', 'quantity', 
+                'price', 'price_jpy_unified', 'settlement_amount', 'amount_jpy_unified',
+                'currency', 'conversion_rate', 'is_investment_fund', 'fund_10000x_applied',
+                'ticker_mapped', 'account_type', 'data_source'
+            ]
+            
+            # Keep only existing columns
+            available_columns = [col for col in column_order if col in df.columns]
+            remaining_columns = [col for col in df.columns if col not in available_columns]
+            final_columns = available_columns + remaining_columns
+            
+            df = df[final_columns]
+            
+            # Save unified CSV
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            unified_csv_path = output_dir / f"trades_unified_{timestamp}.csv"
+            df.to_csv(unified_csv_path, index=False, encoding='utf-8')
+            
+            logger.info(f"Created unified trades CSV with {len(df)} trades: {unified_csv_path}")
+            
+            # Also save the fund mapping table
+            self.save_fund_mapping_table(output_dir)
+            
+            return unified_csv_path
+            
+        except Exception as e:
+            logger.error(f"Error creating unified trades CSV: {e}")
+            return None

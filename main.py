@@ -124,6 +124,43 @@ def export_to_json(config, logger):
         return {}
 
 
+def create_unified_csv(config, logger):
+    """Create unified CSV with JPY pricing and investment fund mappings."""
+    logger.info("=== Creating Unified CSV ===")
+    
+    try:
+        converter = DataConverter(config)
+        unified_output_dir = config.OUTPUT_DIR / 'unified_csv'
+        
+        unified_csv_path = converter.create_unified_trades_csv(
+            config.PROCESSED_DATA_DIR,
+            unified_output_dir
+        )
+        
+        if unified_csv_path:
+            logger.info(f"Unified CSV created successfully: {unified_csv_path}")
+            
+            # Display summary statistics
+            import pandas as pd
+            df = pd.read_csv(unified_csv_path)
+            
+            logger.info(f"Unified CSV Summary:")
+            logger.info(f"  Total trades: {len(df)}")
+            logger.info(f"  Unique securities: {df['security_code'].nunique()}")
+            logger.info(f"  Investment funds mapped: {df['ticker_mapped'].sum()}")
+            logger.info(f"  Investment funds identified: {df['is_investment_fund'].sum()}")
+            logger.info(f"  Total JPY amount: {df['amount_jpy_unified'].sum():,.0f} JPY")
+            
+            return unified_csv_path
+        else:
+            logger.warning("Failed to create unified CSV")
+            return None
+            
+    except Exception as e:
+        logger.error(f"Error creating unified CSV: {e}")
+        return None
+
+
 def analyze_portfolio(trades_df, price_data, forex_data, config, logger):
     """Perform portfolio analysis."""
     logger.info("=== Analyzing Portfolio ===")
@@ -252,6 +289,11 @@ def main():
         action="store_true",
         help="Only export data to JSON format without full analysis"
     )
+    parser.add_argument(
+        "--unified-csv",
+        action="store_true",
+        help="Create unified CSV with JPY pricing and investment fund mappings"
+    )
     
     args = parser.parse_args()
     
@@ -265,6 +307,12 @@ def main():
             logger.info("Exporting data to JSON only")
             export_to_json(config, logger)
             logger.info("JSON export completed!")
+            
+        elif args.unified_csv:
+            # Only create unified CSV with JPY pricing and fund mappings
+            logger.info("Creating unified CSV only")
+            create_unified_csv(config, logger)
+            logger.info("Unified CSV creation completed!")
             
         elif args.charts_only:
             # Load existing data and create charts only
@@ -327,6 +375,10 @@ def main():
             # Export to JSON if requested
             if args.export_json or config.JSON_EXPORT['enable_auto_export']:
                 export_to_json(config, logger)
+            
+            # Create unified CSV if requested  
+            if args.unified_csv or args.export_json:
+                create_unified_csv(config, logger)
             
             # Print summary
             print_summary(summary, activity, logger)
