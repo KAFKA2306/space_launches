@@ -1,6 +1,8 @@
 """Data loading utilities for different broker formats."""
 
 import pandas as pd
+import numpy as np
+import re
 from pathlib import Path
 import glob
 import logging
@@ -400,9 +402,9 @@ class DataLoader:
         return original_currency
     
     def load_all_broker_data(self, raw_data_dir: Path) -> pd.DataFrame:
-        """Load data from all brokers and combine using generic file detection."""
-        logger.info(f"Loading data from all brokers in {raw_data_dir}")
-        logger.info("Searching recursively in all subdirectories...")
+        """Load data from all brokers using CODES-enhanced approach for better performance."""
+        logger.info(f"Loading data from all brokers in {raw_data_dir} (CODES-enhanced)")
+        logger.info("Using direct file processing approach inspired by CODES/1concat.py...")
         
         all_dataframes = []
         portfolio_dataframes = []
@@ -423,7 +425,7 @@ class DataLoader:
             'portfolio': self.load_portfolio_data
         }
         
-        # Process each file based on detected type
+        # Process each file with CODES-style direct approach
         for file_path in all_csv_files:
             # Skip Zone.Identifier files
             if file_path.name.endswith(':Zone.Identifier'):
@@ -432,8 +434,18 @@ class DataLoader:
             file_type = self.detect_file_type(file_path)
             logger.info(f"Detected file type '{file_type}' for {file_path.name}")
             
+            # Use CODES-style direct processing for better error handling
             if file_type == 'unknown':
-                logger.warning(f"Unknown file type for {file_path.name}, skipping")
+                logger.info(f"Unknown file type for {file_path.name}, trying CODES-style direct processing")
+                try:
+                    df = self._process_unknown_file_codes_style(file_path)
+                    if df is not None and not df.empty:
+                        all_dataframes.append(df)
+                        logger.info(f"Successfully loaded {len(df)} records using CODES approach")
+                    else:
+                        logger.warning(f"Failed to process {file_path.name} with CODES approach")
+                except Exception as e:
+                    logger.error(f"CODES-style processing failed for {file_path.name}: {e}")
                 continue
             
             if file_type not in loader_methods:
@@ -453,6 +465,15 @@ class DataLoader:
                     
             except Exception as e:
                 logger.error(f"Error loading {file_path}: {e}")
+                # Try CODES-style fallback
+                try:
+                    logger.info(f"Attempting CODES-style fallback for {file_path.name}")
+                    df = self._process_unknown_file_codes_style(file_path)
+                    if df is not None and not df.empty:
+                        all_dataframes.append(df)
+                        logger.info(f"Successfully loaded {len(df)} records using CODES fallback")
+                except Exception as fallback_error:
+                    logger.error(f"CODES-style fallback also failed: {fallback_error}")
         
         # Handle trading data
         if not all_dataframes:
@@ -497,6 +518,148 @@ class DataLoader:
             logger.info(f"\n{trading_df[['trade_date', 'security_name', 'transaction_type', 'quantity', 'currency']].head()}")
         
         return trading_df
+    
+    def _process_unknown_file_codes_style(self, file_path: Path) -> pd.DataFrame:
+        """Process unknown file type using CODES-style approach"""
+        file_name = file_path.name.lower()
+        
+        try:
+            # Try different encodings and skip rows like CODES approach
+            encodings_to_try = ['shift_jis', 'utf-8', 'cp932']
+            skip_rows_options = [0, 1, 2, 5, 8]
+            
+            for encoding in encodings_to_try:
+                for skip_rows in skip_rows_options:
+                    try:
+                        df = pd.read_csv(file_path, encoding=encoding, skiprows=skip_rows)
+                        
+                        # Check if this looks like trading data
+                        if self._looks_like_trading_data(df):
+                            logger.info(f"Successfully read {file_path.name} with encoding={encoding}, skiprows={skip_rows}")
+                            
+                            # Apply CODES-style column standardization
+                            df = self._standardize_unknown_columns(df, file_path)
+                            return df
+                            
+                    except Exception:
+                        continue
+            
+            logger.warning(f"Could not process {file_path.name} with any encoding/skip combination")
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error in CODES-style processing of {file_path.name}: {e}")
+            return None
+    
+    def _looks_like_trading_data(self, df: pd.DataFrame) -> bool:
+        """Check if DataFrame looks like trading data"""
+        if df.empty or len(df.columns) < 5:
+            return False
+        
+        # Look for common trading data patterns
+        column_text = ' '.join(df.columns.astype(str).str.lower())
+        trading_indicators = [
+            '約定', '受渡', '銘柄', '数量', '単価', '金額', 'trade', 'date', 'security', 
+            'quantity', 'price', 'amount', 'ticker', 'symbol'
+        ]
+        
+        return any(indicator in column_text for indicator in trading_indicators)
+    
+    def _standardize_unknown_columns(self, df: pd.DataFrame, file_path: Path) -> pd.DataFrame:
+        """Standardize columns for unknown file format using CODES approach"""
+        # Create mapping based on common patterns
+        column_mapping = {}
+        
+        for col in df.columns:
+            col_lower = str(col).lower()
+            
+            # Date mappings
+            if any(pattern in col_lower for pattern in ['約定日', 'trade_date', '取引日']):
+                column_mapping[col] = 'trade_date'
+            elif any(pattern in col_lower for pattern in ['受渡日', 'settlement_date', '決済日']):
+                column_mapping[col] = 'settlement_date'
+            
+            # Security mappings
+            elif any(pattern in col_lower for pattern in ['銘柄コード', 'security_code', 'ticker', 'ティッカー']):
+                column_mapping[col] = 'security_code'
+            elif any(pattern in col_lower for pattern in ['銘柄名', 'security_name', 'ファンド名']):
+                column_mapping[col] = 'security_name'
+            
+            # Transaction mappings
+            elif any(pattern in col_lower for pattern in ['取引', 'transaction', '売買']):
+                column_mapping[col] = 'transaction_type'
+            
+            # Quantity and price mappings
+            elif any(pattern in col_lower for pattern in ['数量', 'quantity', '株', '口']):
+                column_mapping[col] = 'quantity'
+            elif any(pattern in col_lower for pattern in ['単価', 'price', '価格']):
+                column_mapping[col] = 'price'
+            elif any(pattern in col_lower for pattern in ['受渡金額', 'settlement_amount', '金額']):
+                column_mapping[col] = 'settlement_amount'
+            
+            # Currency and account mappings
+            elif any(pattern in col_lower for pattern in ['通貨', 'currency']):
+                column_mapping[col] = 'currency'
+            elif any(pattern in col_lower for pattern in ['口座', 'account', '預り']):
+                column_mapping[col] = 'account_type'
+        
+        # Apply mapping
+        df = df.rename(columns=column_mapping)
+        
+        # Add missing columns with defaults
+        df['data_source'] = file_path.name
+        
+        # Ensure standard columns exist
+        for col in self.standard_columns:
+            if col not in df.columns:
+                df[col] = None
+        
+        # Apply CODES-style data cleaning
+        df = self._apply_codes_style_cleaning(df)
+        
+        return df[self.standard_columns]
+    
+    def _apply_codes_style_cleaning(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Apply CODES-style data cleaning"""
+        # Clean numeric columns like CODES/2clean.py
+        def clean_numeric_codes_style(x):
+            if pd.isna(x) or x == '-':
+                return np.nan
+            if isinstance(x, str):
+                x = re.sub(r'[,円]', '', str(x))
+                match = re.search(r'-?\d+(\.\d+)?', x)
+                if match:
+                    return float(match.group())
+            try:
+                return float(x)
+            except (ValueError, TypeError):
+                return np.nan
+        
+        # Apply to numeric columns
+        numeric_columns = ['quantity', 'price', 'settlement_amount']
+        for col in numeric_columns:
+            if col in df.columns:
+                df[col] = df[col].apply(clean_numeric_codes_style)
+        
+        # Standardize transaction types like CODES
+        def standardize_transaction_type_codes(transaction_type):
+            if pd.isna(transaction_type):
+                return 'unknown'
+            
+            original_type = str(transaction_type)
+            lower_type = original_type.lower()
+            
+            if any(word in lower_type for word in ['買', 'buy', '買付', '再投資','入庫']):
+                return 'buy'
+            elif any(word in lower_type for word in ['売', 'sell', '解約']):
+                return 'sell'
+            else:
+                return original_type
+        
+        if 'transaction_type' in df.columns:
+            df['transaction_type'] = df['transaction_type'].apply(standardize_transaction_type_codes)
+        
+        return df
     
     def _get_timestamp(self) -> str:
         """Get current timestamp for file naming."""

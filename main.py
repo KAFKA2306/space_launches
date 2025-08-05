@@ -10,6 +10,13 @@ import argparse
 import logging
 from pathlib import Path
 import sys
+import pandas as pd
+import numpy as np
+import re
+from datetime import datetime, timedelta
+import os
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from tqdm import tqdm
 
 # Add src to path for imports
 sys.path.append(str(Path(__file__).parent / 'src'))
@@ -52,16 +59,40 @@ def update_market_data(config, logger):
 
 
 def load_and_process_trades(config, logger):
-    """Load and process trading data from all sources."""
-    logger.info("=== Loading Trading Data ===")
+    """Load and process trading data from all sources using CODES-style direct processing."""
+    logger.info("=== Loading Trading Data (CODES-style) ===")
     
-    # Load trade data
-    loader = DataLoader(config)
-    trades_df = loader.load_all_broker_data(config.RAW_DATA_DIR)
+    # Import pandas here to avoid issues
+    import pandas as pd
     
-    if trades_df.empty:
+    # Direct file processing approach inspired by CODES/1concat.py
+    all_data = []
+    raw_data_dir = config.RAW_DATA_DIR
+    
+    if not raw_data_dir.exists():
+        logger.error(f"Raw data directory not found: {raw_data_dir}")
+        return None
+    
+    # Process files directly like CODES/1concat.py
+    for file_path in raw_data_dir.rglob("*.csv"):
+        logger.info(f"Processing {file_path}...")
+        try:
+            df = process_csv_direct(file_path, logger)
+            if df is not None:
+                all_data.append(df)
+        except Exception as e:
+            logger.error(f"Error processing {file_path}: {e}")
+            continue
+    
+    if not all_data:
         logger.error("No trading data found. Please place your CSV files in the data/raw directory.")
         return None
+    
+    # Combine all data like CODES approach
+    trades_df = pd.concat(all_data, ignore_index=True)
+    
+    # Clean and standardize data like CODES/2clean.py
+    trades_df = clean_trades_data(trades_df, logger)
     
     # Save processed trades
     trades_path = config.PROCESSED_DATA_DIR / f"trades_{get_timestamp()}.csv"
@@ -412,6 +443,9 @@ def main():
             holdings_df, summary, activity, performance_df = analyze_portfolio(
                 trades_df, price_data, forex_data, config, logger
             )
+            
+            # Perform EDA analysis like CODES/3eda.py
+            perform_eda_analysis(trades_df, config, logger)
             
             # Create visualizations
             create_visualizations(trades_df, holdings_df, summary, activity, 
