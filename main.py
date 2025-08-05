@@ -161,6 +161,40 @@ def create_unified_csv(config, logger):
         return None
 
 
+def build_fund_dictionary(config, logger):
+    """Build comprehensive fund dictionary from historical data."""
+    logger.info("=== Building Comprehensive Fund Dictionary ===")
+    
+    try:
+        from src.market.fund_dictionary_builder import FundDictionaryBuilder
+        import json
+        
+        builder = FundDictionaryBuilder(config)
+        dict_path = builder.build_and_save_dictionary()
+        
+        if dict_path:
+            logger.info(f"Fund dictionary built successfully: {dict_path}")
+            
+            # Display summary
+            with open(dict_path, 'r', encoding='utf-8') as f:
+                fund_dict = json.load(f)
+            
+            metadata = fund_dict.get('metadata', {})
+            logger.info(f"Dictionary Summary:")
+            logger.info(f"  Total funds: {metadata.get('total_funds', 0)}")
+            logger.info(f"  Mapped funds: {metadata.get('mapped_funds', 0)}")
+            logger.info(f"  Unmapped funds: {metadata.get('unmapped_funds', 0)}")
+            
+            return dict_path
+        else:
+            logger.warning("Failed to build fund dictionary")
+            return None
+            
+    except Exception as e:
+        logger.error(f"Error building fund dictionary: {e}")
+        return None
+
+
 def analyze_portfolio(trades_df, price_data, forex_data, config, logger):
     """Perform portfolio analysis."""
     logger.info("=== Analyzing Portfolio ===")
@@ -294,6 +328,11 @@ def main():
         action="store_true",
         help="Create unified CSV with JPY pricing and investment fund mappings"
     )
+    parser.add_argument(
+        "--build-fund-dict",
+        action="store_true",
+        help="Build comprehensive fund dictionary from historical data"
+    )
     
     args = parser.parse_args()
     
@@ -307,6 +346,12 @@ def main():
             logger.info("Exporting data to JSON only")
             export_to_json(config, logger)
             logger.info("JSON export completed!")
+            
+        elif args.build_fund_dict:
+            # Build comprehensive fund dictionary from historical data
+            logger.info("Building comprehensive fund dictionary")
+            build_fund_dictionary(config, logger)
+            logger.info("Fund dictionary building completed!")
             
         elif args.unified_csv:
             # Only create unified CSV with JPY pricing and fund mappings

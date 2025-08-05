@@ -17,7 +17,8 @@ class DataConverter:
     
     def __init__(self, config=None):
         self.config = config
-        self.security_mapping = self._load_security_mapping()
+        self.comprehensive_fund_dict = self._load_comprehensive_fund_dictionary()
+        self.security_mapping = self._load_security_mapping()  # Keep as fallback
         self.currency_converter = CurrencyConverter(config)
         self.fund_mappings = {}  # Track successful fund mappings
     
@@ -58,26 +59,148 @@ class DataConverter:
             
         return mapping
     
+    def _load_comprehensive_fund_dictionary(self) -> Dict:
+        """Load comprehensive fund dictionary from JSON file."""
+        try:
+            base_dir = Path(__file__).parent.parent.parent
+            dict_file = base_dir / "DIC" / "comprehensive_fund_dictionary.json"
+            
+            if dict_file.exists():
+                with open(dict_file, 'r', encoding='utf-8') as f:
+                    fund_dict = json.load(f)
+                
+                funds_count = len(fund_dict.get('funds', {}))
+                mapped_count = fund_dict.get('metadata', {}).get('mapped_funds', 0)
+                logger.info(f"Loaded comprehensive fund dictionary: {funds_count} funds, {mapped_count} mapped")
+                return fund_dict
+            else:
+                logger.warning(f"Comprehensive fund dictionary not found: {dict_file}")
+                logger.info("Run: from src.market.fund_dictionary_builder import FundDictionaryBuilder; FundDictionaryBuilder().build_and_save_dictionary()")
+                return {"funds": {}}
+                
+        except Exception as e:
+            logger.error(f"Error loading comprehensive fund dictionary: {e}")
+            return {"funds": {}}
+    
     def _find_ticker_for_fund(self, security_name: str) -> Optional[str]:
-        """Find ticker code for investment fund based on security name."""
+        """Find ticker code for investment fund using comprehensive dictionary."""
         if not security_name:
             return None
             
-        # Normalize the security name for matching
-        normalized_name = security_name.strip()
+        security_name = security_name.strip()
         
+        # Search in comprehensive fund dictionary first
+        ticker = self._search_comprehensive_dictionary(security_name)
+        if ticker:
+            logger.debug(f"Found ticker in comprehensive dictionary: '{security_name}' -> '{ticker}'")
+            return ticker
+        
+        # Fallback to old security mapping method
+        ticker = self._search_legacy_mapping(security_name)
+        if ticker:
+            logger.debug(f"Found ticker in legacy mapping: '{security_name}' -> '{ticker}'")
+            return ticker
+        
+        logger.debug(f"No ticker found for fund: {security_name}")
+        return None
+    
+    def _search_comprehensive_dictionary(self, security_name: str) -> Optional[str]:
+        """Search for ticker in comprehensive fund dictionary."""
+        funds = self.comprehensive_fund_dict.get('funds', {})
+        
+        # Direct name match
+        if security_name in funds:
+            fund_info = funds[security_name]
+            return fund_info.get('ticker') if fund_info.get('ticker') else None
+        
+        # Search through aliases using regex patterns
+        for fund_name, fund_info in funds.items():
+            ticker = fund_info.get('ticker')
+            if not ticker:
+                continue
+                
+            aliases = fund_info.get('aliases', [])
+            
+            # Check aliases with regex matching
+            if self._matches_any_alias(security_name, aliases):
+                logger.info(f"Matched fund '{security_name}' to ticker '{ticker}' via comprehensive dictionary")
+                return ticker
+        
+        return None
+    
+    def _matches_any_alias(self, target_name: str, aliases: List[str]) -> bool:
+        """Check if target name matches any alias using regex patterns."""
+        target_normalized = self._normalize_for_matching(target_name)
+        
+        for alias in aliases:
+            if not alias:
+                continue
+                
+            alias_normalized = self._normalize_for_matching(alias)
+            
+            # Exact match
+            if target_normalized == alias_normalized:
+                return True
+            
+            # Partial match for longer names
+            if len(target_normalized) > 10 and len(alias_normalized) > 10:
+                if target_normalized in alias_normalized or alias_normalized in target_normalized:
+                    return True
+            
+            # Regex pattern matching for flexible matching
+            if self._regex_pattern_match(target_normalized, alias_normalized):
+                return True
+        
+        return False
+    
+    def _normalize_for_matching(self, name: str) -> str:
+        """Normalize name for matching purposes."""
+        if not name:
+            return ""
+        
+        # Convert to lowercase and remove special characters
+        normalized = name.lower()
+        normalized = re.sub(r'[（）()＜＞<>【】\[\]・･\s]+', ' ', normalized)
+        normalized = re.sub(r'\s+', ' ', normalized).strip()
+        
+        return normalized
+    
+    def _regex_pattern_match(self, name1: str, name2: str) -> bool:
+        """Advanced regex-based pattern matching."""
+        # Extract key terms (3+ characters)
+        terms1 = set(re.findall(r'\w{3,}', name1))
+        terms2 = set(re.findall(r'\w{3,}', name2))
+        
+        # Remove common stop words
+        stop_words = {
+            'ファンド', 'fund', 'インデックス', 'index', 'etf', '投信',
+            '株式', 'equity', 'bond', '債券', 'の', 'and', 'or'
+        }
+        
+        terms1 = terms1 - stop_words
+        terms2 = terms2 - stop_words
+        
+        if not terms1 or not terms2:
+            return False
+        
+        # Calculate overlap ratio
+        overlap = len(terms1 & terms2)
+        min_terms = min(len(terms1), len(terms2))
+        
+        return min_terms > 0 and overlap / min_terms >= 0.7
+    
+    def _search_legacy_mapping(self, security_name: str) -> Optional[str]:
+        """Search using legacy security mapping as fallback."""
         # Direct match first
-        if normalized_name in self.security_mapping:
-            return self.security_mapping[normalized_name]
+        if security_name in self.security_mapping:
+            return self.security_mapping[security_name]
         
         # Fuzzy matching for investment funds
         for mapped_name, ticker in self.security_mapping.items():
-            # Check if key parts of the fund name match
-            if self._names_match(normalized_name, mapped_name):
-                logger.info(f"Matched fund '{security_name}' to ticker '{ticker}' via '{mapped_name}'")
+            if self._names_match(security_name, mapped_name):
+                logger.info(f"Legacy match: '{security_name}' to ticker '{ticker}' via '{mapped_name}'")
                 return ticker
         
-        logger.debug(f"No ticker found for fund: {security_name}")
         return None
     
     def _names_match(self, name1: str, name2: str) -> bool:
