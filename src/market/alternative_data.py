@@ -1,6 +1,7 @@
 """Alternative data sources for historical price data (not using yfinance)."""
 
 import pandas as pd
+import pandas_datareader as pdr
 import requests
 import time
 import logging
@@ -8,6 +9,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import json
+from dateutil.relativedelta import relativedelta
 
 logger = logging.getLogger(__name__)
 
@@ -27,59 +29,47 @@ class AlternativeDataFetcher:
         
     def fetch_from_stooq(self, symbol: str, start_date: str = None, end_date: str = None) -> pd.DataFrame:
         """
-        Fetch historical data from STOOQ (free service).
+        Fetch historical data from STOOQ using pandas-datareader (more stable).
         Supports international markets including Japanese stocks.
         """
         try:
-            logger.info(f"Fetching {symbol} from STOOQ")
+            logger.info(f"Fetching {symbol} from STOOQ via pandas-datareader")
             
             # Convert symbol for STOOQ format
             stooq_symbol = self._convert_to_stooq_format(symbol)
             
-            # STOOQ CSV download URL
-            url = f"https://stooq.com/q/d/l/?s={stooq_symbol}&i=d"
+            # Set default date range if not provided
+            if not end_date:
+                end_date = datetime.now().date()
+            else:
+                end_date = pd.to_datetime(end_date).date()
+                
+            if not start_date:
+                # Default to 2 years of data
+                start_date = end_date - relativedelta(years=2)
+            else:
+                start_date = pd.to_datetime(start_date).date()
             
-            # Add date parameters if provided
-            if start_date:
-                # Convert to STOOQ date format (YYYYMMDD)
-                start_dt = pd.to_datetime(start_date)
-                url += f"&d1={start_dt.strftime('%Y%m%d')}"
+            logger.debug(f"STOOQ symbol: {stooq_symbol}, period: {start_date} to {end_date}")
             
-            if end_date:
-                end_dt = pd.to_datetime(end_date)
-                url += f"&d2={end_dt.strftime('%Y%m%d')}"
-            
-            logger.debug(f"STOOQ URL: {url}")
-            
-            # Fetch data
-            response = self.session.get(url, timeout=30)
-            response.raise_for_status()
-            
-            # Parse CSV response
-            from io import StringIO
-            df = pd.read_csv(StringIO(response.text))
+            # Use pandas-datareader with STOOQ source
+            df = pdr.DataReader(stooq_symbol, 'stooq', start=start_date, end=end_date)
             
             if df.empty or len(df) == 0:
                 logger.warning(f"No data returned from STOOQ for {symbol}")
                 return pd.DataFrame()
             
-            # Standardize column names
-            df.columns = df.columns.str.lower()
-            column_mapping = {
-                'date': 'Date',
-                'open': 'Open', 
-                'high': 'High',
-                'low': 'Low',
-                'close': 'Close',
-                'volume': 'Volume'
-            }
-            df = df.rename(columns=column_mapping)
-            
-            # Convert date column
-            df['Date'] = pd.to_datetime(df['Date'])
-            df = df.set_index('Date')
+            # STOOQ returns data with newest date first, so sort to ascending order
             df = df.sort_index()
             
+            # Ensure we have required columns
+            required_columns = ['Open', 'High', 'Low', 'Close', 'Volume']
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            if missing_columns:
+                logger.warning(f"Missing columns from STOOQ data for {symbol}: {missing_columns}")
+                # Fill missing columns with NaN
+                for col in missing_columns:
+                    df[col] = pd.NA
             logger.info(f"✅ STOOQ: Retrieved {len(df)} records for {symbol}")
             return df
             
@@ -283,7 +273,11 @@ class AlternativeDataFetcher:
         if max_symbols:
             symbols = symbols[:max_symbols]
         
-        logger.info(f"Fetching historical data for {len(symbols)} symbols")
+        # Use config rate limit if available
+        if not delay_seconds and self.config:
+            delay_seconds = self.config.ALTERNATIVE_DATA_SOURCES.get('rate_limit_seconds', 1.5)
+        
+        logger.info(f"Fetching historical data for {len(symbols)} symbols (pandas-datareader enhanced)")
         logger.info(f"Symbols: {symbols}")
         
         results = {}
