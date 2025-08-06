@@ -18,39 +18,54 @@ python3 --version
 ```
 
 ### Running the Application
+
+**デフォルト動作（推奨）**: 既存データで解析実行
 ```bash
-# Main analysis (full pipeline)
+# メイン解析（既存データ使用、マーケットデータダウンロードなし）
 python3 main.py
 
-# Create unified CSV with JPY conversion (most commonly used)
+# 統合CSV作成（JPY統一価格、投資信託マッピング付き）
 python3 main.py --unified-csv
 
-# Use alternative data sources (STOOQ for Japanese stocks)
-python3 main.py --alternative-data
-
-# Export data to JSON format
-python3 main.py --export-json
-
-# Skip market data download (use existing data)
-python3 main.py --skip-download
-
-# Charts only from existing processed data
+# チャート生成のみ（既存の処理済みデータから）
 python3 main.py --charts-only
 
-# JSON export only (fast)
+# JSON形式でデータエクスポート
+python3 main.py --export-json
+
+# JSON エクスポートのみ（高速）
 python3 main.py --json-only
 
-# Build comprehensive fund dictionary
+# 投資信託辞書の構築
 python3 main.py --build-fund-dict
+```
+
+**マーケットデータダウンロードモード**: 最新データを取得
+```bash
+# フル解析パイプライン（マーケットデータダウンロード付き）
+python3 main.py --download
+
+# 代替データソース使用（STOOQ for Japanese stocks）
+python3 main.py --download --alternative-data
+
+# ダウンロード＋統合CSV作成
+python3 main.py --download --unified-csv
+
+# ダウンロード＋JSON エクスポート
+python3 main.py --download --export-json
 ```
 
 ### Testing and Validation
 ```bash
-# Test with skip download first (validates configuration)
-python3 main.py --skip-download
+# テスト実行（設定の検証）
+python3 main.py
 
-# Run with detailed logging
+# 詳細ログ付きで実行
 python3 main.py --unified-csv 2>&1 | tee analysis.log
+
+# 例データでテスト実行
+cp data/examples/*.csv data/raw/
+python3 main.py --unified-csv
 ```
 
 ## Code Architecture
@@ -161,6 +176,7 @@ Extend `src/market/alternative_data.py` with new provider implementations follow
 - **✅ Fixed**: Replaced undefined `process_csv_direct()` and `clean_trades_data()` functions with proper `DataLoader.load_all_broker_data()` method
 - **✅ Fixed**: Investment fund mapping now correctly populates `security_code` field with ticker codes (VWO, ACWI) while preserving Japanese fund names
 - **✅ Fixed**: DataFrame ambiguity bug in main.py:368 with proper NaN handling
+- **✅ Refactored**: Main.py redesigned with `--download` flag - **default behavior now uses existing data only**
 
 ### Remaining Issues
 - `perform_eda_analysis()` called at main.py:394 is not implemented - this function needs to be created or the call should be removed/handled gracefully

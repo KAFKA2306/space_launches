@@ -287,12 +287,12 @@ def print_summary(summary, activity, logger):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Analyze trading history and portfolio performance"
+        description="Analyze trading history and portfolio performance (uses existing data by default)"
     )
     parser.add_argument(
-        "--skip-download", 
+        "--download", 
         action="store_true", 
-        help="Skip downloading market data and use existing files"
+        help="Download latest market data (forex and stock prices)"
     )
     parser.add_argument(
         "--charts-only", 
@@ -375,18 +375,34 @@ def main():
                                 performance_df, price_data, config, logger)
             
         else:
+            # デフォルト：既存データで解析、--downloadが指定された時のみダウンロード
+            if args.download:
+                logger.info("=== Market Data Download Mode ===")
+            else:
+                logger.info("=== Analysis Mode (using existing data) ===")
+                
             forex_data = None
-            if not args.skip_download:
+            if args.download:
                 forex_data = update_market_data(config, logger)
+            else:
+                logger.info("Skipping market data download - using existing data")
             
             trades_df = load_and_process_trades(config, logger)
             if trades_df is None:
                 return
             
             price_data = None
-            if not args.skip_download:
+            if args.download:
                 price_data = update_stock_prices(trades_df, config, logger, 
                                                use_alternative_sources=args.alternative_data)
+            else:
+                # 既存の株価データを読み込む
+                stock_price_path = config.PROCESSED_DATA_DIR / "stock_prices.csv"
+                if stock_price_path.exists():
+                    price_data = pd.read_csv(stock_price_path, index_col=0, parse_dates=True)
+                    logger.info(f"Loaded existing stock price data: {len(price_data)} records")
+                else:
+                    logger.info("No existing stock price data found - continuing without price data")
             
             holdings_df, summary, activity, performance_df = analyze_portfolio(
                 trades_df, price_data, forex_data, config, logger
