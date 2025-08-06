@@ -1,0 +1,87 @@
+{
+  "metadata": {
+    "created_at": "2025-08-06T19:21:41.735980",
+    "total_funds": 4,
+    "sources": [
+      "historical_trades",
+      "DIC/securitycode2.csv"
+    ],
+    "description": "Comprehensive investment fund name to ticker mapping with aliases",
+    "mapped_funds": 4,
+    "unmapped_funds": 0
+  },
+  "funds": {
+    "ＳＢＩ・全世界株式インデックス・ファンド": {
+      "ticker": "ACWI",
+      "aliases": [
+        "ＳＢＩ・全世界株式インデックス・ファンド",
+        "ＳＢＩ 全世界株式インデックス ファンド",
+        "SBI 全世界株式インデックス・ファンド",
+        "エスビーアイ全世界株式インデックス・ファンド",
+        "ＳＢＩ・world equityインデックス・ファンド",
+        "ＳＢＩ・global stockインデックス・ファンド",
+        "ＳＢＩ・オール・カントリーインデックス・ファンド",
+        "ＳＢＩ・world株式インデックス・ファンド",
+        "ＳＢＩ・global株式インデックス・ファンド",
+        "ＳＢＩ・オール・カントリー株式インデックス・ファンド",
+        "ＳＢＩ・all country株式インデックス・ファンド"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "eMAXIS Slim 全世界株式(オール・カントリー)": {
+      "ticker": "ACWI",
+      "aliases": [
+        "eMAXIS Slim 全世界株式(オール・カントリー)",
+        "eMAXIS Slim 全世界株式",
+        "イーマクシスSlim 全世界株式(オール・カントリー)",
+        "emaxis Slim 全世界株式(オール・カントリー)",
+        "eMAXIS Slim world equity(オール・カントリー)",
+        "eMAXIS Slim global stock(オール・カントリー)",
+        "eMAXIS Slim オール・カントリー(オール・カントリー)",
+        "eMAXIS Slim world株式(オール・カントリー)",
+        "eMAXIS Slim global株式(オール・カントリー)",
+        "eMAXIS Slim オール・カントリー株式(オール・カントリー)",
+        "eMAXIS Slim all country株式(オール・カントリー)",
+        "eMAXIS Slim 全世界株式(オール カントリー)",
+        "eMAXISSlim全世界株式(オール・カントリー)"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "＜購入・換金手数料なし＞ニッセイ新興国株式インデックスファンド": {
+      "ticker": "VWO",
+      "aliases": [
+        "＜購入・換金手数料なし＞ニッセイ新興国株式インデックスファンド",
+        "ニッセイ新興国株式インデックスファンド",
+        "＜購入・換金手数料なし＞Nissay 新興国株式インデックスファンド",
+        "＜購入・換金手数料なし＞日本生命新興国株式インデックスファンド",
+        "＜購入・換金手数料なし＞ニッセイemerging marketインデックスファンド",
+        "＜購入・換金手数料なし＞ニッセイemerging equityインデックスファンド",
+        "＜購入・換金手数料なし＞ニッセイemerging株式インデックスファンド",
+        "＜購入・換金手数料なし＞ニッセイemerging market株式インデックスファンド",
+        "＜購入 換金手数料なし＞ニッセイ新興国株式インデックスファンド"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "ＳＢＩ・新興国株式インデックス・ファンド(雪だるま（新興国株式）)": {
+      "ticker": "VWO",
+      "aliases": [
+        "ＳＢＩ・新興国株式インデックス・ファンド(雪だるま（新興国株式）)",
+        "ＳＢＩ 新興国株式インデックス ファンド )",
+        "SBI 新興国株式インデックス・ファンド(雪だるま（新興国株式）)",
+        "エスビーアイ新興国株式インデックス・ファンド(雪だるま（新興国株式）)",
+        "ＳＢＩ・emerging marketインデックス・ファンド(雪だるま（emerging market）)",
+        "ＳＢＩ・emerging equityインデックス・ファンド(雪だるま（emerging equity）)",
+        "ＳＢＩ・emerging株式インデックス・ファンド(雪だるま（emerging株式）)",
+        "ＳＢＩ・emerging market株式インデックス・ファンド(雪だるま（emerging market株式）)",
+        "ＳＢＩ・新興国株式インデックス・ファンド(雪だるま（新興国株式))",
+        "ＳＢＩ・新興国株式インデックス・ファンド)",
+        "ＳＢＩ 新興国株式インデックス ファンド(雪だるま（新興国株式）)"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    }
+  }
+}

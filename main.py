@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-"""
-Trade History Analyzer - Main Entry Point
-
-A comprehensive tool for analyzing trading history from multiple brokers,
-calculating portfolio performance, and generating insights.
-"""
 
 import argparse
 import logging
@@ -18,7 +12,6 @@ import os
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from tqdm import tqdm
 
-# Add src to path for imports
 sys.path.append(str(Path(__file__).parent / 'src'))
 
 from config import Config
@@ -33,7 +26,6 @@ from src.analysis.visualization import TradeVisualizer
 
 
 def setup_environment():
-    """Set up the environment and configuration."""
     config = Config()
     config.ensure_directories()
     logger = setup_logging()
@@ -41,10 +33,8 @@ def setup_environment():
 
 
 def update_market_data(config, logger):
-    """Update forex and stock price data incrementally."""
     logger.info("=== Updating Market Data (Incremental) ===")
     
-    # Update forex data
     forex_manager = ForexDataManager(config)
     forex_path = config.PROCESSED_DATA_DIR / "forex_data.csv"
     forex_data = forex_manager.update_forex_data(forex_path)
@@ -59,13 +49,10 @@ def update_market_data(config, logger):
 
 
 def load_and_process_trades(config, logger):
-    """Load and process trading data from all sources using CODES-style direct processing."""
     logger.info("=== Loading Trading Data (CODES-style) ===")
     
-    # Import pandas here to avoid issues
     import pandas as pd
     
-    # Direct file processing approach inspired by CODES/1concat.py
     all_data = []
     raw_data_dir = config.RAW_DATA_DIR
     
@@ -73,7 +60,6 @@ def load_and_process_trades(config, logger):
         logger.error(f"Raw data directory not found: {raw_data_dir}")
         return None
     
-    # Process files directly like CODES/1concat.py
     for file_path in raw_data_dir.rglob("*.csv"):
         logger.info(f"Processing {file_path}...")
         try:
@@ -88,13 +74,10 @@ def load_and_process_trades(config, logger):
         logger.error("No trading data found. Please place your CSV files in the data/raw directory.")
         return None
     
-    # Combine all data like CODES approach
     trades_df = pd.concat(all_data, ignore_index=True)
     
-    # Clean and standardize data like CODES/2clean.py
     trades_df = clean_trades_data(trades_df, logger)
     
-    # Save processed trades
     trades_path = config.PROCESSED_DATA_DIR / f"trades_{get_timestamp()}.csv"
     trades_df.to_csv(trades_path, index=False)
     logger.info(f"Processed trades saved to {trades_path}")
@@ -103,19 +86,16 @@ def load_and_process_trades(config, logger):
 
 
 def update_stock_prices(trades_df, config, logger, use_alternative_sources=False):
-    """Update stock price data for traded securities incrementally."""
     logger.info("=== Updating Stock Prices (Incremental) ===")
     
     stock_manager = StockDataManager(config, use_alternative_sources=use_alternative_sources)
     
-    # Extract security codes
     security_codes = stock_manager.extract_security_codes(trades_df)
     
     if not security_codes:
         logger.warning("No security codes found in trading data")
         return None
     
-    # Update price data incrementally
     price_path = config.PROCESSED_DATA_DIR / "stock_prices.csv"
     price_data = stock_manager.update_stock_prices(price_path, security_codes)
     
@@ -128,13 +108,11 @@ def update_stock_prices(trades_df, config, logger, use_alternative_sources=False
 
 
 def export_to_json(config, logger):
-    """Export processed data to JSON format."""
     logger.info("=== Exporting Data to JSON ===")
     
     converter = DataConverter(config)
     
     try:
-        # Export latest processed data to JSON
         json_output_dir = config.OUTPUT_DIR / config.JSON_EXPORT['export_directory']
         result_paths = converter.convert_latest_data_to_json(
             config.PROCESSED_DATA_DIR,
@@ -156,7 +134,6 @@ def export_to_json(config, logger):
 
 
 def create_unified_csv(config, logger):
-    """Create unified CSV with JPY pricing and investment fund mappings."""
     logger.info("=== Creating Unified CSV ===")
     
     try:
@@ -171,7 +148,6 @@ def create_unified_csv(config, logger):
         if unified_csv_path:
             logger.info(f"Unified CSV created successfully: {unified_csv_path}")
             
-            # Display summary statistics
             import pandas as pd
             df = pd.read_csv(unified_csv_path)
             
@@ -193,7 +169,6 @@ def create_unified_csv(config, logger):
 
 
 def build_fund_dictionary(config, logger):
-    """Build comprehensive fund dictionary from historical data."""
     logger.info("=== Building Comprehensive Fund Dictionary ===")
     
     try:
@@ -206,7 +181,6 @@ def build_fund_dictionary(config, logger):
         if dict_path:
             logger.info(f"Fund dictionary built successfully: {dict_path}")
             
-            # Display summary
             with open(dict_path, 'r', encoding='utf-8') as f:
                 fund_dict = json.load(f)
             
@@ -227,19 +201,15 @@ def build_fund_dictionary(config, logger):
 
 
 def analyze_portfolio(trades_df, price_data, forex_data, config, logger):
-    """Perform portfolio analysis."""
     logger.info("=== Analyzing Portfolio ===")
     
-    # Merge with forex data if available
     if forex_data is not None:
         forex_manager = ForexDataManager(config)
         trades_df = forex_manager.merge_forex_with_trades(trades_df, forex_data)
         trades_df = forex_manager.calculate_jpy_amounts(trades_df)
     
-    # Analyze portfolio
     analyzer = PortfolioAnalyzer(config)
     
-    # Current holdings
     safe_price_data = price_data if price_data is not None and not price_data.empty else pd.DataFrame()
     holdings_df = analyzer.analyze_holdings(trades_df, safe_price_data)
     if not holdings_df.empty:
@@ -247,13 +217,10 @@ def analyze_portfolio(trades_df, price_data, forex_data, config, logger):
         holdings_df.to_csv(holdings_path, index=False)
         logger.info(f"Portfolio holdings saved to {holdings_path}")
     
-    # Portfolio summary
     summary = analyzer.calculate_portfolio_summary(holdings_df)
     
-    # Trading activity
     activity = analyzer.analyze_trading_activity(trades_df)
     
-    # Security performance
     performance_df = analyzer.calculate_security_performance(trades_df, safe_price_data)
     if not performance_df.empty:
         performance_path = config.OUTPUT_DIR / f"security_performance_{get_timestamp()}.csv"
@@ -265,29 +232,24 @@ def analyze_portfolio(trades_df, price_data, forex_data, config, logger):
 
 def create_visualizations(trades_df, holdings_df, summary, activity, 
                          performance_df, price_data, config, logger):
-    """Create visualizations and charts."""
     logger.info("=== Creating Visualizations ===")
     
     visualizer = TradeVisualizer(config)
     charts_dir = config.OUTPUT_DIR / "charts"
     charts_dir.mkdir(exist_ok=True)
     
-    # Portfolio overview
     if not holdings_df.empty and summary:
         portfolio_chart = charts_dir / "portfolio_overview.png"
         visualizer.plot_portfolio_overview(holdings_df, summary, portfolio_chart)
     
-    # Trading activity
     if not trades_df.empty and activity:
         activity_chart = charts_dir / "trading_activity.png"
         visualizer.plot_trading_activity(trades_df, activity, activity_chart)
     
-    # Performance summary
     if not performance_df.empty:
         performance_chart = charts_dir / "performance_summary.png"
         visualizer.plot_performance_summary(performance_df, performance_chart)
     
-    # Individual security charts
     if price_data is not None and not price_data.empty:
         security_charts_dir = charts_dir / "securities"
         visualizer.create_all_security_charts(trades_df, price_data, security_charts_dir)
@@ -296,7 +258,6 @@ def create_visualizations(trades_df, holdings_df, summary, activity,
 
 
 def print_summary(summary, activity, logger):
-    """Print summary to console."""
     print("\n" + "="*60)
     print("PORTFOLIO SUMMARY")
     print("="*60)
@@ -325,7 +286,6 @@ def print_summary(summary, activity, logger):
 
 
 def main():
-    """Main function."""
     parser = argparse.ArgumentParser(
         description="Analyze trading history and portfolio performance"
     )
@@ -367,34 +327,28 @@ def main():
     
     args = parser.parse_args()
     
-    # Setup
     config, logger = setup_environment()
     logger.info("Starting Trade History Analysis")
     
     try:
         if args.json_only:
-            # Only export to JSON without full analysis
             logger.info("Exporting data to JSON only")
             export_to_json(config, logger)
             logger.info("JSON export completed!")
             
         elif args.build_fund_dict:
-            # Build comprehensive fund dictionary from historical data
             logger.info("Building comprehensive fund dictionary")
             build_fund_dictionary(config, logger)
             logger.info("Fund dictionary building completed!")
             
         elif args.unified_csv:
-            # Only create unified CSV with JPY pricing and fund mappings
             logger.info("Creating unified CSV only")
             create_unified_csv(config, logger)
             logger.info("Unified CSV creation completed!")
             
         elif args.charts_only:
-            # Load existing data and create charts only
             logger.info("Creating charts from existing data")
             
-            # Load processed data
             trades_files = list(config.PROCESSED_DATA_DIR.glob("trades_*.csv"))
             if not trades_files:
                 logger.error("No processed trade data found")
@@ -404,47 +358,40 @@ def main():
             trades_df = pd.read_csv(latest_trades_file, parse_dates=['trade_date'])
             logger.info(f"Loaded trades from {latest_trades_file}")
             
-            # Load price data
             price_path = config.PROCESSED_DATA_DIR / "stock_prices.csv"
             price_data = None
             if price_path.exists():
                 price_data = pd.read_csv(price_path, index_col=0, parse_dates=True)
                 logger.info(f"Loaded price data from {price_path}")
             
-            # Create minimal analysis for charts
             analyzer = PortfolioAnalyzer(config)
-            holdings_df = analyzer.analyze_holdings(trades_df, price_data or pd.DataFrame())
+            safe_price_data = price_data if price_data is not None and not price_data.empty else pd.DataFrame()
+            holdings_df = analyzer.analyze_holdings(trades_df, safe_price_data)
             summary = analyzer.calculate_portfolio_summary(holdings_df)
             activity = analyzer.analyze_trading_activity(trades_df)
-            performance_df = analyzer.calculate_security_performance(trades_df, price_data or pd.DataFrame())
+            performance_df = analyzer.calculate_security_performance(trades_df, safe_price_data)
             
-            # Create visualizations
             create_visualizations(trades_df, holdings_df, summary, activity, 
                                 performance_df, price_data, config, logger)
             
         else:
-            # Full analysis pipeline
             forex_data = None
             if not args.skip_download:
                 forex_data = update_market_data(config, logger)
             
-            # Load and process trades
             trades_df = load_and_process_trades(config, logger)
             if trades_df is None:
                 return
             
-            # Update stock prices
             price_data = None
             if not args.skip_download:
                 price_data = update_stock_prices(trades_df, config, logger, 
                                                use_alternative_sources=args.alternative_data)
             
-            # Analyze portfolio
             holdings_df, summary, activity, performance_df = analyze_portfolio(
                 trades_df, price_data, forex_data, config, logger
             )
             
-            # Perform EDA analysis like CODES/3eda.py
             perform_eda_analysis(trades_df, config, logger)
             
             # Create visualizations
