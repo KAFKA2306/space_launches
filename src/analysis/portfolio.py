@@ -139,6 +139,14 @@ class PortfolioAnalyzer:
         if trades_df.empty:
             return {}
         
+        # Ensure trade_date is datetime
+        trades_df = trades_df.copy()
+        trades_df.loc[:, 'trade_date'] = pd.to_datetime(trades_df['trade_date'], errors='coerce')
+        trades_df = trades_df.dropna(subset=['trade_date'])
+        
+        if trades_df.empty:
+            return {}
+        
         # Basic statistics
         total_trades = len(trades_df)
         buy_trades = len(trades_df[trades_df['transaction_type'] == 'buy'])
@@ -152,8 +160,11 @@ class PortfolioAnalyzer:
         }
         
         # Monthly activity
-        trades_df['month'] = trades_df['trade_date'].dt.to_period('M')
-        monthly_activity = trades_df.groupby('month').size()
+        try:
+            trades_df.loc[:, 'month'] = trades_df['trade_date'].dt.to_period('M')
+            monthly_activity = trades_df.groupby('month').size()
+        except:
+            monthly_activity = pd.Series(dtype=int)
         
         # Security activity
         security_activity = trades_df['security_code'].value_counts()

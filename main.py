@@ -16,7 +16,7 @@ sys.path.append(str(Path(__file__).parent / 'src'))
 
 from config import Config
 from src.utils.helpers import setup_logging, get_timestamp
-from src.data.loaders import DataLoader
+from src.data.loaders import DataLoader, perform_eda_analysis
 from src.market.forex import ForexDataManager
 from src.market.stocks import StockDataManager
 from src.market.data_converter import DataConverter
@@ -202,6 +202,11 @@ def build_fund_dictionary(config, logger):
 
 def analyze_portfolio(trades_df, price_data, forex_data, config, logger):
     logger.info("=== Analyzing Portfolio ===")
+    
+    # Ensure trade_date is datetime
+    trades_df = trades_df.copy()
+    trades_df.loc[:, 'trade_date'] = pd.to_datetime(trades_df['trade_date'], errors='coerce')
+    trades_df = trades_df.dropna(subset=['trade_date'])
     
     if forex_data is not None:
         forex_manager = ForexDataManager(config)

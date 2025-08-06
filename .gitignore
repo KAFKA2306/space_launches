@@ -29,6 +29,8 @@ data/output/*
 !data/raw/README.md
 data/raw/*csv
 !data/examples
+!data\output\unified_csv\fund_ticker_mapping_20250806_194408.csv
+
 # IDE
 .vscode/
 .idea/

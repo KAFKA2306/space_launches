@@ -138,13 +138,25 @@ class TradeVisualizer:
         amount_column = 'amount_jpy' if 'amount_jpy' in trades_df.columns else 'settlement_amount'
         
         # 1. Monthly trading volume
-        trades_df['month'] = trades_df['trade_date'].dt.to_period('M')
-        monthly_volume = trades_df.groupby('month')[amount_column].sum()
-        monthly_volume.plot(kind='bar', ax=ax1)
-        ax1.set_title('Monthly Trading Volume')
-        ax1.set_xlabel('Month')
-        ax1.set_ylabel('Amount (JPY)')
-        ax1.tick_params(axis='x', rotation=45)
+        try:
+            trades_df = trades_df.copy()
+            trades_df.loc[:, 'trade_date'] = pd.to_datetime(trades_df['trade_date'], errors='coerce')
+            trades_df = trades_df.dropna(subset=['trade_date'])
+            
+            if not trades_df.empty:
+                trades_df.loc[:, 'month'] = trades_df['trade_date'].dt.to_period('M')
+                monthly_volume = trades_df.groupby('month')[amount_column].sum()
+                monthly_volume.plot(kind='bar', ax=ax1)
+                ax1.set_title('Monthly Trading Volume')
+                ax1.set_xlabel('Month')
+                ax1.set_ylabel('Amount (JPY)')
+                ax1.tick_params(axis='x', rotation=45)
+            else:
+                ax1.text(0.5, 0.5, 'No valid date data', ha='center', va='center', transform=ax1.transAxes)
+                ax1.set_title('Monthly Trading Volume')
+        except Exception as e:
+            ax1.text(0.5, 0.5, f'Error: {str(e)[:50]}...', ha='center', va='center', transform=ax1.transAxes)
+            ax1.set_title('Monthly Trading Volume')
         
         # 2. Buy vs Sell distribution
         transaction_counts = trades_df['transaction_type'].value_counts()
