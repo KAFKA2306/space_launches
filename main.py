@@ -60,23 +60,23 @@ def load_and_process_trades(config, logger):
         logger.error(f"Raw data directory not found: {raw_data_dir}")
         return None
     
-    for file_path in raw_data_dir.rglob("*.csv"):
-        logger.info(f"Processing {file_path}...")
-        try:
-            df = process_csv_direct(file_path, logger)
-            if df is not None:
-                all_data.append(df)
-        except Exception as e:
-            logger.error(f"Error processing {file_path}: {e}")
-            continue
+    # Use proper DataLoader instead of undefined functions
+    from src.data.loaders import DataLoader
+    data_loader = DataLoader(config)
     
-    if not all_data:
-        logger.error("No trading data found. Please place your CSV files in the data/raw directory.")
+    try:
+        # Load all trading data using the proper data loader
+        trades_df = data_loader.load_all_broker_data(raw_data_dir)
+        
+        if trades_df is None or trades_df.empty:
+            logger.error("No trading data found. Please check your CSV files in the data/raw directory.")
+            return None
+            
+        logger.info(f"Successfully loaded {len(trades_df)} trades from raw data")
+        
+    except Exception as e:
+        logger.error(f"Error loading trading data: {e}")
         return None
-    
-    trades_df = pd.concat(all_data, ignore_index=True)
-    
-    trades_df = clean_trades_data(trades_df, logger)
     
     trades_path = config.PROCESSED_DATA_DIR / f"trades_{get_timestamp()}.csv"
     trades_df.to_csv(trades_path, index=False)

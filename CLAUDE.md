@@ -157,10 +157,17 @@ Extend `src/market/alternative_data.py` with new provider implementations follow
 
 ## Important Implementation Notes
 
-### Missing Functions
-- `perform_eda_analysis()` called at main.py:394 is not implemented - this function needs to be created or the call should be removed/handled gracefully
-- `process_csv_direct()` and `clean_trades_data()` functions called at main.py:66 and main.py:79 are not implemented in the current codebase
+### Recent Fixes Applied
+- **✅ Fixed**: Replaced undefined `process_csv_direct()` and `clean_trades_data()` functions with proper `DataLoader.load_all_broker_data()` method
+- **✅ Fixed**: Investment fund mapping now correctly populates `security_code` field with ticker codes (VWO, ACWI) while preserving Japanese fund names
+- **✅ Fixed**: DataFrame ambiguity bug in main.py:368 with proper NaN handling
 
-### Known Issues
-- The main.py file references functions that don't exist in the current implementation, suggesting this is an incomplete migration from a CODES-style approach
-- The DataLoader class in src/data/loaders.py provides the proper implementation for data loading, but main.py doesn't use it consistently
+### Remaining Issues
+- `perform_eda_analysis()` called at main.py:394 is not implemented - this function needs to be created or the call should be removed/handled gracefully
+- Date comparison error in data loading pipeline needs proper timestamp handling for mixed date formats
+
+### Example Data Available
+- **Location**: `data/examples/` directory contains comprehensive test data
+- **Coverage**: All supported broker formats (Rakuten JP/US/INVST/CH, SBI domestic/foreign, Wise, portfolio)
+- **Usage**: Copy example files to `data/raw/` for testing system functionality
+- **Fund Mapping**: Example data includes Japanese investment funds for testing ticker mapping functionality

@@ -305,12 +305,12 @@ class DataConverter:
                 original_security_code = security_code  # Keep original for mapping tracking
                 
                 # If no security code but name exists, try to find ticker for investment funds
-                if not security_code and security_name:
+                if (pd.isna(security_code) or not str(security_code).strip()) and security_name:
                     ticker = self._find_ticker_for_fund(security_name)
                     if ticker:
                         security_code = ticker
                         self.fund_mappings[security_name] = ticker  # Track mapping
-                        logger.debug(f"Mapped fund '{security_name}' to ticker '{ticker}'")
+                        logger.info(f"Mapped fund '{security_name}' to ticker '{ticker}'")
                 
                 # Prepare trade data for currency conversion
                 trade_data = {
@@ -616,15 +616,17 @@ class DataConverter:
             
             for idx, row in df.iterrows():
                 security_name = str(row.get('security_name', ''))
-                security_code = str(row.get('security_code', ''))
+                security_code = row.get('security_code', '')
                 
                 # Try to map investment fund names to ticker codes
-                if not security_code or security_code.strip() == "":
+                # Check for empty, NaN, or blank security codes
+                if pd.isna(security_code) or not str(security_code).strip():
                     ticker = self._find_ticker_for_fund(security_name)
                     if ticker:
                         df.at[idx, 'security_code'] = ticker
                         df.at[idx, 'ticker_mapped'] = True
                         self.fund_mappings[security_name] = ticker
+                        logger.info(f"Mapped investment fund '{security_name}' -> '{ticker}'")
             
             # Reorder columns for better readability
             column_order = [

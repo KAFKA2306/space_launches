@@ -28,7 +28,7 @@ data/output/*
 !data/output/.gitkeep
 !data/raw/README.md
 data/raw/*csv
-
+!data/examples
 # IDE
 .vscode/
 .idea/
