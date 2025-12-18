@@ -12,9 +12,7 @@ import os
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from tqdm import tqdm
 
-sys.path.append(str(Path(__file__).parent / 'src'))
-
-from config import Config
+from src.config import Config
 from src.utils.helpers import setup_logging, get_timestamp
 from src.data.loaders import DataLoader, perform_eda_analysis
 from src.market.forex import ForexDataManager
@@ -49,9 +47,7 @@ def update_market_data(config, logger):
 
 
 def load_and_process_trades(config, logger):
-    logger.info("=== Loading Trading Data (CODES-style) ===")
-    
-    import pandas as pd
+    logger.info("=== Loading Trading Data ===")
     
     all_data = []
     raw_data_dir = config.RAW_DATA_DIR
@@ -60,8 +56,7 @@ def load_and_process_trades(config, logger):
         logger.error(f"Raw data directory not found: {raw_data_dir}")
         return None
     
-    # Use proper DataLoader instead of undefined functions
-    from src.data.loaders import DataLoader
+    # Use proper DataLoader
     data_loader = DataLoader(config)
     
     try:
@@ -148,7 +143,6 @@ def create_unified_csv(config, logger):
         if unified_csv_path:
             logger.info(f"Unified CSV created successfully: {unified_csv_path}")
             
-            import pandas as pd
             df = pd.read_csv(unified_csv_path)
             
             logger.info(f"Unified CSV Summary:")

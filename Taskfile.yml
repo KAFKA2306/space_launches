@@ -1,0 +1,38 @@
+version: '3'
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  run:
+    desc: Run the main analysis (Standard Analysis)
+    cmds:
+      - python3 -m src.main {{.CLI_ARGS}}
+    help: |
+      Runs the standard analysis.
+      Usage: task run -- [args]
+      Examples:
+        task run -- --help
+        task run -- --download
+        task run -- --unified-csv
+
+  analyze:
+    desc: Run the Unified CSV Analyzer (Advanced Analysis)
+    cmds:
+      - python3 -m src.analysis.cli {{.CLI_ARGS}}
+    help: |
+      Runs the advanced unified CSV analyzer.
+      Usage: task analyze -- [args]
+
+  clean:
+    desc: Clean up cache files
+    cmds:
+      - find . -type d -name "__pycache__" -exec rm -rf {} +
+      - find . -type f -name "*.pyc" -delete
+
+  test:
+    desc: Run tests (placeholder)
+    cmds:
+      - echo "No tests implemented yet."

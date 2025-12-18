@@ -2,39 +2,44 @@
 *.pyc
 __pycache__/
 .env
+.venv/
+env/
+venv/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
 
 # Legacy directories
-*RAWDATA*
-*plots*
-*EDA_results*
+legacy/
 
 # Jupyter notebooks
 *.ipynb
 *.log
-# Notes
-*note*
-
-# Windows Zone Identifier files (avoid filename issues)
-*:Zone.Identifier*
-*:Zone.Identifier:*
-
-# Claude settings
-.claude/
+.ipynb_checkpoints/
 
 # Data directories (keep structure but ignore contents)
 data/processed/*
 data/output/*
 !data/processed/.gitkeep
 !data/output/.gitkeep
+data/raw/*
 !data/raw/README.md
-data/raw/*csv
-!data/examples
-!data\output\unified_csv\fund_ticker_mapping_20250806_194408.csv
+!data/raw/.gitkeep
+resources/
+
+# Claude settings
+.claude/
+claude-code-settings/
 
 # IDE
 .vscode/
 .idea/
-
-# OS
 .DS_Store
 Thumbs.db
+
+# Private keys
+*.key
+*.pem

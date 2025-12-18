@@ -6,14 +6,17 @@ from pathlib import Path
 class Config:
     """Configuration settings for the trade history analyzer."""
     
-    # Base directory
-    BASE_DIR = Path(__file__).parent
+    # Base directory (project root)
+    BASE_DIR = Path(__file__).parent.parent
     
     # Data directories
     DATA_DIR = BASE_DIR / "data"
     RAW_DATA_DIR = DATA_DIR / "raw"
     PROCESSED_DATA_DIR = DATA_DIR / "processed"
     OUTPUT_DIR = DATA_DIR / "output"
+    
+    # Resources directory (formerly DIC)
+    RESOURCES_DIR = BASE_DIR / "resources"
     
     # Create directories if they don't exist
     @classmethod
@@ -24,6 +27,7 @@ class Config:
             cls.RAW_DATA_DIR,
             cls.PROCESSED_DATA_DIR,
             cls.OUTPUT_DIR,
+            cls.RESOURCES_DIR,
         ]
         for directory in directories:
             directory.mkdir(parents=True, exist_ok=True)

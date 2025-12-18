@@ -8,7 +8,7 @@ import logging
 from typing import Set, Optional
 import os
 
-from config import Config
+from src.config import Config
 from .alternative_data import AlternativeDataFetcher
 
 

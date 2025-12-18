@@ -7,7 +7,7 @@ import re
 from datetime import datetime
 import logging
 from ..utils.helpers import standardize_date, clean_numeric
-from config import Config
+from src.config import Config
 
 
 class DataLoader:
