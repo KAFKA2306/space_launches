@@ -2,37 +2,60 @@ version: '3'
 
 tasks:
   default:
-    desc: List available tasks
     cmds:
       - task --list
 
-  run:
-    desc: Run the main analysis (Standard Analysis)
+  fetch:
+    desc: "1. [Data Ingestion] Load raw broker CSVs, download market data, and build unified dataset"
     cmds:
-      - python3 -m src.main {{.CLI_ARGS}}
-    help: |
-      Runs the standard analysis.
-      Usage: task run -- [args]
-      Examples:
-        task run -- --help
-        task run -- --download
-        task run -- --unified-csv
+      - uv run python -m src.cli fetch {{.CLI_ARGS}}
+
+  run:
+    desc: "2. [DEPRECATED] Use 'task portfolio'"
+    cmds:
+      - echo "⚠️  'task run' is deprecated. Using 'task portfolio'..."
+      - task portfolio {{.CLI_ARGS}}
+  
+  portfolio:
+    desc: "2. [Portfolio Report] Calculate P&L, holdings, and asset allocation (processed -> reports)"
+    cmds:
+      - uv run python -m src.cli portfolio {{.CLI_ARGS}}
 
   analyze:
-    desc: Run the Unified CSV Analyzer (Advanced Analysis)
+    desc: "3. [DEPRECATED] Use 'task unified'"
     cmds:
-      - python3 -m src.analysis.cli {{.CLI_ARGS}}
-    help: |
-      Runs the advanced unified CSV analyzer.
-      Usage: task analyze -- [args]
+      - echo "⚠️  'task analyze' is deprecated. Using 'task unified'..."
+      - task unified {{.CLI_ARGS}}
+
+  unified:
+    desc: "3. [Deep Analysis] Analyze full trade history (Unified CSV) for advanced insights"
+    cmds:
+      - uv run python -m src.cli unified {{.CLI_ARGS}}
+
+  all:
+    desc: "Run complete pipeline: fetch → portfolio → unified"
+    cmds:
+      - task: fetch
+      - task: portfolio
+      - task: unified
 
   clean:
-    desc: Clean up cache files
+    desc: Clean all artifacts (cache + data)
+    deps: [clean:cache, clean:data]
+
+  clean:cache:
+    desc: Remove __pycache__ and .pyc files
     cmds:
       - find . -type d -name "__pycache__" -exec rm -rf {} +
       - find . -type f -name "*.pyc" -delete
 
-  test:
-    desc: Run tests (placeholder)
+  clean:data:
+    desc: "Remove generated data (Safe: keeps raw data)"
     cmds:
-      - echo "No tests implemented yet."
+      - rm -rf data/interim data/unified data/reports data/processed data/output
+
+  test:
+    desc: Run tests and linting
+    cmds:
+      - uvx ruff check . --fix
+      - uvx ruff format .

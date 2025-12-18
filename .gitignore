@@ -1,45 +1,57 @@
-# Python
-*.pyc
+# Strict ignore by default
+*
+
+# Allow directories structure
+!*/
+
+# Allow specific configuration files
+!Taskfile.yml
+!pyproject.toml
+!README.md
+!.gitignore
+
+# Allow source code
+!src/
+!src/**
+
+# Allow specific resource directories (but verify context)
+!resources/
+!resources/**
+
+# Allow scripts if necessary
+!scripts/
+!scripts/**
+
+# Allow data READMEs and example data if truly needed, but default block data
+!data/
+data/*
+!data/examples/
+!data/examples/**
+!data/raw/README.md
+!data/**/.gitkeep
+
+# Explicitly exclude common garbage / build artifacts even if they match above (safety net)
 __pycache__/
-.env
-.venv/
-env/
-venv/
+*.pyc
 *.egg-info/
 .pytest_cache/
 .coverage
 htmlcov/
 dist/
 build/
+.venv/
+venv/
+env/
+.env
 
-# Legacy directories
-legacy/
-
-# Jupyter notebooks
-*.ipynb
-*.log
-.ipynb_checkpoints/
-
-# Data directories (keep structure but ignore contents)
-data/processed/*
-data/output/*
-!data/processed/.gitkeep
-!data/output/.gitkeep
-data/raw/*
-!data/raw/README.md
-!data/raw/.gitkeep
-!data/examples/
-
-# Claude settings
-.claude/
-claude-code-settings/
-
-# IDE
+# IDE and OS files
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+*.log
+*.ipynb
+.ipynb_checkpoints/
 
-# Private keys
-*.key
-*.pem
+# Legacy folder (exclude per user previous patterns, or include if source)
+legacy/
