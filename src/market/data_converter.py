@@ -44,11 +44,7 @@ class DataConverter:
                         security_code = security_code.lstrip("，,").strip()
 
                         # Skip if still empty or invalid after cleaning
-                        if (
-                            security_code
-                            and security_code != "nan"
-                            and len(security_code) > 0
-                        ):
+                        if security_code and security_code != "nan" and len(security_code) > 0:
                             mapping[security_name] = security_code
 
                 logger.info(f"Loaded {len(mapping)} security name mappings")
@@ -77,9 +73,7 @@ class DataConverter:
 
                 funds_count = len(fund_dict.get("funds", {}))
                 mapped_count = fund_dict.get("metadata", {}).get("mapped_funds", 0)
-                logger.info(
-                    f"Loaded comprehensive fund dictionary: {funds_count} funds, {mapped_count} mapped"
-                )
+                logger.info(f"Loaded comprehensive fund dictionary: {funds_count} funds, {mapped_count} mapped")
                 return fund_dict
             else:
                 logger.warning(f"Comprehensive fund dictionary not found: {dict_file}")
@@ -102,17 +96,13 @@ class DataConverter:
         # Search in comprehensive fund dictionary first
         ticker = self._search_comprehensive_dictionary(security_name)
         if ticker:
-            logger.debug(
-                f"Found ticker in comprehensive dictionary: '{security_name}' -> '{ticker}'"
-            )
+            logger.debug(f"Found ticker in comprehensive dictionary: '{security_name}' -> '{ticker}'")
             return ticker
 
         # Fallback to old security mapping method
         ticker = self._search_legacy_mapping(security_name)
         if ticker:
-            logger.debug(
-                f"Found ticker in legacy mapping: '{security_name}' -> '{ticker}'"
-            )
+            logger.debug(f"Found ticker in legacy mapping: '{security_name}' -> '{ticker}'")
             return ticker
 
         logger.debug(f"No ticker found for fund: {security_name}")
@@ -137,9 +127,7 @@ class DataConverter:
 
             # Check aliases with regex matching
             if self._matches_any_alias(security_name, aliases):
-                logger.info(
-                    f"Matched fund '{security_name}' to ticker '{ticker}' via comprehensive dictionary"
-                )
+                logger.info(f"Matched fund '{security_name}' to ticker '{ticker}' via comprehensive dictionary")
                 return ticker
 
         return None
@@ -160,10 +148,7 @@ class DataConverter:
 
             # Partial match for longer names
             if len(target_normalized) > 10 and len(alias_normalized) > 10:
-                if (
-                    target_normalized in alias_normalized
-                    or alias_normalized in target_normalized
-                ):
+                if target_normalized in alias_normalized or alias_normalized in target_normalized:
                     return True
 
             # Regex pattern matching for flexible matching
@@ -228,9 +213,7 @@ class DataConverter:
         # Fuzzy matching for investment funds
         for mapped_name, ticker in self.security_mapping.items():
             if self._names_match(security_name, mapped_name):
-                logger.info(
-                    f"Legacy match: '{security_name}' to ticker '{ticker}' via '{mapped_name}'"
-                )
+                logger.info(f"Legacy match: '{security_name}' to ticker '{ticker}' via '{mapped_name}'")
                 return ticker
 
         return None
@@ -279,9 +262,7 @@ class DataConverter:
 
         # If both have clear asset classes and they differ, don't match
         if class1 and class2 and class1 != class2:
-            logger.debug(
-                f"Asset class mismatch prevented: '{name1}' ({class1}) vs '{name2}' ({class2})"
-            )
+            logger.debug(f"Asset class mismatch prevented: '{name1}' ({class1}) vs '{name2}' ({class2})")
             return False
 
         # Check if one name contains the other (for partial matches)
@@ -327,9 +308,7 @@ class DataConverter:
                 raise FileNotFoundError(f"Trades file not found: {trades_file_path}")
 
             # Read CSV with proper date parsing
-            df = pd.read_csv(
-                trades_file_path, parse_dates=["trade_date", "settlement_date"]
-            )
+            df = pd.read_csv(trades_file_path, parse_dates=["trade_date", "settlement_date"])
 
             # Convert to JSON-serializable format
             json_data = {
@@ -337,19 +316,11 @@ class DataConverter:
                     "file_path": str(trades_file_path),
                     "total_trades": len(df),
                     "date_range": {
-                        "start": df["trade_date"].min().isoformat()
-                        if not df.empty
-                        else None,
-                        "end": df["trade_date"].max().isoformat()
-                        if not df.empty
-                        else None,
+                        "start": df["trade_date"].min().isoformat() if not df.empty else None,
+                        "end": df["trade_date"].max().isoformat() if not df.empty else None,
                     },
-                    "currencies": df["currency"].unique().tolist()
-                    if not df.empty
-                    else [],
-                    "data_sources": df["data_source"].unique().tolist()
-                    if not df.empty
-                    else [],
+                    "currencies": df["currency"].unique().tolist() if not df.empty else [],
+                    "data_sources": df["data_source"].unique().tolist() if not df.empty else [],
                     "converted_at": datetime.now().isoformat(),
                 },
                 "trades": [],
@@ -357,27 +328,17 @@ class DataConverter:
 
             # Convert each trade to dictionary with unified pricing
             for _, row in df.iterrows():
-                security_code = (
-                    row["security_code"] if pd.notna(row["security_code"]) else ""
-                )
-                security_name = (
-                    row["security_name"] if pd.notna(row["security_name"]) else ""
-                )
-                original_security_code = (
-                    security_code  # Keep original for mapping tracking
-                )
+                security_code = row["security_code"] if pd.notna(row["security_code"]) else ""
+                security_name = row["security_name"] if pd.notna(row["security_name"]) else ""
+                original_security_code = security_code  # Keep original for mapping tracking
 
                 # If no security code but name exists, try to find ticker for investment funds
-                if (
-                    pd.isna(security_code) or not str(security_code).strip()
-                ) and security_name:
+                if (pd.isna(security_code) or not str(security_code).strip()) and security_name:
                     ticker = self._find_ticker_for_fund(security_name)
                     if ticker:
                         security_code = ticker
                         self.fund_mappings[security_name] = ticker  # Track mapping
-                        logger.info(
-                            f"Mapped fund '{security_name}' to ticker '{ticker}'"
-                        )
+                        logger.info(f"Mapped fund '{security_name}' to ticker '{ticker}'")
 
                 # Prepare trade data for currency conversion
                 trade_data = {
@@ -385,60 +346,38 @@ class DataConverter:
                     "security_code": security_code,
                     "currency": row["currency"] if pd.notna(row["currency"]) else "JPY",
                     "price": float(row["price"]) if pd.notna(row["price"]) else 0.0,
-                    "quantity": float(row["quantity"])
-                    if pd.notna(row["quantity"])
-                    else 0.0,
-                    "settlement_amount": float(row["settlement_amount"])
-                    if pd.notna(row["settlement_amount"])
-                    else 0.0,
-                    "trade_date": row["trade_date"]
-                    if pd.notna(row["trade_date"])
-                    else None,
+                    "quantity": float(row["quantity"]) if pd.notna(row["quantity"]) else 0.0,
+                    "settlement_amount": float(row["settlement_amount"]) if pd.notna(row["settlement_amount"]) else 0.0,
+                    "trade_date": row["trade_date"] if pd.notna(row["trade_date"]) else None,
                 }
 
                 # Get unified JPY pricing
-                price_jpy, amount_jpy, conversion_info = (
-                    self.currency_converter.convert_to_jpy_unified_price(trade_data)
+                price_jpy, amount_jpy, conversion_info = self.currency_converter.convert_to_jpy_unified_price(
+                    trade_data
                 )
 
                 trade = {
-                    "trade_date": row["trade_date"].isoformat()
-                    if pd.notna(row["trade_date"])
-                    else None,
-                    "settlement_date": row["settlement_date"].isoformat()
-                    if pd.notna(row["settlement_date"])
-                    else None,
+                    "trade_date": row["trade_date"].isoformat() if pd.notna(row["trade_date"]) else None,
+                    "settlement_date": row["settlement_date"].isoformat() if pd.notna(row["settlement_date"]) else None,
                     "security_code": security_code,
                     "security_code_original": original_security_code,  # Keep original for reference
                     "security_name": security_name,
-                    "transaction_type": row["transaction_type"]
-                    if pd.notna(row["transaction_type"])
-                    else "",
-                    "quantity": float(row["quantity"])
-                    if pd.notna(row["quantity"])
-                    else 0.0,
+                    "transaction_type": row["transaction_type"] if pd.notna(row["transaction_type"]) else "",
+                    "quantity": float(row["quantity"]) if pd.notna(row["quantity"]) else 0.0,
                     "price": float(row["price"]) if pd.notna(row["price"]) else 0.0,
                     "price_jpy_unified": round(price_jpy, 4),  # Unified JPY price
-                    "settlement_amount": float(row["settlement_amount"])
-                    if pd.notna(row["settlement_amount"])
-                    else 0.0,
+                    "settlement_amount": float(row["settlement_amount"]) if pd.notna(row["settlement_amount"]) else 0.0,
                     "amount_jpy_unified": round(amount_jpy, 2),  # Unified JPY amount
                     "currency": self.currency_converter.normalize_currency_code(
                         row["currency"] if pd.notna(row["currency"]) else "JPY"
                     ),
-                    "account_type": row["account_type"]
-                    if pd.notna(row["account_type"])
-                    else "",
-                    "data_source": row["data_source"]
-                    if pd.notna(row["data_source"])
-                    else "",
+                    "account_type": row["account_type"] if pd.notna(row["account_type"]) else "",
+                    "data_source": row["data_source"] if pd.notna(row["data_source"]) else "",
                     "conversion_info": conversion_info,  # Include conversion details
                 }
                 json_data["trades"].append(trade)
 
-            logger.info(
-                f"Successfully converted {len(json_data['trades'])} trades to JSON"
-            )
+            logger.info(f"Successfully converted {len(json_data['trades'])} trades to JSON")
             return json_data
 
         except Exception as e:
@@ -451,18 +390,14 @@ class DataConverter:
             logger.info(f"Converting portfolio CSV to JSON: {portfolio_file_path}")
 
             if not portfolio_file_path.exists():
-                raise FileNotFoundError(
-                    f"Portfolio file not found: {portfolio_file_path}"
-                )
+                raise FileNotFoundError(f"Portfolio file not found: {portfolio_file_path}")
 
             # Read CSV
             df = pd.read_csv(portfolio_file_path)
 
             # Calculate summary statistics
             total_cost = df["total_cost"].sum() if "total_cost" in df.columns else 0
-            total_value = (
-                df["current_value"].sum() if "current_value" in df.columns else 0
-            )
+            total_value = df["current_value"].sum() if "current_value" in df.columns else 0
             total_pnl = df["total_pnl"].sum() if "total_pnl" in df.columns else 0
 
             # Convert to JSON-serializable format
@@ -474,9 +409,7 @@ class DataConverter:
                         "total_cost": float(total_cost),
                         "total_current_value": float(total_value),
                         "total_pnl": float(total_pnl),
-                        "pnl_percentage": float(total_pnl / total_cost * 100)
-                        if total_cost != 0
-                        else 0,
+                        "pnl_percentage": float(total_pnl / total_cost * 100) if total_cost != 0 else 0,
                     },
                     "converted_at": datetime.now().isoformat(),
                 },
@@ -485,23 +418,17 @@ class DataConverter:
 
             # Convert each holding to dictionary
             for _, row in df.iterrows():
-                security_code = (
-                    row["security_code"] if pd.notna(row["security_code"]) else ""
-                )
+                security_code = row["security_code"] if pd.notna(row["security_code"]) else ""
 
                 # If no security code but we can get security name from somewhere, try to find ticker
                 # Note: portfolio CSV might not have security_name column, so this is optional
                 if not security_code and "security_name" in df.columns:
-                    security_name = (
-                        row["security_name"] if pd.notna(row["security_name"]) else ""
-                    )
+                    security_name = row["security_name"] if pd.notna(row["security_name"]) else ""
                     if security_name:
                         ticker = self._find_ticker_for_fund(security_name)
                         if ticker:
                             security_code = ticker
-                            logger.debug(
-                                f"Mapped portfolio fund '{security_name}' to ticker '{ticker}'"
-                            )
+                            logger.debug(f"Mapped portfolio fund '{security_name}' to ticker '{ticker}'")
 
                 holding = {
                     "security_code": security_code,
@@ -509,33 +436,17 @@ class DataConverter:
                     "avg_cost_per_share": float(row["avg_cost_per_share"])
                     if pd.notna(row["avg_cost_per_share"])
                     else 0.0,
-                    "total_cost": float(row["total_cost"])
-                    if pd.notna(row["total_cost"])
-                    else 0.0,
-                    "current_price": float(row["current_price"])
-                    if pd.notna(row["current_price"])
-                    else 0.0,
-                    "current_value": float(row["current_value"])
-                    if pd.notna(row["current_value"])
-                    else 0.0,
-                    "unrealized_pnl": float(row["unrealized_pnl"])
-                    if pd.notna(row["unrealized_pnl"])
-                    else 0.0,
-                    "realized_pnl": float(row["realized_pnl"])
-                    if pd.notna(row["realized_pnl"])
-                    else 0.0,
-                    "total_pnl": float(row["total_pnl"])
-                    if pd.notna(row["total_pnl"])
-                    else 0.0,
-                    "pnl_percentage": float(row["pnl_percentage"])
-                    if pd.notna(row["pnl_percentage"])
-                    else 0.0,
+                    "total_cost": float(row["total_cost"]) if pd.notna(row["total_cost"]) else 0.0,
+                    "current_price": float(row["current_price"]) if pd.notna(row["current_price"]) else 0.0,
+                    "current_value": float(row["current_value"]) if pd.notna(row["current_value"]) else 0.0,
+                    "unrealized_pnl": float(row["unrealized_pnl"]) if pd.notna(row["unrealized_pnl"]) else 0.0,
+                    "realized_pnl": float(row["realized_pnl"]) if pd.notna(row["realized_pnl"]) else 0.0,
+                    "total_pnl": float(row["total_pnl"]) if pd.notna(row["total_pnl"]) else 0.0,
+                    "pnl_percentage": float(row["pnl_percentage"]) if pd.notna(row["pnl_percentage"]) else 0.0,
                 }
                 json_data["holdings"].append(holding)
 
-            logger.info(
-                f"Successfully converted {len(json_data['holdings'])} holdings to JSON"
-            )
+            logger.info(f"Successfully converted {len(json_data['holdings'])} holdings to JSON")
             return json_data
 
         except Exception as e:
@@ -569,9 +480,7 @@ class DataConverter:
 
                     if code:  # If security code exists, use it
                         ticker_codes.add(code)
-                    elif (
-                        security_name
-                    ):  # If no code but name exists, try to find ticker
+                    elif security_name:  # If no code but name exists, try to find ticker
                         ticker = self._find_ticker_for_fund(security_name)
                         if ticker:
                             ticker_codes.add(ticker)
@@ -590,9 +499,7 @@ class DataConverter:
                 for fund_name, ticker in fund_mappings.items():
                     logger.info(f"  '{fund_name}' -> {ticker}")
 
-            logger.info(
-                f"Extracted {len(ticker_codes)} unique ticker codes: {sorted(ticker_codes)}"
-            )
+            logger.info(f"Extracted {len(ticker_codes)} unique ticker codes: {sorted(ticker_codes)}")
             return ticker_codes
 
         except Exception as e:
@@ -613,9 +520,7 @@ class DataConverter:
             logger.error(f"Error saving JSON to file: {e}")
             raise
 
-    def convert_latest_data_to_json(
-        self, processed_data_dir: Path, output_dir: Path
-    ) -> Dict[str, Path]:
+    def convert_latest_data_to_json(self, processed_data_dir: Path, output_dir: Path) -> Dict[str, Path]:
         """Convert the latest trades and portfolio CSV files to JSON."""
         result_paths = {}
 
@@ -627,26 +532,18 @@ class DataConverter:
                 trades_json = self.trades_csv_to_json(latest_trades_file)
 
                 # Save trades JSON
-                trades_json_path = (
-                    output_dir
-                    / f"trades_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-                )
+                trades_json_path = output_dir / f"trades_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
                 self.save_json_to_file(trades_json, trades_json_path)
                 result_paths["trades"] = trades_json_path
 
             # Find latest portfolio file
             portfolio_files = list(processed_data_dir.glob("portfolio_holdings_*.csv"))
             if portfolio_files:
-                latest_portfolio_file = max(
-                    portfolio_files, key=lambda x: x.stat().st_mtime
-                )
+                latest_portfolio_file = max(portfolio_files, key=lambda x: x.stat().st_mtime)
                 portfolio_json = self.portfolio_csv_to_json(latest_portfolio_file)
 
                 # Save portfolio JSON
-                portfolio_json_path = (
-                    output_dir
-                    / f"portfolio_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-                )
+                portfolio_json_path = output_dir / f"portfolio_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
                 self.save_json_to_file(portfolio_json, portfolio_json_path)
                 result_paths["portfolio"] = portfolio_json_path
 
@@ -675,16 +572,11 @@ class DataConverter:
                     "ticker_codes": sorted(list(ticker_codes)),
                 }
 
-                tickers_json_path = (
-                    output_dir
-                    / f"ticker_codes_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-                )
+                tickers_json_path = output_dir / f"ticker_codes_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
                 self.save_json_to_file(ticker_data, tickers_json_path)
                 result_paths["tickers"] = tickers_json_path
 
-            logger.info(
-                f"Successfully converted data to JSON. Files created: {list(result_paths.keys())}"
-            )
+            logger.info(f"Successfully converted data to JSON. Files created: {list(result_paths.keys())}")
             return result_paths
 
         except Exception as e:
@@ -738,9 +630,7 @@ class DataConverter:
             logger.error(f"Error saving fund mapping table: {e}")
             return None
 
-    def create_unified_trades_csv(
-        self, processed_data_dir: Path, output_dir: Path
-    ) -> Path:
+    def create_unified_trades_csv(self, processed_data_dir: Path, output_dir: Path) -> Path:
         """Create a unified trades CSV with JPY pricing and fund mappings."""
         try:
             output_dir = Path(output_dir)
@@ -756,9 +646,7 @@ class DataConverter:
             logger.info(f"Processing trades file: {latest_trades_file}")
 
             # Read and process trades
-            df = pd.read_csv(
-                latest_trades_file, parse_dates=["trade_date", "settlement_date"]
-            )
+            df = pd.read_csv(latest_trades_file, parse_dates=["trade_date", "settlement_date"])
 
             # Add unified pricing columns
             df = self.currency_converter.add_unified_pricing_to_dataframe(df)
@@ -779,9 +667,7 @@ class DataConverter:
                         df.at[idx, "security_code"] = ticker
                         df.at[idx, "ticker_mapped"] = True
                         self.fund_mappings[security_name] = ticker
-                        logger.info(
-                            f"Mapped investment fund '{security_name}' -> '{ticker}'"
-                        )
+                        logger.info(f"Mapped investment fund '{security_name}' -> '{ticker}'")
 
             # Reorder columns for better readability
             column_order = [
@@ -807,9 +693,7 @@ class DataConverter:
 
             # Keep only existing columns
             available_columns = [col for col in column_order if col in df.columns]
-            remaining_columns = [
-                col for col in df.columns if col not in available_columns
-            ]
+            remaining_columns = [col for col in df.columns if col not in available_columns]
             final_columns = available_columns + remaining_columns
 
             df = df[final_columns]
@@ -819,9 +703,7 @@ class DataConverter:
             unified_csv_path = output_dir / f"trades_unified_{timestamp}.csv"
             df.to_csv(unified_csv_path, index=False, encoding="utf-8")
 
-            logger.info(
-                f"Created unified trades CSV with {len(df)} trades: {unified_csv_path}"
-            )
+            logger.info(f"Created unified trades CSV with {len(df)} trades: {unified_csv_path}")
 
             # Also save the fund mapping table
             self.save_fund_mapping_table(output_dir)

@@ -1,4 +1,3 @@
-
 import logging
 from pathlib import Path
 
@@ -8,10 +7,7 @@ from src.config import Config
 
 def register(subparsers, command_name: str = "analyze"):
     """Register the analyze (unified analysis) command."""
-    parser = subparsers.add_parser(
-        command_name, 
-        help="[3] パフォーマンス分析: Analyze historical performance metrics"
-    )
+    parser = subparsers.add_parser(command_name, help="[3] パフォーマンス分析: Analyze historical performance metrics")
     parser.add_argument(
         "--csv-file",
         type=str,
@@ -37,16 +33,13 @@ def register(subparsers, command_name: str = "analyze"):
         help="Generate report only, skip visualizations",
     )
 
-    parser.add_argument(
-        "--charts-only", action="store_true", help="Generate charts only, skip report"
-    )
+    parser.add_argument("--charts-only", action="store_true", help="Generate charts only, skip report")
 
-    parser.add_argument(
-        "--holdings-only", action="store_true", help="Analyze holdings only (fastest)"
-    )
+    parser.add_argument("--holdings-only", action="store_true", help="Analyze holdings only (fastest)")
 
     parser.add_argument("--verbose", action="store_true", help="Verbose logging")
     parser.set_defaults(func=run)
+
 
 def find_latest_unified_csv(csv_dir: Path = None):
     """Find the latest unified CSV file"""
@@ -73,13 +66,12 @@ def find_latest_unified_csv(csv_dir: Path = None):
 
     return latest_csv, fund_mapping_file
 
+
 def run(args):
     # Setup logging
     log_level = logging.INFO if args.verbose else logging.WARNING
-    logging.basicConfig(
-        level=log_level, format="%(asctime)s - %(levelname)s - %(message)s"
-    )
-    logger = logging.getLogger(__name__)
+    logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s - %(message)s")
+    logging.getLogger(__name__)
 
     # Find CSV file
     if args.csv_file:
@@ -102,9 +94,7 @@ def run(args):
 
     try:
         # Initialize analyzer
-        analyzer = UnifiedCSVAnalyzer(
-            str(csv_file), str(fund_mapping_file) if fund_mapping_file else None
-        )
+        analyzer = UnifiedCSVAnalyzer(str(csv_file), str(fund_mapping_file) if fund_mapping_file else None)
 
         # Create output directory
         output_dir = Path(args.output_dir)
@@ -125,9 +115,8 @@ def run(args):
                 print("\n=== Top 5 Holdings ===")
                 top5 = holdings.nlargest(5, "total_cost_jpy")
                 for _, holding in top5.iterrows():
-                    print(
-                        f"{holding['symbol']}: ¥{holding['total_cost_jpy']:,.0f} ({holding['portfolio_weight'] * 100:.1f}%)"
-                    )
+                    weight_pct = holding["portfolio_weight"] * 100
+                    print(f"{holding['symbol']}: ¥{holding['total_cost_jpy']:,.0f} ({weight_pct:.1f}%)")
             else:
                 print("No current holdings found.")
 
@@ -165,12 +154,8 @@ def run(args):
 
             print("📊 Portfolio Overview:")
             print(f"  • Total Holdings: {portfolio_summary['total_holdings']}")
-            print(
-                f"  • Portfolio Value: ¥{portfolio_summary['total_portfolio_value_jpy']:,.0f}"
-            )
-            print(
-                f"  • Total Realized P&L: ¥{portfolio_summary['total_realized_pnl_jpy']:,.0f}"
-            )
+            print(f"  • Portfolio Value: ¥{portfolio_summary['total_portfolio_value_jpy']:,.0f}")
+            print(f"  • Total Realized P&L: ¥{portfolio_summary['total_realized_pnl_jpy']:,.0f}")
 
             print("\n📈 Performance Metrics:")
             print(f"  • Total Return: {performance['total_return_pct']:.2f}%")

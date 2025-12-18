@@ -26,9 +26,7 @@ class TradeVisualizer:
         self.figure_size = (12, 8)
         self.dpi = 300
 
-    def plot_portfolio_overview(
-        self, holdings_df: pd.DataFrame, summary: Dict, output_path: Path
-    ):
+    def plot_portfolio_overview(self, holdings_df: pd.DataFrame, summary: Dict, output_path: Path):
         """Create portfolio overview charts."""
         if holdings_df.empty:
             logger.warning("No holdings data to plot")
@@ -71,9 +69,7 @@ class TradeVisualizer:
 
         # 2. P&L by security (bar chart)
         if "total_pnl" in holdings_df.columns:
-            top_pnl = holdings_df.nlargest(10, "total_pnl").dropna(
-                subset=["total_pnl", "security_code"]
-            )
+            top_pnl = holdings_df.nlargest(10, "total_pnl").dropna(subset=["total_pnl", "security_code"])
             if not top_pnl.empty:
                 colors = ["green" if x > 0 else "red" for x in top_pnl["total_pnl"]]
                 ax2.bar(range(len(top_pnl)), top_pnl["total_pnl"], color=colors)
@@ -196,9 +192,7 @@ class TradeVisualizer:
 
         logger.info(f"Portfolio overview saved to {output_path}")
 
-    def plot_trading_activity(
-        self, trades_df: pd.DataFrame, activity_summary: Dict, output_path: Path
-    ):
+    def plot_trading_activity(self, trades_df: pd.DataFrame, activity_summary: Dict, output_path: Path):
         """Create trading activity charts."""
         if trades_df.empty:
             logger.warning("No trading data to plot")
@@ -208,16 +202,12 @@ class TradeVisualizer:
         fig.suptitle("Trading Activity Analysis", fontsize=16, fontweight="bold")
 
         # Determine which amount column to use
-        amount_column = (
-            "amount_jpy" if "amount_jpy" in trades_df.columns else "settlement_amount"
-        )
+        amount_column = "amount_jpy" if "amount_jpy" in trades_df.columns else "settlement_amount"
 
         # 1. Monthly trading volume
         try:
             trades_df = trades_df.copy()
-            trades_df.loc[:, "trade_date"] = pd.to_datetime(
-                trades_df["trade_date"], errors="coerce"
-            )
+            trades_df.loc[:, "trade_date"] = pd.to_datetime(trades_df["trade_date"], errors="coerce")
             trades_df = trades_df.dropna(subset=["trade_date"])
 
             if not trades_df.empty:
@@ -261,17 +251,13 @@ class TradeVisualizer:
 
         # 3. Most traded securities
         if "most_traded_securities" in activity_summary:
-            top_securities = pd.Series(activity_summary["most_traded_securities"]).head(
-                10
-            )
+            top_securities = pd.Series(activity_summary["most_traded_securities"]).head(10)
             top_securities.plot(kind="barh", ax=ax3)
             ax3.set_title("Most Traded Securities (by count)")
             ax3.set_xlabel("Number of Trades")
 
         # 4. Trade amount distribution
-        ax4.hist(
-            trades_df[amount_column].dropna(), bins=30, alpha=0.7, edgecolor="black"
-        )
+        ax4.hist(trades_df[amount_column].dropna(), bins=30, alpha=0.7, edgecolor="black")
         ax4.set_title("Trade Amount Distribution")
         ax4.set_xlabel("Amount (JPY)")
         ax4.set_ylabel("Frequency")
@@ -316,15 +302,11 @@ class TradeVisualizer:
 
         price_series = price_data[price_column].dropna()
 
-        fig, (ax1, ax2) = plt.subplots(
-            2, 1, figsize=self.figure_size, gridspec_kw={"height_ratios": [3, 1]}
-        )
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=self.figure_size, gridspec_kw={"height_ratios": [3, 1]})
 
         # Plot price
         ax1.plot(price_series.index, price_series.values, "b-", linewidth=1, alpha=0.8)
-        ax1.set_title(
-            f"{security_code} - Price and Trading Activity", fontweight="bold"
-        )
+        ax1.set_title(f"{security_code} - Price and Trading Activity", fontweight="bold")
         ax1.set_ylabel("Price")
         ax1.grid(True, alpha=0.3)
 
@@ -365,16 +347,9 @@ class TradeVisualizer:
 
         # Volume/amount plot
         trade_dates = security_trades["trade_date"]
-        amount_column = (
-            "amount_jpy"
-            if "amount_jpy" in security_trades.columns
-            else "settlement_amount"
-        )
+        amount_column = "amount_jpy" if "amount_jpy" in security_trades.columns else "settlement_amount"
         trade_amounts = security_trades[amount_column]
-        colors = [
-            "green" if t == "buy" else "red"
-            for t in security_trades["transaction_type"]
-        ]
+        colors = ["green" if t == "buy" else "red" for t in security_trades["transaction_type"]]
 
         ax2.bar(trade_dates, trade_amounts, color=colors, alpha=0.7, width=10)
         ax2.set_ylabel("Trade Amount (JPY)")
@@ -460,9 +435,7 @@ class TradeVisualizer:
         ax1.axvline(x=0, color="black", linestyle="-", alpha=0.3)
 
         # 2. Realized vs Unrealized P&L
-        ax2.scatter(
-            performance_df["realized_pnl"], performance_df["unrealized_pnl"], alpha=0.6
-        )
+        ax2.scatter(performance_df["realized_pnl"], performance_df["unrealized_pnl"], alpha=0.6)
         ax2.set_xlabel("Realized P&L (JPY)")
         ax2.set_ylabel("Unrealized P&L (JPY)")
         ax2.set_title("Realized vs Unrealized P&L")
@@ -478,9 +451,7 @@ class TradeVisualizer:
         # 4. Current value distribution
         current_holdings = performance_df[performance_df["current_shares"] > 0]
         if not current_holdings.empty:
-            ax4.hist(
-                current_holdings["current_value"], bins=20, alpha=0.7, edgecolor="black"
-            )
+            ax4.hist(current_holdings["current_value"], bins=20, alpha=0.7, edgecolor="black")
             ax4.set_title("Current Holdings Value Distribution")
             ax4.set_xlabel("Current Value (JPY)")
             ax4.set_ylabel("Frequency")

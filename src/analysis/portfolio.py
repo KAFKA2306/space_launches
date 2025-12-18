@@ -17,9 +17,7 @@ class PortfolioAnalyzer:
     def __init__(self, config: Config = None):
         self.config = config or Config()
 
-    def analyze_holdings(
-        self, trades_df: pd.DataFrame, price_data: pd.DataFrame
-    ) -> pd.DataFrame:
+    def analyze_holdings(self, trades_df: pd.DataFrame, price_data: pd.DataFrame) -> pd.DataFrame:
         """Analyze current portfolio holdings."""
         logger.info("Analyzing portfolio holdings")
 
@@ -40,9 +38,7 @@ class PortfolioAnalyzer:
             quantity = trade["quantity"] if pd.notna(trade["quantity"]) else 0
 
             # Use unified JPY amount if available, otherwise fall back to settlement_amount
-            amount_jpy = trade.get(
-                "amount_jpy_unified", trade.get("settlement_amount", 0)
-            )
+            amount_jpy = trade.get("amount_jpy_unified", trade.get("settlement_amount", 0))
             if pd.isna(amount_jpy):
                 amount_jpy = 0
 
@@ -73,9 +69,7 @@ class PortfolioAnalyzer:
                         holdings[security_code]["total_shares"] + quantity
                     )
                     cost_of_sold_shares = avg_cost_per_share * quantity
-                    holdings[security_code]["realized_pnl"] += (
-                        amount_jpy - cost_of_sold_shares
-                    )
+                    holdings[security_code]["realized_pnl"] += amount_jpy - cost_of_sold_shares
                     holdings[security_code]["total_cost"] -= cost_of_sold_shares
 
         # Create holdings dataframe
@@ -88,9 +82,7 @@ class PortfolioAnalyzer:
                 current_value = holding["total_shares"] * current_price
 
                 avg_cost_per_share = (
-                    holding["total_cost"] / holding["total_shares"]
-                    if holding["total_shares"] > 0
-                    else 0
+                    holding["total_cost"] / holding["total_shares"] if holding["total_shares"] > 0 else 0
                 )
 
                 unrealized_pnl = current_value - holding["total_cost"]
@@ -107,11 +99,7 @@ class PortfolioAnalyzer:
                         "unrealized_pnl": unrealized_pnl,
                         "realized_pnl": holding["realized_pnl"],
                         "total_pnl": total_pnl,
-                        "pnl_percentage": (
-                            total_pnl / holding["total_cost"] * 100
-                            if holding["total_cost"] > 0
-                            else 0
-                        ),
+                        "pnl_percentage": (total_pnl / holding["total_cost"] * 100 if holding["total_cost"] > 0 else 0),
                     }
                 )
 
@@ -148,9 +136,7 @@ class PortfolioAnalyzer:
         }
 
         summary["total_pnl_percentage"] = (
-            summary["total_pnl"] / summary["total_cost"] * 100
-            if summary["total_cost"] > 0
-            else 0
+            summary["total_pnl"] / summary["total_cost"] * 100 if summary["total_cost"] > 0 else 0
         )
 
         logger.info(f"Portfolio summary: {summary}")
@@ -165,9 +151,7 @@ class PortfolioAnalyzer:
 
         # Ensure trade_date is datetime
         trades_df = trades_df.copy()
-        trades_df.loc[:, "trade_date"] = pd.to_datetime(
-            trades_df["trade_date"], errors="coerce"
-        )
+        trades_df.loc[:, "trade_date"] = pd.to_datetime(trades_df["trade_date"], errors="coerce")
         trades_df = trades_df.dropna(subset=["trade_date"])
 
         if trades_df.empty:
@@ -182,27 +166,21 @@ class PortfolioAnalyzer:
         date_range = {
             "start_date": trades_df["trade_date"].min(),
             "end_date": trades_df["trade_date"].max(),
-            "days": (
-                trades_df["trade_date"].max() - trades_df["trade_date"].min()
-            ).days,
+            "days": (trades_df["trade_date"].max() - trades_df["trade_date"].min()).days,
         }
 
         # Monthly activity
         try:
             trades_df.loc[:, "month"] = trades_df["trade_date"].dt.to_period("M")
             monthly_activity = trades_df.groupby("month").size()
-        except:
+        except Exception:
             monthly_activity = pd.Series(dtype=int)
 
         # Security activity
         security_activity = trades_df["security_code"].value_counts()
 
         # Amount analysis - use unified amounts if available
-        amount_col = (
-            "amount_jpy_unified"
-            if "amount_jpy_unified" in trades_df.columns
-            else "settlement_amount"
-        )
+        amount_col = "amount_jpy_unified" if "amount_jpy_unified" in trades_df.columns else "settlement_amount"
         total_amount_traded = trades_df[amount_col].sum()
         avg_trade_amount = trades_df[amount_col].mean()
 
@@ -221,9 +199,7 @@ class PortfolioAnalyzer:
         logger.info(f"Trading activity summary: {activity_summary}")
         return activity_summary
 
-    def calculate_security_performance(
-        self, trades_df: pd.DataFrame, price_data: pd.DataFrame
-    ) -> pd.DataFrame:
+    def calculate_security_performance(self, trades_df: pd.DataFrame, price_data: pd.DataFrame) -> pd.DataFrame:
         """Calculate performance for each security traded."""
         logger.info("Calculating security performance")
 
@@ -235,25 +211,13 @@ class PortfolioAnalyzer:
 
             security_trades = trades_df[trades_df["security_code"] == security_code]
 
-            amount_col = (
-                "amount_jpy_unified"
-                if "amount_jpy_unified" in trades_df.columns
-                else "settlement_amount"
-            )
+            amount_col = "amount_jpy_unified" if "amount_jpy_unified" in trades_df.columns else "settlement_amount"
 
-            total_bought = security_trades[
-                security_trades["transaction_type"] == "buy"
-            ][amount_col].sum()
-            total_sold = security_trades[security_trades["transaction_type"] == "sell"][
-                amount_col
-            ].sum()
+            total_bought = security_trades[security_trades["transaction_type"] == "buy"][amount_col].sum()
+            total_sold = security_trades[security_trades["transaction_type"] == "sell"][amount_col].sum()
 
-            shares_bought = security_trades[
-                security_trades["transaction_type"] == "buy"
-            ]["quantity"].sum()
-            shares_sold = security_trades[
-                security_trades["transaction_type"] == "sell"
-            ]["quantity"].sum()
+            shares_bought = security_trades[security_trades["transaction_type"] == "buy"]["quantity"].sum()
+            shares_sold = security_trades[security_trades["transaction_type"] == "sell"]["quantity"].sum()
 
             current_shares = shares_bought - shares_sold
 
@@ -262,14 +226,8 @@ class PortfolioAnalyzer:
             current_value = current_shares * current_price if current_price else 0
 
             # Calculate P&L
-            realized_pnl = total_sold - (
-                total_bought * shares_sold / shares_bought if shares_bought > 0 else 0
-            )
-            unrealized_pnl = current_value - (
-                total_bought * current_shares / shares_bought
-                if shares_bought > 0
-                else 0
-            )
+            realized_pnl = total_sold - (total_bought * shares_sold / shares_bought if shares_bought > 0 else 0)
+            unrealized_pnl = current_value - (total_bought * current_shares / shares_bought if shares_bought > 0 else 0)
             total_pnl = realized_pnl + unrealized_pnl
 
             security_performance.append(
@@ -311,11 +269,7 @@ class PortfolioAnalyzer:
 
     def _get_current_price(self, price_data: pd.DataFrame, security_code: str) -> float:
         """Get current price for a specific security."""
-        if (
-            price_data is None
-            or price_data.empty
-            or security_code not in price_data.columns
-        ):
+        if price_data is None or price_data.empty or security_code not in price_data.columns:
             return 0
 
         try:

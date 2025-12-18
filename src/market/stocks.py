@@ -22,15 +22,11 @@ class StockDataManager:
     def __init__(self, config: Config = None, use_alternative_sources: bool = False):
         self.config = config or Config()
         self.use_alternative_sources = use_alternative_sources
-        self.alternative_fetcher = (
-            AlternativeDataFetcher(config) if use_alternative_sources else None
-        )
+        self.alternative_fetcher = AlternativeDataFetcher(config) if use_alternative_sources else None
 
         # Set up API keys from environment variables
         if self.alternative_fetcher:
-            self.alternative_fetcher.alpha_vantage_key = os.getenv(
-                "ALPHA_VANTAGE_API_KEY"
-            )
+            self.alternative_fetcher.alpha_vantage_key = os.getenv("ALPHA_VANTAGE_API_KEY")
 
     def process_security_code(self, code: str) -> str:
         """Process and standardize security codes for Yahoo Finance."""
@@ -65,18 +61,14 @@ class StockDataManager:
     ) -> pd.DataFrame:
         """Update stock prices using alternative data sources (not yfinance)."""
         if not self.alternative_fetcher:
-            logger.warning(
-                "Alternative data fetcher not initialized. Using yfinance fallback."
-            )
+            logger.warning("Alternative data fetcher not initialized. Using yfinance fallback.")
             return self.update_stock_prices(prices_file_path, security_codes)
 
         if not security_codes:
             logger.warning("No security codes provided")
             return pd.DataFrame()
 
-        logger.info(
-            f"Updating stock prices using alternative sources for {len(security_codes)} securities"
-        )
+        logger.info(f"Updating stock prices using alternative sources for {len(security_codes)} securities")
 
         # Load existing data or determine start date
         existing_data = pd.DataFrame()
@@ -88,9 +80,7 @@ class StockDataManager:
                 if not existing_data.empty:
                     last_date = existing_data.index.max()
                     start_date = (last_date + timedelta(days=1)).strftime("%Y-%m-%d")
-                    logger.info(
-                        f"Found existing data up to {last_date}. Fetching from {start_date}"
-                    )
+                    logger.info(f"Found existing data up to {last_date}. Fetching from {start_date}")
                 else:
                     logger.info("Existing file is empty. Starting fresh download")
             except Exception as e:
@@ -117,9 +107,7 @@ class StockDataManager:
             # For alternative sources, we might need different processing
             processed_code = str(code).strip()
             if processed_code.endswith(".T"):
-                processed_code = processed_code[
-                    :-2
-                ]  # Remove .T for alternative sources
+                processed_code = processed_code[:-2]  # Remove .T for alternative sources
             processed_codes.append(processed_code)
 
         # Fetch historical data
@@ -160,12 +148,8 @@ class StockDataManager:
         # Save updated data
         self.save_stock_prices(combined_data, prices_file_path)
 
-        logger.info(
-            f"✅ Stock price data updated using alternative sources: {len(combined_data)} records"
-        )
-        logger.info(
-            f"   Securities: {len(combined_data.columns) if not combined_data.empty else 0}"
-        )
+        logger.info(f"✅ Stock price data updated using alternative sources: {len(combined_data)} records")
+        logger.info(f"   Securities: {len(combined_data.columns) if not combined_data.empty else 0}")
 
         return combined_data
 
@@ -182,9 +166,7 @@ class StockDataManager:
         # Route to alternative sources if configured
         if self.use_alternative_sources:
             logger.info("Using alternative data sources instead of yfinance")
-            return self.update_stock_prices_alternative(
-                prices_file_path, security_codes
-            )
+            return self.update_stock_prices_alternative(prices_file_path, security_codes)
 
         import time
 
@@ -202,16 +184,12 @@ class StockDataManager:
                 if not existing_data.empty:
                     last_date = existing_data.index.max()
                     start_date = (last_date + timedelta(days=1)).strftime("%Y-%m-%d")
-                    logger.info(
-                        f"Found existing price data up to {last_date}. Fetching from {start_date}"
-                    )
+                    logger.info(f"Found existing price data up to {last_date}. Fetching from {start_date}")
                 else:
                     start_date = self.config.MARKET_START_DATE
                     logger.info("Existing price file is empty. Starting fresh download")
             except Exception as e:
-                logger.warning(
-                    f"Error reading existing price data: {e}. Starting fresh"
-                )
+                logger.warning(f"Error reading existing price data: {e}. Starting fresh")
                 start_date = self.config.MARKET_START_DATE
         else:
             start_date = self.config.MARKET_START_DATE
@@ -236,9 +214,7 @@ class StockDataManager:
             batch_num = (i // batch_size) + 1
             total_batches = (len(codes_list) + batch_size - 1) // batch_size
 
-            logger.info(
-                f"Processing batch {batch_num}/{total_batches}: {len(batch)} securities"
-            )
+            logger.info(f"Processing batch {batch_num}/{total_batches}: {len(batch)} securities")
 
             # Add delay between batches
             if i > 0:
@@ -248,22 +224,14 @@ class StockDataManager:
             success = False
             for attempt in range(retry_count):
                 try:
-                    logger.info(
-                        f"Downloading batch (attempt {attempt + 1}/{retry_count})"
-                    )
+                    logger.info(f"Downloading batch (attempt {attempt + 1}/{retry_count})")
 
                     # Download batch
                     if len(batch) == 1:
-                        data = yf.download(
-                            batch[0], start=start_date, end=end_date, progress=False
-                        )
+                        data = yf.download(batch[0], start=start_date, end=end_date, progress=False)
                         if not data.empty:
                             batch_data = pd.DataFrame(
-                                {
-                                    batch[0]: data["Adj Close"]
-                                    if "Adj Close" in data.columns
-                                    else data["Close"]
-                                }
+                                {batch[0]: data["Adj Close"] if "Adj Close" in data.columns else data["Close"]}
                             )
                         else:
                             batch_data = pd.DataFrame()
@@ -291,9 +259,7 @@ class StockDataManager:
                     if not batch_data.empty:
                         # Clean column names
                         if hasattr(batch_data, "columns"):
-                            batch_data.columns = [
-                                col.rstrip(".T") for col in batch_data.columns
-                            ]
+                            batch_data.columns = [col.rstrip(".T") for col in batch_data.columns]
 
                         # Remove columns with all NaN values
                         batch_data = batch_data.dropna(axis=1, how="all")
@@ -302,15 +268,9 @@ class StockDataManager:
                         if new_price_data.empty:
                             new_price_data = batch_data
                         else:
-                            new_price_data = pd.concat(
-                                [new_price_data, batch_data], axis=1
-                            )
+                            new_price_data = pd.concat([new_price_data, batch_data], axis=1)
 
-                        successful_downloads += (
-                            len(batch_data.columns)
-                            if hasattr(batch_data, "columns")
-                            else 1
-                        )
+                        successful_downloads += len(batch_data.columns) if hasattr(batch_data, "columns") else 1
                         logger.info(
                             f"✅ Downloaded {len(batch_data.columns) if hasattr(batch_data, 'columns') else 1} securities"
                         )
@@ -323,26 +283,20 @@ class StockDataManager:
                 except Exception as e:
                     if "rate limit" in str(e).lower() or "429" in str(e):
                         wait_time = delay_seconds * (2**attempt)
-                        logger.warning(
-                            f"Rate limit hit. Waiting {wait_time}s before retry..."
-                        )
+                        logger.warning(f"Rate limit hit. Waiting {wait_time}s before retry...")
                         time.sleep(wait_time)
                     else:
                         logger.error(f"Error downloading batch: {e}")
                         break
 
             if not success:
-                logger.error(
-                    f"❌ Failed to download batch {batch_num} after {retry_count} attempts"
-                )
+                logger.error(f"❌ Failed to download batch {batch_num} after {retry_count} attempts")
 
         # Merge existing and new data
         if existing_data.empty and new_price_data.empty:
             # Try fallback to DIC directory if no data available
             if use_fallback:
-                logger.info(
-                    "No stock price data downloaded. Trying fallback to DIC directory..."
-                )
+                logger.info("No stock price data downloaded. Trying fallback to DIC directory...")
                 fallback_data = self._load_fallback_stock_data(security_codes)
                 if not fallback_data.empty:
                     # Save fallback data to processed location for future use
@@ -373,14 +327,10 @@ class StockDataManager:
         # Save updated data
         self.save_stock_prices(combined_data, prices_file_path)
 
-        existing_securities = (
-            len(existing_data.columns) if not existing_data.empty else 0
-        )
+        existing_securities = len(existing_data.columns) if not existing_data.empty else 0
         new_securities = len(new_price_data.columns) if not new_price_data.empty else 0
         logger.info(f"✅ Stock price data updated: {len(combined_data)} total records")
-        logger.info(
-            f"   Existing securities: {existing_securities}, Updated: {new_securities}"
-        )
+        logger.info(f"   Existing securities: {existing_securities}, Updated: {new_securities}")
 
         return combined_data
 
@@ -392,9 +342,7 @@ class StockDataManager:
 
             if dic_charts_path.exists():
                 logger.info(f"Loading fallback stock data from {dic_charts_path}")
-                fallback_data = pd.read_csv(
-                    dic_charts_path, index_col=0, parse_dates=True
-                )
+                fallback_data = pd.read_csv(dic_charts_path, index_col=0, parse_dates=True)
 
                 # Clean up timezone information if present
                 if fallback_data.index.tz is not None:
@@ -424,24 +372,18 @@ class StockDataManager:
                     filtered_data = fallback_data[list(requested_securities)]
 
                     # Clean column names to remove .T suffix for consistency
-                    filtered_data.columns = [
-                        col.rstrip(".T") for col in filtered_data.columns
-                    ]
+                    filtered_data.columns = [col.rstrip(".T") for col in filtered_data.columns]
 
                     logger.info(
                         f"Loaded {len(filtered_data)} records for {len(filtered_data.columns)} securities from fallback data"
                     )
                     logger.info(f"Available securities: {list(filtered_data.columns)}")
-                    logger.info(
-                        f"Date range: {filtered_data.index.min()} to {filtered_data.index.max()}"
-                    )
+                    logger.info(f"Date range: {filtered_data.index.min()} to {filtered_data.index.max()}")
 
                     return filtered_data
                 else:
                     logger.warning("No matching securities found in fallback data")
-                    logger.info(
-                        f"Requested: {list(security_codes)[:10]}{'...' if len(security_codes) > 10 else ''}"
-                    )
+                    logger.info(f"Requested: {list(security_codes)[:10]}{'...' if len(security_codes) > 10 else ''}")
                     logger.info(
                         f"Available: {list(available_securities)[:10]}{'...' if len(available_securities) > 10 else ''}"
                     )
@@ -478,9 +420,7 @@ class StockDataManager:
         latest_prices = price_data.iloc[-1]
         return latest_prices.dropna()
 
-    def calculate_returns(
-        self, price_data: pd.DataFrame, period: int = 1
-    ) -> pd.DataFrame:
+    def calculate_returns(self, price_data: pd.DataFrame, period: int = 1) -> pd.DataFrame:
         """Calculate returns for given period."""
         if price_data.empty:
             return pd.DataFrame()
@@ -488,9 +428,7 @@ class StockDataManager:
         returns = price_data.pct_change(periods=period)
         return returns
 
-    def get_price_on_date(
-        self, price_data: pd.DataFrame, date: pd.Timestamp, security_code: str
-    ) -> float:
+    def get_price_on_date(self, price_data: pd.DataFrame, date: pd.Timestamp, security_code: str) -> float:
         """Get price for a specific security on a specific date."""
         if price_data.empty or security_code not in price_data.columns:
             return None

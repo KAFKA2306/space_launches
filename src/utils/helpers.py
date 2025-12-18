@@ -28,9 +28,7 @@ def clean_numeric(value):
         return float(value)
 
     # Remove commas, currency symbols, and parentheses
-    value = (
-        str(value).replace(",", "").replace("円", "").replace("(", "").replace(")", "")
-    )
+    value = str(value).replace(",", "").replace("円", "").replace("(", "").replace(")", "")
 
     # Extract numeric value
     match = re.search(r"-?\d+(\.\d+)?", value)
@@ -126,9 +124,7 @@ def read_csv_safe(file_path, encoding=None, skiprows=0, **kwargs):
             continue
 
     # If all fail, raise the last exception or a generic one
-    raise ValueError(
-        f"Could not read CSV file {file_path} with any of the attempted encodings."
-    )
+    raise ValueError(f"Could not read CSV file {file_path} with any of the attempted encodings.")
 
 
 def ensure_columns(df, required_columns):

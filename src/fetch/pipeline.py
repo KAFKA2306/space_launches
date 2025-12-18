@@ -26,6 +26,7 @@ def update_market_data(config, logger):
 
     return forex_data
 
+
 def load_and_process_trades(config, logger):
     logger.info("=== Loading Trading Data ===")
 
@@ -43,9 +44,7 @@ def load_and_process_trades(config, logger):
         trades_df = data_loader.load_all_broker_data(raw_data_dir)
 
         if trades_df is None or trades_df.empty:
-            logger.error(
-                "No trading data found. Please check your CSV files in the data/raw directory."
-            )
+            logger.error("No trading data found. Please check your CSV files in the data/raw directory.")
             return None
 
         logger.info(f"Successfully loaded {len(trades_df)} trades from raw data")
@@ -61,12 +60,11 @@ def load_and_process_trades(config, logger):
 
     return trades_df
 
+
 def update_stock_prices(trades_df, config, logger, use_alternative_sources=False):
     logger.info("=== Updating Stock Prices (Incremental) ===")
 
-    stock_manager = StockDataManager(
-        config, use_alternative_sources=use_alternative_sources
-    )
+    stock_manager = StockDataManager(config, use_alternative_sources=use_alternative_sources)
 
     security_codes = stock_manager.extract_security_codes(trades_df)
 
@@ -79,13 +77,12 @@ def update_stock_prices(trades_df, config, logger, use_alternative_sources=False
     price_data = stock_manager.update_stock_prices(price_path, security_codes)
 
     if not price_data.empty:
-        logger.info(
-            f"Stock price data updated: {len(price_data)} records for {len(price_data.columns)} securities"
-        )
+        logger.info(f"Stock price data updated: {len(price_data)} records for {len(price_data.columns)} securities")
     else:
         logger.warning("No stock price data available")
 
     return price_data
+
 
 def create_unified_csv(config, logger):
     logger.info("=== Creating Unified CSV ===")
@@ -96,9 +93,7 @@ def create_unified_csv(config, logger):
         unified_output_dir = config.UNIFIED_DATA_DIR
 
         # We need to tell converter where to find processed trades (interim/trades)
-        unified_csv_path = converter.create_unified_trades_csv(
-            config.TRADES_DATA_DIR, unified_output_dir
-        )
+        unified_csv_path = converter.create_unified_trades_csv(config.TRADES_DATA_DIR, unified_output_dir)
 
         if unified_csv_path:
             logger.info(f"Unified CSV created successfully: {unified_csv_path}")
@@ -109,12 +104,8 @@ def create_unified_csv(config, logger):
             logger.info(f"  Total trades: {len(df)}")
             logger.info(f"  Unique securities: {df['security_code'].nunique()}")
             logger.info(f"  Investment funds mapped: {df['ticker_mapped'].sum()}")
-            logger.info(
-                f"  Investment funds identified: {df['is_investment_fund'].sum()}"
-            )
-            logger.info(
-                f"  Total JPY amount: {df['amount_jpy_unified'].sum():,.0f} JPY"
-            )
+            logger.info(f"  Investment funds identified: {df['is_investment_fund'].sum()}")
+            logger.info(f"  Total JPY amount: {df['amount_jpy_unified'].sum():,.0f} JPY")
 
             return unified_csv_path
         else:
@@ -124,6 +115,7 @@ def create_unified_csv(config, logger):
     except Exception as e:
         logger.error(f"Error creating unified CSV: {e}")
         return None
+
 
 def build_fund_dictionary(config, logger):
     logger.info("=== Building Comprehensive Fund Dictionary ===")

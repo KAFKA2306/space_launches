@@ -35,11 +35,7 @@ class FundDictionaryBuilder:
                     # Clean up security_code
                     if security_code and security_code != "nan":
                         security_code = security_code.lstrip("，,").strip()
-                        if (
-                            security_code
-                            and security_code != "nan"
-                            and len(security_code) > 0
-                        ):
+                        if security_code and security_code != "nan" and len(security_code) > 0:
                             mapping[security_name] = security_code
 
                 logger.info(f"Loaded {len(mapping)} DIC mappings")
@@ -72,9 +68,7 @@ class FundDictionaryBuilder:
                         security_code = str(row.get("security_code", "")).strip()
 
                         # Identify investment funds (no security code or fund-like names)
-                        if security_name and self._is_likely_fund(
-                            security_name, security_code
-                        ):
+                        if security_name and self._is_likely_fund(security_name, security_code):
                             fund_names.add(security_name)
 
                 except Exception as e:
@@ -245,9 +239,7 @@ class FundDictionaryBuilder:
 
         # Variations with different punctuation
         variations = [
-            re.sub(
-                r"[（(]([^）)]*)[）)]", r"(\1)", name
-            ),  # Full-width to half-width parentheses
+            re.sub(r"[（(]([^）)]*)[）)]", r"(\1)", name),  # Full-width to half-width parentheses
             re.sub(r"[（(][^）)]*[）)]", "", name),  # Remove parentheses content
             re.sub(r"[・･]", "・", name),  # Standardize middle dots
             re.sub(r"[・･]", " ", name),  # Replace middle dots with spaces
@@ -295,9 +287,7 @@ class FundDictionaryBuilder:
                     "confidence": "high",
                 }
                 processed_count += 1
-                logger.debug(
-                    f"Mapped: {fund_name} -> {ticker} ({len(aliases)} aliases)"
-                )
+                logger.debug(f"Mapped: {fund_name} -> {ticker} ({len(aliases)} aliases)")
             else:
                 # Add as unmapped for manual review
                 aliases = self.generate_comprehensive_aliases(fund_name)
@@ -312,13 +302,9 @@ class FundDictionaryBuilder:
 
         fund_dictionary["metadata"]["total_funds"] = len(fund_dictionary["funds"])
         fund_dictionary["metadata"]["mapped_funds"] = processed_count
-        fund_dictionary["metadata"]["unmapped_funds"] = (
-            len(fund_dictionary["funds"]) - processed_count
-        )
+        fund_dictionary["metadata"]["unmapped_funds"] = len(fund_dictionary["funds"]) - processed_count
 
-        logger.info(
-            f"Dictionary built: {len(fund_dictionary['funds'])} funds, {processed_count} mapped"
-        )
+        logger.info(f"Dictionary built: {len(fund_dictionary['funds'])} funds, {processed_count} mapped")
         return fund_dictionary
 
     def _find_ticker_from_dic(self, fund_name: str) -> Optional[str]:
@@ -335,9 +321,7 @@ class FundDictionaryBuilder:
                 return ticker
 
             # Try with normalized names
-            if normalized_target and self._names_match_regex(
-                normalized_target, dic_name
-            ):
+            if normalized_target and self._names_match_regex(normalized_target, dic_name):
                 return ticker
 
         return None
@@ -422,9 +406,7 @@ class FundDictionaryBuilder:
         """Save the comprehensive dictionary to JSON file."""
         if output_path is None:
             # Save to interim/market directory as it is a built artifact
-            output_path = (
-                self.config.MARKET_DATA_DIR / "fund_dictionary.json"
-            )
+            output_path = self.config.MARKET_DATA_DIR / "fund_dictionary.json"
 
         try:
             output_path.parent.mkdir(parents=True, exist_ok=True)

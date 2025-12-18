@@ -71,9 +71,7 @@ class UnifiedCSVAnalyzer:
 
         # Load data
         self.trades_df = self._load_unified_data()
-        self.fund_mapping = (
-            self._load_fund_mapping() if self.fund_mapping_path else None
-        )
+        self.fund_mapping = self._load_fund_mapping() if self.fund_mapping_path else None
 
         # Derived datasets
         self.holdings_df = None
@@ -105,18 +103,10 @@ class UnifiedCSVAnalyzer:
 
         # Clean transaction types
         df["transaction_type"] = df["transaction_type"].str.lower().str.strip()
-        df.loc[
-            df["transaction_type"].str.contains("買", na=False), "transaction_type"
-        ] = "buy"
-        df.loc[
-            df["transaction_type"].str.contains("売", na=False), "transaction_type"
-        ] = "sell"
-        df.loc[
-            df["transaction_type"].str.contains("買付", na=False), "transaction_type"
-        ] = "buy"
-        df.loc[
-            df["transaction_type"].str.contains("売付", na=False), "transaction_type"
-        ] = "sell"
+        df.loc[df["transaction_type"].str.contains("買", na=False), "transaction_type"] = "buy"
+        df.loc[df["transaction_type"].str.contains("売", na=False), "transaction_type"] = "sell"
+        df.loc[df["transaction_type"].str.contains("買付", na=False), "transaction_type"] = "buy"
+        df.loc[df["transaction_type"].str.contains("売付", na=False), "transaction_type"] = "sell"
 
         return df.sort_values("trade_date").reset_index(drop=True)
 
@@ -133,9 +123,7 @@ class UnifiedCSVAnalyzer:
         holdings = {}
 
         for _, trade in self.trades_df.iterrows():
-            symbol = (
-                trade["security_code"] or trade["original_security_code"] or "Unknown"
-            )
+            symbol = trade["security_code"] or trade["original_security_code"] or "Unknown"
 
             if symbol not in holdings:
                 holdings[symbol] = {
@@ -154,9 +142,7 @@ class UnifiedCSVAnalyzer:
                     "last_transaction": trade["trade_date"],
                 }
 
-            holdings[symbol]["last_transaction"] = max(
-                holdings[symbol]["last_transaction"], trade["trade_date"]
-            )
+            holdings[symbol]["last_transaction"] = max(holdings[symbol]["last_transaction"], trade["trade_date"])
 
             if trade["transaction_type"] in ["buy", "buy付", "投信金額買付"]:
                 holdings[symbol]["quantity"] += trade["quantity"] or 0
@@ -176,10 +162,7 @@ class UnifiedCSVAnalyzer:
 
                 # Simple FIFO for realized P&L calculation
                 if holdings[symbol]["quantity"] > 0:
-                    avg_cost = (
-                        holdings[symbol]["total_cost_jpy"]
-                        / holdings[symbol]["quantity"]
-                    )
+                    avg_cost = holdings[symbol]["total_cost_jpy"] / holdings[symbol]["quantity"]
                     cost_of_sold = avg_cost * sold_quantity
                     holdings[symbol]["realized_pnl_jpy"] += sale_amount - cost_of_sold
                     holdings[symbol]["total_cost_jpy"] -= cost_of_sold
@@ -198,11 +181,7 @@ class UnifiedCSVAnalyzer:
         holdings_data = []
         for symbol, holding in holdings.items():
             if holding["quantity"] > 0:  # Only current holdings
-                avg_cost_per_unit = (
-                    holding["total_cost_jpy"] / holding["quantity"]
-                    if holding["quantity"] > 0
-                    else 0
-                )
+                avg_cost_per_unit = holding["total_cost_jpy"] / holding["quantity"] if holding["quantity"] > 0 else 0
 
                 holdings_data.append(
                     {
@@ -218,9 +197,7 @@ class UnifiedCSVAnalyzer:
                         "data_source": holding["data_source"],
                         "first_purchase": holding["first_purchase"],
                         "last_transaction": holding["last_transaction"],
-                        "holding_period_days": (
-                            datetime.now().date() - holding["first_purchase"].date()
-                        ).days,
+                        "holding_period_days": (datetime.now().date() - holding["first_purchase"].date()).days,
                         "buy_trade_count": len(holding["buy_trades"]),
                         "sell_trade_count": len(holding["sell_trades"]),
                     }
@@ -231,9 +208,7 @@ class UnifiedCSVAnalyzer:
         if not self.holdings_df.empty:
             # Add portfolio weight
             total_value = self.holdings_df["total_cost_jpy"].sum()
-            self.holdings_df["portfolio_weight"] = (
-                self.holdings_df["total_cost_jpy"] / total_value
-            )
+            self.holdings_df["portfolio_weight"] = self.holdings_df["total_cost_jpy"] / total_value
 
             # Classify asset types
             self.holdings_df = self._classify_assets(self.holdings_df)
@@ -260,15 +235,9 @@ class UnifiedCSVAnalyzer:
             name = str(row["security_name"]).upper()
 
             # Region classification
-            if (
-                any(x in symbol for x in ["VTI", "VOO", "SPY", "QQQ"])
-                or "US" in row["data_source"]
-            ):
+            if any(x in symbol for x in ["VTI", "VOO", "SPY", "QQQ"]) or "US" in row["data_source"]:
                 df.at[idx, "region"] = "US"
-            elif (
-                any(x in name for x in ["日本", "JAPAN", "TOPIX", "NIKKEI"])
-                or "JP" in row["data_source"]
-            ):
+            elif any(x in name for x in ["日本", "JAPAN", "TOPIX", "NIKKEI"]) or "JP" in row["data_source"]:
                 df.at[idx, "region"] = "Japan"
             elif "CH" in row["data_source"] or "HK" in symbol:
                 df.at[idx, "region"] = "Hong Kong/China"
@@ -301,7 +270,7 @@ class UnifiedCSVAnalyzer:
 
     def calculate_performance_metrics(self) -> PerformanceMetrics:
         """Calculate comprehensive performance metrics using cost-basis returns.
-        
+
         Note: Without historical market prices, we calculate returns based on
         realized P&L and current holdings value vs total invested amount.
         """
@@ -318,13 +287,13 @@ class UnifiedCSVAnalyzer:
         # Total invested = sum of all buy trades
         buy_trades = self.trades_df[self.trades_df["transaction_type"] == "buy"]
         total_invested = buy_trades["amount_jpy_unified"].sum()
-        
+
         # Current holdings value (at cost basis)
         current_holdings_value = self.holdings_df["total_cost_jpy"].sum()
-        
+
         # Realized P&L from sold positions
         realized_pnl = self.holdings_df["realized_pnl_jpy"].sum()
-        
+
         # Total return = (current value + realized P&L - total invested) / total invested
         if total_invested > 0:
             total_return = ((current_holdings_value + realized_pnl - total_invested) / total_invested) * 100
@@ -335,24 +304,22 @@ class UnifiedCSVAnalyzer:
         first_trade = self.trades_df["trade_date"].min()
         last_trade = self.trades_df["trade_date"].max()
         trading_days = (last_trade - first_trade).days
-        
+
         # Annualized return (simple approximation)
         if trading_days > 0 and total_invested > 0:
             total_value = current_holdings_value + realized_pnl
-            annualized_return = (
-                (total_value / total_invested) ** (365.25 / trading_days) - 1
-            ) * 100
+            annualized_return = ((total_value / total_invested) ** (365.25 / trading_days) - 1) * 100
         else:
             annualized_return = 0.0
 
         # For volatility and other metrics, use daily investment changes as proxy
         daily_values = self._calculate_daily_portfolio_values()
-        
+
         if len(daily_values) >= 2:
             returns = daily_values.pct_change().dropna()
             # Filter out extreme values caused by new investments
             returns = returns[(returns > -0.5) & (returns < 0.5)]
-            
+
             if len(returns) > 0:
                 volatility = returns.std() * np.sqrt(252) * 100
             else:
@@ -387,7 +354,7 @@ class UnifiedCSVAnalyzer:
             profit_factor = 0.0
 
         logger.info(f"Total Return: {total_return:.2f}% (Cost-basis)")
-        
+
         return PerformanceMetrics(
             total_return=total_return,
             annualized_return=annualized_return,
@@ -402,22 +369,14 @@ class UnifiedCSVAnalyzer:
     def _calculate_daily_portfolio_values(self) -> pd.Series:
         """Calculate daily portfolio values based on cost basis"""
         # Simplified approach using cumulative investment
-        daily_trades = (
-            self.trades_df.groupby("trade_date")
-            .agg({"amount_jpy_unified": "sum"})
-            .sort_index()
-        )
+        daily_trades = self.trades_df.groupby("trade_date").agg({"amount_jpy_unified": "sum"}).sort_index()
 
         # Create cumulative investment series
         cumulative_investment = daily_trades["amount_jpy_unified"].cumsum()
 
         # Fill gaps with forward fill
-        date_range = pd.date_range(
-            start=cumulative_investment.index.min(), end=datetime.now().date(), freq="D"
-        )
-        portfolio_values = cumulative_investment.reindex(date_range).fillna(
-            method="ffill"
-        )
+        date_range = pd.date_range(start=cumulative_investment.index.min(), end=datetime.now().date(), freq="D")
+        portfolio_values = cumulative_investment.reindex(date_range).fillna(method="ffill")
 
         return portfolio_values
 
@@ -446,9 +405,7 @@ class UnifiedCSVAnalyzer:
         by_region = (by_region / total_value * 100).to_dict()
 
         # By account type
-        by_account_type = self.holdings_df.groupby("account_type")[
-            "total_cost_jpy"
-        ].sum()
+        by_account_type = self.holdings_df.groupby("account_type")["total_cost_jpy"].sum()
         by_account_type = (by_account_type / total_value * 100).to_dict()
 
         return AssetAllocation(
@@ -465,9 +422,7 @@ class UnifiedCSVAnalyzer:
         insights = {}
 
         # Trading frequency analysis
-        monthly_trades = self.trades_df.groupby(
-            self.trades_df["trade_date"].dt.to_period("M")
-        ).size()
+        monthly_trades = self.trades_df.groupby(self.trades_df["trade_date"].dt.to_period("M")).size()
         insights["avg_monthly_trades"] = monthly_trades.mean()
         insights["most_active_month"] = monthly_trades.idxmax()
         insights["least_active_month"] = monthly_trades.idxmin()
@@ -478,9 +433,7 @@ class UnifiedCSVAnalyzer:
 
         insights["total_invested_jpy"] = buy_trades["amount_jpy_unified"].sum()
         insights["total_divested_jpy"] = sell_trades["amount_jpy_unified"].sum()
-        insights["net_investment_jpy"] = (
-            insights["total_invested_jpy"] - insights["total_divested_jpy"]
-        )
+        insights["net_investment_jpy"] = insights["total_invested_jpy"] - insights["total_divested_jpy"]
 
         # Security diversity
         unique_securities = self.trades_df["security_code"].nunique()
@@ -528,9 +481,7 @@ class UnifiedCSVAnalyzer:
 
         # Holding period risk (too short = high turnover risk)
         avg_holding_period = self.holdings_df["holding_period_days"].mean()
-        short_term_holdings = len(
-            self.holdings_df[self.holdings_df["holding_period_days"] < 365]
-        )
+        short_term_holdings = len(self.holdings_df[self.holdings_df["holding_period_days"] < 365])
 
         risk_metrics = {
             "concentration_risk": {
@@ -547,9 +498,7 @@ class UnifiedCSVAnalyzer:
             "liquidity_risk": {
                 "avg_holding_period_days": avg_holding_period,
                 "short_term_holdings_count": short_term_holdings,
-                "short_term_holdings_pct": short_term_holdings
-                / len(self.holdings_df)
-                * 100,
+                "short_term_holdings_pct": short_term_holdings / len(self.holdings_df) * 100,
             },
         }
 
@@ -568,21 +517,15 @@ class UnifiedCSVAnalyzer:
             regular_investments = []
             for security in fund_trades["security_code"].unique():
                 security_trades = fund_trades[fund_trades["security_code"] == security]
-                buy_trades = security_trades[
-                    security_trades["transaction_type"] == "buy"
-                ]
+                buy_trades = security_trades[security_trades["transaction_type"] == "buy"]
 
                 if len(buy_trades) >= 3:
                     # Check for regular amounts
-                    amounts = buy_trades["amount_jpy_unified"].round(
-                        -3
-                    )  # Round to nearest 1000
+                    amounts = buy_trades["amount_jpy_unified"].round(-3)  # Round to nearest 1000
                     most_common_amount = amounts.mode()
                     if len(most_common_amount) > 0:
                         regular_count = sum(amounts == most_common_amount.iloc[0])
-                        if (
-                            regular_count >= len(buy_trades) * 0.7
-                        ):  # 70% of trades are regular
+                        if regular_count >= len(buy_trades) * 0.7:  # 70% of trades are regular
                             regular_investments.append(
                                 {
                                     "security": security,
@@ -598,15 +541,11 @@ class UnifiedCSVAnalyzer:
         account_patterns = {}
         for account in self.trades_df["account_type"].unique():
             if pd.notna(account):
-                account_trades = self.trades_df[
-                    self.trades_df["account_type"] == account
-                ]
+                account_trades = self.trades_df[self.trades_df["account_type"] == account]
                 account_patterns[account] = {
                     "total_trades": len(account_trades),
                     "total_amount_jpy": account_trades["amount_jpy_unified"].sum(),
-                    "asset_types": account_trades.groupby("is_investment_fund")
-                    .size()
-                    .to_dict(),
+                    "asset_types": account_trades.groupby("is_investment_fund").size().to_dict(),
                     "avg_trade_size_jpy": account_trades["amount_jpy_unified"].mean(),
                 }
 
@@ -614,23 +553,13 @@ class UnifiedCSVAnalyzer:
 
         # Trading timing patterns
         behavior["trading_timing"] = {
-            "by_day_of_week": self.trades_df.groupby(
-                self.trades_df["trade_date"].dt.dayofweek
-            )
-            .size()
-            .to_dict(),
-            "by_month": self.trades_df.groupby(self.trades_df["trade_date"].dt.month)
-            .size()
-            .to_dict(),
-            "by_year": self.trades_df.groupby(self.trades_df["trade_date"].dt.year)
-            .size()
-            .to_dict(),
+            "by_day_of_week": self.trades_df.groupby(self.trades_df["trade_date"].dt.dayofweek).size().to_dict(),
+            "by_month": self.trades_df.groupby(self.trades_df["trade_date"].dt.month).size().to_dict(),
+            "by_year": self.trades_df.groupby(self.trades_df["trade_date"].dt.year).size().to_dict(),
         }
 
         # Investment fund vs direct stock preference
-        fund_ratio = len(self.trades_df[self.trades_df["is_investment_fund"]]) / len(
-            self.trades_df
-        )
+        fund_ratio = len(self.trades_df[self.trades_df["is_investment_fund"]]) / len(self.trades_df)
         behavior["investment_preference"] = {
             "fund_trade_ratio": fund_ratio,
             "direct_trade_ratio": 1 - fund_ratio,
@@ -655,7 +584,11 @@ class UnifiedCSVAnalyzer:
                 {
                     "type": "Risk Management",
                     "priority": "High",
-                    "recommendation": f"Consider reducing position in {self.holdings_df.loc[weights.index[0], 'symbol']} ({weights.iloc[0] * 100:.1f}% of portfolio)",
+                    "recommendation": (
+                        f"Consider reducing position in "
+                        f"{self.holdings_df.loc[weights.index[0], 'symbol']} "
+                        f"({weights.iloc[0] * 100:.1f}% of portfolio)"
+                    ),
                     "reason": "High concentration risk",
                 }
             )
@@ -686,13 +619,9 @@ class UnifiedCSVAnalyzer:
             )
 
         # Account optimization
-        account_dist = self.holdings_df.groupby("account_type")[
-            "portfolio_weight"
-        ].sum()
+        account_dist = self.holdings_df.groupby("account_type")["portfolio_weight"].sum()
         if "NISA" in account_dist or "つみたてNISA" in account_dist:
-            nisa_allocation = account_dist.get("NISA", 0) + account_dist.get(
-                "つみたてNISA", 0
-            )
+            nisa_allocation = account_dist.get("NISA", 0) + account_dist.get("つみたてNISA", 0)
             if nisa_allocation < 0.3:
                 recommendations.append(
                     {
@@ -797,9 +726,7 @@ class UnifiedCSVAnalyzer:
         """Generate comprehensive analysis report"""
         logger.info("Generating comprehensive report...")
 
-        output_dir = (
-            Path(output_dir) if output_dir else Path("data/output/analysis_reports")
-        )
+        output_dir = Path(output_dir) if output_dir else Path("data/output/analysis_reports")
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Run all analyses
@@ -817,12 +744,8 @@ class UnifiedCSVAnalyzer:
             "data_source": str(self.unified_csv_path),
             "portfolio_summary": {
                 "total_holdings": len(holdings),
-                "total_portfolio_value_jpy": holdings["total_cost_jpy"].sum()
-                if not holdings.empty
-                else 0,
-                "total_realized_pnl_jpy": holdings["realized_pnl_jpy"].sum()
-                if not holdings.empty
-                else 0,
+                "total_portfolio_value_jpy": holdings["total_cost_jpy"].sum() if not holdings.empty else 0,
+                "total_realized_pnl_jpy": holdings["realized_pnl_jpy"].sum() if not holdings.empty else 0,
             },
             "performance_metrics": {
                 "total_return_pct": performance.total_return,
@@ -875,9 +798,7 @@ class UnifiedCSVAnalyzer:
         """Create advanced visualization suite"""
         logger.info("Creating advanced visualizations...")
 
-        output_dir = (
-            Path(output_dir) if output_dir else Path("data/output/advanced_charts")
-        )
+        output_dir = Path(output_dir) if output_dir else Path("data/output/advanced_charts")
         output_dir.mkdir(parents=True, exist_ok=True)
 
         if self.holdings_df is None:
@@ -890,9 +811,7 @@ class UnifiedCSVAnalyzer:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         # 1. Advanced Portfolio Composition Dashboard
-        self._create_portfolio_dashboard(
-            output_dir / f"portfolio_dashboard_{timestamp}.png"
-        )
+        self._create_portfolio_dashboard(output_dir / f"portfolio_dashboard_{timestamp}.png")
 
         # 2. Asset Allocation Sunburst
         self._create_allocation_charts(output_dir / f"asset_allocation_{timestamp}.png")
@@ -901,9 +820,7 @@ class UnifiedCSVAnalyzer:
         self._create_trading_timeline(output_dir / f"trading_timeline_{timestamp}.png")
 
         # 4. Performance Analytics
-        self._create_performance_charts(
-            output_dir / f"performance_analytics_{timestamp}.png"
-        )
+        self._create_performance_charts(output_dir / f"performance_analytics_{timestamp}.png")
 
         logger.info(f"Advanced visualizations saved to: {output_dir}")
 
@@ -965,37 +882,25 @@ class UnifiedCSVAnalyzer:
         fig.suptitle("Asset Allocation Analysis", fontsize=16, fontweight="bold")
 
         # Asset class with values
-        asset_data = (
-            self.holdings_df.groupby("asset_class")["total_cost_jpy"]
-            .sum()
-            .sort_values(ascending=True)
-        )
+        asset_data = self.holdings_df.groupby("asset_class")["total_cost_jpy"].sum().sort_values(ascending=True)
         axes[0, 0].barh(asset_data.index, asset_data.values)
         axes[0, 0].set_title("Asset Class Allocation (JPY)")
         axes[0, 0].set_xlabel("Value (JPY)")
 
         # Regional allocation
-        region_data = (
-            self.holdings_df.groupby("region")["total_cost_jpy"]
-            .sum()
-            .sort_values(ascending=True)
-        )
+        region_data = self.holdings_df.groupby("region")["total_cost_jpy"].sum().sort_values(ascending=True)
         axes[0, 1].barh(region_data.index, region_data.values)
         axes[0, 1].set_title("Regional Allocation (JPY)")
         axes[0, 1].set_xlabel("Value (JPY)")
 
         # Currency exposure
         currency_data = self.holdings_df.groupby("currency")["total_cost_jpy"].sum()
-        axes[1, 0].pie(
-            currency_data.values, labels=currency_data.index, autopct="%1.1f%%"
-        )
+        axes[1, 0].pie(currency_data.values, labels=currency_data.index, autopct="%1.1f%%")
         axes[1, 0].set_title("Currency Exposure")
 
         # Investment fund vs direct holdings
         fund_data = self.holdings_df.groupby("is_fund")["total_cost_jpy"].sum()
-        fund_labels = [
-            "Direct Holdings" if not x else "Investment Funds" for x in fund_data.index
-        ]
+        fund_labels = ["Direct Holdings" if not x else "Investment Funds" for x in fund_data.index]
         axes[1, 1].pie(fund_data.values, labels=fund_labels, autopct="%1.1f%%")
         axes[1, 1].set_title("Investment Vehicle Distribution")
 
@@ -1009,31 +914,23 @@ class UnifiedCSVAnalyzer:
         fig.suptitle("Trading Timeline Analysis", fontsize=16, fontweight="bold")
 
         # Monthly trading volume
-        monthly_volume = self.trades_df.groupby(
-            self.trades_df["trade_date"].dt.to_period("M")
-        )["amount_jpy_unified"].sum()
-        axes[0].plot(
-            monthly_volume.index.to_timestamp(), monthly_volume.values, marker="o"
-        )
+        monthly_volume = self.trades_df.groupby(self.trades_df["trade_date"].dt.to_period("M"))[
+            "amount_jpy_unified"
+        ].sum()
+        axes[0].plot(monthly_volume.index.to_timestamp(), monthly_volume.values, marker="o")
         axes[0].set_title("Monthly Trading Volume (JPY)")
         axes[0].set_ylabel("Volume (JPY)")
         axes[0].grid(True, alpha=0.3)
 
         # Trading frequency
-        monthly_trades = self.trades_df.groupby(
-            self.trades_df["trade_date"].dt.to_period("M")
-        ).size()
-        axes[1].bar(
-            monthly_trades.index.to_timestamp(), monthly_trades.values, width=20
-        )
+        monthly_trades = self.trades_df.groupby(self.trades_df["trade_date"].dt.to_period("M")).size()
+        axes[1].bar(monthly_trades.index.to_timestamp(), monthly_trades.values, width=20)
         axes[1].set_title("Monthly Trading Frequency")
         axes[1].set_ylabel("Number of Trades")
         axes[1].grid(True, alpha=0.3)
 
         # Cumulative investment
-        cumulative = self.trades_df.set_index("trade_date")[
-            "amount_jpy_unified"
-        ].cumsum()
+        cumulative = self.trades_df.set_index("trade_date")["amount_jpy_unified"].cumsum()
         axes[2].plot(cumulative.index, cumulative.values)
         axes[2].set_title("Cumulative Investment (JPY)")
         axes[2].set_ylabel("Cumulative Amount (JPY)")
@@ -1071,9 +968,7 @@ class UnifiedCSVAnalyzer:
         running_max = cumulative.expanding().max()
         drawdown = (cumulative - running_max) / running_max
 
-        axes[1, 0].fill_between(
-            drawdown.index, drawdown * 100, 0, alpha=0.3, color="red"
-        )
+        axes[1, 0].fill_between(drawdown.index, drawdown * 100, 0, alpha=0.3, color="red")
         axes[1, 0].set_title("Drawdown Analysis")
         axes[1, 0].set_ylabel("Drawdown (%)")
         axes[1, 0].grid(True, alpha=0.3)
@@ -1110,9 +1005,7 @@ def main():
     timestamp = latest_csv.stem.split("_")[-2:]  # Extract timestamp
     if len(timestamp) == 2:
         timestamp_str = "_".join(timestamp)
-        fund_files = list(
-            unified_csv_dir.glob(f"fund_ticker_mapping_{timestamp_str}.csv")
-        )
+        fund_files = list(unified_csv_dir.glob(f"fund_ticker_mapping_{timestamp_str}.csv"))
         if fund_files:
             fund_mapping_file = fund_files[0]
 
@@ -1121,9 +1014,7 @@ def main():
         print(f"Using fund mapping: {fund_mapping_file}")
 
     # Create analyzer
-    analyzer = UnifiedCSVAnalyzer(
-        str(latest_csv), str(fund_mapping_file) if fund_mapping_file else None
-    )
+    analyzer = UnifiedCSVAnalyzer(str(latest_csv), str(fund_mapping_file) if fund_mapping_file else None)
 
     # Generate comprehensive analysis
     report = analyzer.generate_comprehensive_report()
@@ -1134,13 +1025,9 @@ def main():
     # Print summary
     print("\n=== Analysis Complete ===")
     print(f"Total Holdings: {report['portfolio_summary']['total_holdings']}")
-    print(
-        f"Portfolio Value: ¥{report['portfolio_summary']['total_portfolio_value_jpy']:,.0f}"
-    )
+    print(f"Portfolio Value: ¥{report['portfolio_summary']['total_portfolio_value_jpy']:,.0f}")
     print(f"Total Return: {report['performance_metrics']['total_return_pct']:.2f}%")
-    print(
-        f"Annualized Return: {report['performance_metrics']['annualized_return_pct']:.2f}%"
-    )
+    print(f"Annualized Return: {report['performance_metrics']['annualized_return_pct']:.2f}%")
     print(f"Volatility: {report['performance_metrics']['volatility_pct']:.2f}%")
     print(f"Sharpe Ratio: {report['performance_metrics']['sharpe_ratio']:.2f}")
     print(f"Max Drawdown: {report['performance_metrics']['max_drawdown_pct']:.2f}%")

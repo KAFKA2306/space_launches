@@ -26,9 +26,7 @@ class UnifiedPortfolioAnalyzer:
         self.ticker_normalizer = TickerNormalizer()
         self.currency_unifier = CurrencyUnifier()
 
-    def unified_portfolio_analysis(
-        self, trades_df: pd.DataFrame, price_data: Optional[pd.DataFrame] = None
-    ) -> Dict:
+    def unified_portfolio_analysis(self, trades_df: pd.DataFrame, price_data: Optional[pd.DataFrame] = None) -> Dict:
         """
         統一ポートフォリオ分析メイン処理
 
@@ -77,9 +75,7 @@ class UnifiedPortfolioAnalyzer:
         df = trades_df.copy()
 
         # 1. ティッカー正規化
-        df["unified_ticker"] = df["security_code"].apply(
-            self.ticker_normalizer.normalize_ticker
-        )
+        df["unified_ticker"] = df["security_code"].apply(self.ticker_normalizer.normalize_ticker)
 
         # 2. 統一JPY金額使用
         if "amount_jpy_unified" in df.columns:
@@ -98,15 +94,11 @@ class UnifiedPortfolioAnalyzer:
         df["asset_class"] = df.apply(self._determine_asset_class, axis=1)
         df["sector"] = df["unified_ticker"].apply(self._determine_sector)
 
-        logger.info(
-            f"データ正規化完了: {len(df)}取引, {df['unified_ticker'].nunique()}統一ティッカー"
-        )
+        logger.info(f"データ正規化完了: {len(df)}取引, {df['unified_ticker'].nunique()}統一ティッカー")
 
         return df
 
-    def _analyze_unified_holdings(
-        self, trades_df: pd.DataFrame, price_data: Optional[pd.DataFrame]
-    ) -> pd.DataFrame:
+    def _analyze_unified_holdings(self, trades_df: pd.DataFrame, price_data: Optional[pd.DataFrame]) -> pd.DataFrame:
         """統一ティッカーによる保有状況分析"""
 
         holdings = defaultdict(
@@ -143,9 +135,7 @@ class UnifiedPortfolioAnalyzer:
             holdings[ticker]["asset_classes"].add(trade["asset_class"])
             holdings[ticker]["sectors"].add(trade["sector"])
             holdings[ticker]["accounts"].add(trade.get("account_type", ""))
-            holdings[ticker]["brokers"].add(
-                self._extract_broker_from_source(trade.get("data_source", ""))
-            )
+            holdings[ticker]["brokers"].add(self._extract_broker_from_source(trade.get("data_source", "")))
             holdings[ticker]["transaction_count"] += 1
 
             # 日付情報更新
@@ -153,21 +143,13 @@ class UnifiedPortfolioAnalyzer:
             if holdings[ticker]["first_purchase_date"] is None:
                 holdings[ticker]["first_purchase_date"] = trade_date
             else:
-                holdings[ticker]["first_purchase_date"] = min(
-                    holdings[ticker]["first_purchase_date"], trade_date
-                )
+                holdings[ticker]["first_purchase_date"] = min(holdings[ticker]["first_purchase_date"], trade_date)
 
-            holdings[ticker]["last_trade_date"] = max(
-                holdings[ticker]["last_trade_date"] or trade_date, trade_date
-            )
+            holdings[ticker]["last_trade_date"] = max(holdings[ticker]["last_trade_date"] or trade_date, trade_date)
 
             # 取引タイプ別処理
             quantity = float(trade["quantity"]) if pd.notna(trade["quantity"]) else 0
-            amount_jpy = (
-                float(trade["unified_amount"])
-                if pd.notna(trade["unified_amount"])
-                else 0
-            )
+            amount_jpy = float(trade["unified_amount"]) if pd.notna(trade["unified_amount"]) else 0
 
             if trade["transaction_type"] == "buy":
                 holdings[ticker]["total_shares"] += quantity
@@ -177,9 +159,7 @@ class UnifiedPortfolioAnalyzer:
                         "date": trade_date,
                         "quantity": quantity,
                         "amount_jpy": amount_jpy,
-                        "broker": self._extract_broker_from_source(
-                            trade.get("data_source", "")
-                        ),
+                        "broker": self._extract_broker_from_source(trade.get("data_source", "")),
                         "account": trade.get("account_type", ""),
                     }
                 )
@@ -187,13 +167,8 @@ class UnifiedPortfolioAnalyzer:
             elif trade["transaction_type"] == "sell":
                 holdings[ticker]["total_shares"] -= quantity
                 # 簡易FIFO法でのPnL計算
-                if (
-                    holdings[ticker]["total_cost_jpy"] > 0
-                    and holdings[ticker]["total_shares"] > 0
-                ):
-                    avg_cost = holdings[ticker]["total_cost_jpy"] / (
-                        holdings[ticker]["total_shares"] + quantity
-                    )
+                if holdings[ticker]["total_cost_jpy"] > 0 and holdings[ticker]["total_shares"] > 0:
+                    avg_cost = holdings[ticker]["total_cost_jpy"] / (holdings[ticker]["total_shares"] + quantity)
                     cost_of_sold = avg_cost * quantity
                     holdings[ticker]["realized_pnl_jpy"] += amount_jpy - cost_of_sold
                     holdings[ticker]["total_cost_jpy"] -= cost_of_sold
@@ -208,9 +183,7 @@ class UnifiedPortfolioAnalyzer:
             if data["total_shares"] > 0:  # 現在保有中のもののみ
                 # 平均取得単価計算
                 if data["total_shares"] > 0:
-                    data["avg_cost_per_share_jpy"] = (
-                        data["total_cost_jpy"] / data["total_shares"]
-                    )
+                    data["avg_cost_per_share_jpy"] = data["total_cost_jpy"] / data["total_shares"]
 
                 # 現在価格・評価額取得
                 current_price_jpy, current_value_jpy = self._get_current_valuation(
@@ -226,15 +199,10 @@ class UnifiedPortfolioAnalyzer:
                         "total_cost_jpy": data["total_cost_jpy"],
                         "current_price_jpy": current_price_jpy,
                         "current_value_jpy": current_value_jpy,
-                        "unrealized_pnl_jpy": current_value_jpy
-                        - data["total_cost_jpy"],
+                        "unrealized_pnl_jpy": current_value_jpy - data["total_cost_jpy"],
                         "realized_pnl_jpy": data["realized_pnl_jpy"],
-                        "total_pnl_jpy": (current_value_jpy - data["total_cost_jpy"])
-                        + data["realized_pnl_jpy"],
-                        "pnl_percentage": (
-                            (current_value_jpy - data["total_cost_jpy"])
-                            + data["realized_pnl_jpy"]
-                        )
+                        "total_pnl_jpy": (current_value_jpy - data["total_cost_jpy"]) + data["realized_pnl_jpy"],
+                        "pnl_percentage": ((current_value_jpy - data["total_cost_jpy"]) + data["realized_pnl_jpy"])
                         / data["total_cost_jpy"]
                         * 100
                         if data["total_cost_jpy"] > 0
@@ -247,9 +215,7 @@ class UnifiedPortfolioAnalyzer:
                         "brokers": " | ".join(data["brokers"]),
                         "first_purchase_date": data["first_purchase_date"],
                         "last_trade_date": data["last_trade_date"],
-                        "holding_period_days": (
-                            datetime.now() - data["first_purchase_date"]
-                        ).days,
+                        "holding_period_days": (datetime.now() - data["first_purchase_date"]).days,
                         "transaction_count": data["transaction_count"],
                         "weight_percentage": 0,  # 後で計算
                     }
@@ -261,9 +227,7 @@ class UnifiedPortfolioAnalyzer:
         if not holdings_df.empty:
             total_value = holdings_df["current_value_jpy"].sum()
             if total_value > 0:
-                holdings_df["weight_percentage"] = (
-                    holdings_df["current_value_jpy"] / total_value * 100
-                )
+                holdings_df["weight_percentage"] = holdings_df["current_value_jpy"] / total_value * 100
 
             holdings_df = holdings_df.sort_values("current_value_jpy", ascending=False)
 
@@ -340,28 +304,20 @@ class UnifiedPortfolioAnalyzer:
 
         # セクター別集計
         sector_summary = (
-            trades_df.groupby("sector")
-            .agg({"unified_amount": ["sum", "count"], "unified_ticker": "nunique"})
-            .round(2)
+            trades_df.groupby("sector").agg({"unified_amount": ["sum", "count"], "unified_ticker": "nunique"}).round(2)
         )
 
         return {
             "by_asset_class": asset_class_summary.to_dict(),
             "by_sector": sector_summary.to_dict(),
-            "asset_allocation_balance": self._calculate_asset_allocation_balance(
-                trades_df
-            ),
+            "asset_allocation_balance": self._calculate_asset_allocation_balance(trades_df),
         }
 
-    def _analyze_risk_return(
-        self, trades_df: pd.DataFrame, price_data: Optional[pd.DataFrame]
-    ) -> Dict:
+    def _analyze_risk_return(self, trades_df: pd.DataFrame, price_data: Optional[pd.DataFrame]) -> Dict:
         """リスク・リターン分析"""
 
         # ポートフォリオレベルのリスク・リターン
-        portfolio_metrics = self._calculate_portfolio_risk_metrics(
-            trades_df, price_data
-        )
+        portfolio_metrics = self._calculate_portfolio_risk_metrics(trades_df, price_data)
 
         # 銘柄レベルのリスク・リターン
         security_metrics = self._calculate_security_risk_metrics(trades_df, price_data)
@@ -426,9 +382,7 @@ class UnifiedPortfolioAnalyzer:
         security_name = str(row.get("security_name", "")).lower()
 
         # ETF判定
-        if "etf" in security_name or any(
-            etf_keyword in ticker for etf_keyword in ["VTI", "VOO", "QQQ", "SPY"]
-        ):
+        if "etf" in security_name or any(etf_keyword in ticker for etf_keyword in ["VTI", "VOO", "QQQ", "SPY"]):
             return "ETF"
 
         # REIT判定
@@ -436,9 +390,7 @@ class UnifiedPortfolioAnalyzer:
             return "REIT"
 
         # 債券判定
-        if any(
-            bond_keyword in security_name for bond_keyword in ["債券", "bond", "国債"]
-        ):
+        if any(bond_keyword in security_name for bond_keyword in ["債券", "bond", "国債"]):
             return "Bond"
 
         return "Stock"
@@ -472,11 +424,7 @@ class UnifiedPortfolioAnalyzer:
 
         if "rakuten" in source_lower or "tradehistory" in source_lower:
             return "Rakuten"
-        elif (
-            "sbi" in source_lower
-            or "savefile" in source_lower
-            or "yakujo" in source_lower
-        ):
+        elif "sbi" in source_lower or "savefile" in source_lower or "yakujo" in source_lower:
             return "SBI"
         elif "wise" in source_lower:
             return "Wise"
@@ -494,14 +442,10 @@ class UnifiedPortfolioAnalyzer:
         # 実際の実装では、price_dataの構造に応じて適切に価格を取得
         try:
             if ticker in price_data.columns:
-                current_price = (
-                    price_data[ticker].dropna().iloc[-1]
-                    if not price_data[ticker].dropna().empty
-                    else 0
-                )
+                current_price = price_data[ticker].dropna().iloc[-1] if not price_data[ticker].dropna().empty else 0
             else:
                 current_price = 0
-        except:
+        except Exception:
             current_price = 0
 
         current_value = current_price * shares
@@ -518,9 +462,7 @@ class UnifiedPortfolioAnalyzer:
         max_possible_diversity = 10  # 仮の最大値
         diversity_score = min(
             100,
-            (region_count + currency_count + asset_class_count)
-            / max_possible_diversity
-            * 100,
+            (region_count + currency_count + asset_class_count) / max_possible_diversity * 100,
         )
 
         return round(diversity_score, 2)
@@ -530,27 +472,15 @@ class UnifiedPortfolioAnalyzer:
         return {
             "total_transactions": len(trades_df),
             "unique_securities": trades_df["unified_ticker"].nunique(),
-            "total_investment_jpy": trades_df[trades_df["transaction_type"] == "buy"][
-                "unified_amount"
-            ].sum(),
-            "total_divestment_jpy": trades_df[trades_df["transaction_type"] == "sell"][
-                "unified_amount"
-            ].sum(),
-            "net_investment_jpy": trades_df[trades_df["transaction_type"] == "buy"][
-                "unified_amount"
-            ].sum()
-            - trades_df[trades_df["transaction_type"] == "sell"][
-                "unified_amount"
-            ].sum(),
+            "total_investment_jpy": trades_df[trades_df["transaction_type"] == "buy"]["unified_amount"].sum(),
+            "total_divestment_jpy": trades_df[trades_df["transaction_type"] == "sell"]["unified_amount"].sum(),
+            "net_investment_jpy": trades_df[trades_df["transaction_type"] == "buy"]["unified_amount"].sum()
+            - trades_df[trades_df["transaction_type"] == "sell"]["unified_amount"].sum(),
             "unique_currencies": trades_df["currency"].nunique(),
             "unique_regions": trades_df["region"].nunique(),
             "unique_asset_classes": trades_df["asset_class"].nunique(),
-            "unique_brokers": len(
-                set(trades_df["data_source"].apply(self._extract_broker_from_source))
-            ),
-            "date_range_days": (
-                trades_df["trade_date"].max() - trades_df["trade_date"].min()
-            ).days,
+            "unique_brokers": len(set(trades_df["data_source"].apply(self._extract_broker_from_source))),
+            "date_range_days": (trades_df["trade_date"].max() - trades_df["trade_date"].min()).days,
             "diversification_score": self._calculate_diversification_score(trades_df),
         }
 
@@ -558,14 +488,10 @@ class UnifiedPortfolioAnalyzer:
     def _calculate_asset_allocation_balance(self, trades_df: pd.DataFrame) -> Dict:
         return {"balance_score": 75.0}  # placeholder
 
-    def _calculate_portfolio_risk_metrics(
-        self, trades_df: pd.DataFrame, price_data: Optional[pd.DataFrame]
-    ) -> Dict:
+    def _calculate_portfolio_risk_metrics(self, trades_df: pd.DataFrame, price_data: Optional[pd.DataFrame]) -> Dict:
         return {"volatility": 0.15, "sharpe_ratio": 1.2}  # placeholder
 
-    def _calculate_security_risk_metrics(
-        self, trades_df: pd.DataFrame, price_data: Optional[pd.DataFrame]
-    ) -> Dict:
+    def _calculate_security_risk_metrics(self, trades_df: pd.DataFrame, price_data: Optional[pd.DataFrame]) -> Dict:
         return {}  # placeholder
 
     def _calculate_concentration_risk(self, trades_df: pd.DataFrame) -> float:
@@ -587,11 +513,7 @@ class UnifiedPortfolioAnalyzer:
         return {"timing_score": "Average"}  # placeholder
 
     def _analyze_broker_usage_patterns(self, trades_df: pd.DataFrame) -> Dict:
-        broker_counts = (
-            trades_df["data_source"]
-            .apply(self._extract_broker_from_source)
-            .value_counts()
-        )
+        broker_counts = trades_df["data_source"].apply(self._extract_broker_from_source).value_counts()
         return broker_counts.to_dict()
 
     def _analyze_account_utilization(self, trades_df: pd.DataFrame) -> Dict:
@@ -647,10 +569,7 @@ class TickerNormalizer:
         """投資信託名からティッカーへのマッピング"""
         fund_name_lower = str(fund_name).lower()
 
-        if (
-            "emaxis slim 全世界" in fund_name_lower
-            or "sbi・全世界株式" in fund_name_lower
-        ):
+        if "emaxis slim 全世界" in fund_name_lower or "sbi・全世界株式" in fund_name_lower:
             return "ACWI"
         elif "新興国株式" in fund_name_lower:
             return "VWO"
@@ -691,9 +610,7 @@ class CurrencyUnifier:
         currency = str(currency).strip()
         return self.currency_mappings.get(currency, currency)
 
-    def convert_to_base_currency(
-        self, amount: float, from_currency: str, rate: float = 1.0
-    ) -> float:
+    def convert_to_base_currency(self, amount: float, from_currency: str, rate: float = 1.0) -> float:
         """基準通貨への変換"""
         normalized_currency = self.normalize_currency(from_currency)
 

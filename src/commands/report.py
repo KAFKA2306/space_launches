@@ -60,10 +60,8 @@ def find_latest_unified_csv():
 def run(args):
     """Generate reports and visualizations."""
     log_level = logging.INFO if args.verbose else logging.WARNING
-    logging.basicConfig(
-        level=log_level, format="%(asctime)s - %(levelname)s - %(message)s"
-    )
-    logger = logging.getLogger(__name__)
+    logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s - %(message)s")
+    logging.getLogger(__name__)
 
     # Find unified CSV
     csv_file, fund_mapping_file = find_latest_unified_csv()
@@ -79,9 +77,7 @@ def run(args):
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Initialize analyzer
-        analyzer = UnifiedCSVAnalyzer(
-            str(csv_file), str(fund_mapping_file) if fund_mapping_file else None
-        )
+        analyzer = UnifiedCSVAnalyzer(str(csv_file), str(fund_mapping_file) if fund_mapping_file else None)
 
         if args.summary_only:
             # Summary report only

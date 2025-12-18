@@ -45,16 +45,12 @@ class ForexDataManager:
                     # Get last date and start from next day
                     last_date = existing_data.index.max()
                     start_date = (last_date + timedelta(days=1)).strftime("%Y-%m-%d")
-                    logger.info(
-                        f"Found existing data up to {last_date}. Fetching from {start_date}"
-                    )
+                    logger.info(f"Found existing data up to {last_date}. Fetching from {start_date}")
                 else:
                     start_date = self.config.MARKET_START_DATE
                     logger.info("Existing file is empty. Starting fresh download")
             except Exception as e:
-                logger.warning(
-                    f"Error reading existing forex data: {e}. Starting fresh"
-                )
+                logger.warning(f"Error reading existing forex data: {e}. Starting fresh")
                 start_date = self.config.MARKET_START_DATE
         else:
             start_date = self.config.MARKET_START_DATE
@@ -69,32 +65,30 @@ class ForexDataManager:
         logger.info(f"Date range: {start_date} to {end_date}")
 
         new_forex_data = pd.DataFrame()
-        
+
         # Batch download all pairs
         success = False
         for attempt in range(retry_count):
             try:
                 logger.info(f"Downloading all pairs (attempt {attempt + 1}/{retry_count})")
-                data = yf.download(
-                    pairs, start=start_date, end=end_date, group_by="column", progress=False
-                )
-                
+                data = yf.download(pairs, start=start_date, end=end_date, group_by="column", progress=False)
+
                 if data.empty:
                     logger.warning("No new data returned from yfinance")
                     break
 
                 # Extract Close prices
                 if len(pairs) == 1:
-                     # Single pair case
-                     clean_pair = pairs[0].replace("=X", "")
-                     new_forex_data[clean_pair] = data["Close"]
+                    # Single pair case
+                    clean_pair = pairs[0].replace("=X", "")
+                    new_forex_data[clean_pair] = data["Close"]
                 else:
                     # Multiple pairs case
                     # Handle MultiIndex columns if group_by='column'
                     # data columns level 0 = Ticker, level 1 = OHLCV
-                    # Or depending on yfinance version, might be different. 
+                    # Or depending on yfinance version, might be different.
                     # Generally 'Close' is needed.
-                    
+
                     # Safer approach with recent yfinance:
                     # data['Close'] contains columns for each ticker
                     try:
@@ -103,30 +97,28 @@ class ForexDataManager:
                         closes.columns = [col.replace("=X", "") for col in closes.columns]
                         new_forex_data = closes
                     except KeyError:
-                         # Fallback if structure is different
-                         logger.warning("Could not find 'Close' prices in downloaded data")
-                         logger.debug(f"Columns: {data.columns}")
-                         
+                        # Fallback if structure is different
+                        logger.warning("Could not find 'Close' prices in downloaded data")
+                        logger.debug(f"Columns: {data.columns}")
+
                 if not new_forex_data.empty:
                     logger.info(f"✅ Downloaded {len(new_forex_data)} new records")
                     success = True
                     break
-                
+
             except Exception as e:
-                 logger.error(f"Error downloading forex batch: {e}")
-                 if attempt < retry_count - 1:
-                     time.sleep(delay_seconds)
+                logger.error(f"Error downloading forex batch: {e}")
+                if attempt < retry_count - 1:
+                    time.sleep(delay_seconds)
 
         if not success and new_forex_data.empty:
-             logger.warning("Failed to download new forex data")
+            logger.warning("Failed to download new forex data")
 
         # Merge existing and new data
         if existing_data.empty and new_forex_data.empty:
             # Try fallback to DIC directory if no data available
             if use_fallback:
-                logger.info(
-                    "No forex data downloaded. Trying fallback to DIC directory..."
-                )
+                logger.info("No forex data downloaded. Trying fallback to DIC directory...")
                 fallback_data = self._load_fallback_forex_data()
                 if not fallback_data.empty:
                     # Save fallback data to processed location for future use
@@ -157,9 +149,7 @@ class ForexDataManager:
         total_pairs = len(existing_data.columns) if not existing_data.empty else 0
         new_pairs = len(new_forex_data.columns) if not new_forex_data.empty else 0
         logger.info(f"✅ Forex data updated: {len(combined_data)} total records")
-        logger.info(
-            f"   Existing pairs: {total_pairs}, New data for: {new_pairs} pairs"
-        )
+        logger.info(f"   Existing pairs: {total_pairs}, New data for: {new_pairs} pairs")
 
         return combined_data
 
@@ -172,21 +162,15 @@ class ForexDataManager:
 
             if dic_forex_path.exists():
                 logger.info(f"Loading fallback forex data from {dic_forex_path}")
-                fallback_data = pd.read_csv(
-                    dic_forex_path, index_col=0, parse_dates=True
-                )
+                fallback_data = pd.read_csv(dic_forex_path, index_col=0, parse_dates=True)
 
                 # Clean up timezone information if present
                 if fallback_data.index.tz is not None:
                     fallback_data.index = fallback_data.index.tz_localize(None)
 
-                logger.info(
-                    f"Loaded {len(fallback_data)} records from fallback forex data"
-                )
+                logger.info(f"Loaded {len(fallback_data)} records from fallback forex data")
                 logger.info(f"Available pairs: {list(fallback_data.columns)}")
-                logger.info(
-                    f"Date range: {fallback_data.index.min()} to {fallback_data.index.max()}"
-                )
+                logger.info(f"Date range: {fallback_data.index.min()} to {fallback_data.index.max()}")
 
                 return fallback_data
             else:
@@ -218,9 +202,7 @@ class ForexDataManager:
         logger.info(f"Loaded forex data with {len(forex_data)} records")
         return forex_data
 
-    def merge_forex_with_trades(
-        self, trades_df: pd.DataFrame, forex_data: pd.DataFrame
-    ) -> pd.DataFrame:
+    def merge_forex_with_trades(self, trades_df: pd.DataFrame, forex_data: pd.DataFrame) -> pd.DataFrame:
         """Merge trade data with forex rates."""
         if forex_data.empty:
             logger.warning("No forex data available for merging")
@@ -249,33 +231,21 @@ class ForexDataManager:
                 # If no recognizable date column, use the first column
                 if len(forex_for_merge.columns) > 0:
                     date_column = forex_for_merge.columns[0]
-                    logger.warning(
-                        f"No standard date column found. Using first column: '{date_column}'"
-                    )
-                    logger.info(
-                        f"First few values in '{date_column}': {forex_for_merge[date_column].head()}"
-                    )
+                    logger.warning(f"No standard date column found. Using first column: '{date_column}'")
+                    logger.info(f"First few values in '{date_column}': {forex_for_merge[date_column].head()}")
                 else:
                     logger.error("No columns found in forex data")
                     return trades_df
 
             # Rename the date column to 'trade_date' for merging
             if date_column != "trade_date":
-                forex_for_merge = forex_for_merge.rename(
-                    columns={date_column: "trade_date"}
-                )
-                logger.info(
-                    f"Renamed forex date column '{date_column}' to 'trade_date'"
-                )
+                forex_for_merge = forex_for_merge.rename(columns={date_column: "trade_date"})
+                logger.info(f"Renamed forex date column '{date_column}' to 'trade_date'")
 
             # Ensure trade_date is datetime type
             logger.info(f"Converting '{date_column}' to datetime...")
-            logger.info(
-                f"Sample values before conversion: {forex_for_merge['trade_date'].head()}"
-            )
-            forex_for_merge["trade_date"] = pd.to_datetime(
-                forex_for_merge["trade_date"], errors="coerce"
-            )
+            logger.info(f"Sample values before conversion: {forex_for_merge['trade_date'].head()}")
+            forex_for_merge["trade_date"] = pd.to_datetime(forex_for_merge["trade_date"], errors="coerce")
 
             # Remove any rows where date conversion failed
             before_count = len(forex_for_merge)
@@ -283,9 +253,7 @@ class ForexDataManager:
             after_count = len(forex_for_merge)
 
             if before_count != after_count:
-                logger.warning(
-                    f"Dropped {before_count - after_count} rows with invalid dates"
-                )
+                logger.warning(f"Dropped {before_count - after_count} rows with invalid dates")
 
             if forex_for_merge.empty:
                 logger.error("No valid forex data remaining after date processing")
@@ -298,32 +266,18 @@ class ForexDataManager:
             # Ensure trades_df also has proper trade_date
             if "trade_date" not in trades_df.columns:
                 logger.error("trades_df missing 'trade_date' column")
-                logger.info(
-                    f"Available columns in trades_df: {list(trades_df.columns)}"
-                )
+                logger.info(f"Available columns in trades_df: {list(trades_df.columns)}")
                 return trades_df
 
-            logger.info(
-                f"Trades data date range: {trades_df['trade_date'].min()} to {trades_df['trade_date'].max()}"
-            )
-            logger.info(
-                f"Merging {len(trades_df)} trades with {len(forex_for_merge)} forex records"
-            )
+            logger.info(f"Trades data date range: {trades_df['trade_date'].min()} to {trades_df['trade_date'].max()}")
+            logger.info(f"Merging {len(trades_df)} trades with {len(forex_for_merge)} forex records")
 
             # Merge with trade data
-            merged_df = pd.merge(
-                trades_df, forex_for_merge, on="trade_date", how="left"
-            )
+            merged_df = pd.merge(trades_df, forex_for_merge, on="trade_date", how="left")
 
             # Log merge results
-            forex_matches = (
-                merged_df["USDJPY"].notna().sum()
-                if "USDJPY" in merged_df.columns
-                else 0
-            )
-            logger.info(
-                f"Merged trade data with forex rates: {forex_matches}/{len(merged_df)} trades have forex data"
-            )
+            forex_matches = merged_df["USDJPY"].notna().sum() if "USDJPY" in merged_df.columns else 0
+            logger.info(f"Merged trade data with forex rates: {forex_matches}/{len(merged_df)} trades have forex data")
 
             return merged_df
 
@@ -349,61 +303,35 @@ class ForexDataManager:
         if available_forex:
             for col in available_forex:
                 non_null_count = df[col].notna().sum()
-                logger.info(
-                    f"{col} data available for {non_null_count}/{len(df)} trades"
-                )
+                logger.info(f"{col} data available for {non_null_count}/{len(df)} trades")
 
         def convert_to_jpy(row):
             if row["currency"] == "JPY":
                 # For JPY trades, use settlement amount directly
-                amount = (
-                    row["settlement_amount"]
-                    if pd.notna(row["settlement_amount"])
-                    else 0
-                )
+                amount = row["settlement_amount"] if pd.notna(row["settlement_amount"]) else 0
                 return amount
 
             elif row["currency"] == "USD":
                 # For USD trades, convert using USDJPY rate
-                if (
-                    pd.notna(row.get("USDJPY"))
-                    and pd.notna(row["price"])
-                    and pd.notna(row["quantity"])
-                ):
+                if pd.notna(row.get("USDJPY")) and pd.notna(row["price"]) and pd.notna(row["quantity"]):
                     amount = row["price"] * row["quantity"] * row["USDJPY"]
                     return amount
                 else:
-                    amount = (
-                        row["settlement_amount"]
-                        if pd.notna(row["settlement_amount"])
-                        else 0
-                    )
+                    amount = row["settlement_amount"] if pd.notna(row["settlement_amount"]) else 0
                     return amount
 
             elif row["currency"] == "EUR":
                 # For EUR trades, convert using EURJPY rate
-                if (
-                    pd.notna(row.get("EURJPY"))
-                    and pd.notna(row["price"])
-                    and pd.notna(row["quantity"])
-                ):
+                if pd.notna(row.get("EURJPY")) and pd.notna(row["price"]) and pd.notna(row["quantity"]):
                     amount = row["price"] * row["quantity"] * row["EURJPY"]
                     return amount
                 else:
-                    amount = (
-                        row["settlement_amount"]
-                        if pd.notna(row["settlement_amount"])
-                        else 0
-                    )
+                    amount = row["settlement_amount"] if pd.notna(row["settlement_amount"]) else 0
                     return amount
 
             else:
                 # For other currencies, use settlement amount if available
-                amount = (
-                    row["settlement_amount"]
-                    if pd.notna(row["settlement_amount"])
-                    else 0
-                )
+                amount = row["settlement_amount"] if pd.notna(row["settlement_amount"]) else 0
                 return amount
 
         df["amount_jpy"] = df.apply(convert_to_jpy, axis=1)
@@ -419,8 +347,6 @@ class ForexDataManager:
             if pd.notna(currency):
                 currency_df = df[df["currency"] == currency]
                 currency_total = currency_df["amount_jpy"].sum()
-                logger.info(
-                    f"{currency} trades: {len(currency_df)} trades, ¥{currency_total:,.0f} total"
-                )
+                logger.info(f"{currency} trades: {len(currency_df)} trades, ¥{currency_total:,.0f} total")
 
         return df

@@ -1,4 +1,3 @@
-
 from src.config import Config
 from src.fetch.pipeline import (
     build_fund_dictionary,
@@ -12,10 +11,7 @@ from src.utils.helpers import setup_logging
 
 def register(subparsers, command_name: str = "import"):
     """Register the import (data fetch) command."""
-    parser = subparsers.add_parser(
-        command_name, 
-        help="[1] データ取込: Import broker CSVs + download market data"
-    )
+    parser = subparsers.add_parser(command_name, help="[1] データ取込: Import broker CSVs + download market data")
     parser.add_argument(
         "--download",
         action="store_true",
@@ -38,11 +34,13 @@ def register(subparsers, command_name: str = "import"):
     )
     parser.set_defaults(func=run)
 
+
 def setup_environment():
     config = Config()
     config.ensure_directories()
     logger = setup_logging()
     return config, logger
+
 
 def run(args):
     config, logger = setup_environment()
@@ -55,10 +53,10 @@ def run(args):
         # 1. Market Data (Global)
         if args.download:
             update_market_data(config, logger)
-        
+
         # 2. Ingest Trades (Local Raw -> Processed)
         trades_df = load_and_process_trades(config, logger)
-        
+
         if trades_df is None:
             logger.error("Failed to load trades. Aborting.")
             return 1
@@ -71,10 +69,10 @@ def run(args):
                 logger,
                 use_alternative_sources=args.alternative_data,
             )
-            
+
         # 3.5 Build Fund Dictionary (from the just-processed trades)
         build_fund_dictionary(config, logger)
-        
+
         # 4. Create Unified CSV (Transformation)
         if not args.skip_unified:
             create_unified_csv(config, logger)

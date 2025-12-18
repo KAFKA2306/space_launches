@@ -11,18 +11,18 @@ class Config:
 
     # Data directories
     DATA_DIR = BASE_DIR / "data"
-    
+
     # 0. RAW (Inputs)
     RAW_DATA_DIR = DATA_DIR / "raw"
-    
+
     # 1. INTERIM (Staging/Processed)
     INTERIM_DIR = DATA_DIR / "interim"
     MARKET_DATA_DIR = INTERIM_DIR / "market"
     TRADES_DATA_DIR = INTERIM_DIR / "trades"
-    
+
     # 2. UNIFIED (Domain/Mart)
     UNIFIED_DATA_DIR = DATA_DIR / "unified"
-    
+
     # 3. REPORTS (Presentation/View)
     REPORTS_DIR = DATA_DIR / "reports"
 

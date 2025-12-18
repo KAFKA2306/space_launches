@@ -30,9 +30,7 @@ class AlternativeDataFetcher:
         # API keys (should be set via environment variables in production)
         self.alpha_vantage_key = None  # Set via environment or config
 
-    def fetch_from_stooq(
-        self, symbol: str, start_date: str = None, end_date: str = None
-    ) -> pd.DataFrame:
+    def fetch_from_stooq(self, symbol: str, start_date: str = None, end_date: str = None) -> pd.DataFrame:
         """
         Fetch historical data from STOOQ using pandas-datareader (more stable).
         Supports international markets including Japanese stocks.
@@ -55,9 +53,7 @@ class AlternativeDataFetcher:
             else:
                 start_date = pd.to_datetime(start_date).date()
 
-            logger.debug(
-                f"STOOQ symbol: {stooq_symbol}, period: {start_date} to {end_date}"
-            )
+            logger.debug(f"STOOQ symbol: {stooq_symbol}, period: {start_date} to {end_date}")
 
             # Use pandas-datareader with STOOQ source
             df = pdr.DataReader(stooq_symbol, "stooq", start=start_date, end=end_date)
@@ -73,9 +69,7 @@ class AlternativeDataFetcher:
             required_columns = ["Open", "High", "Low", "Close", "Volume"]
             missing_columns = [col for col in required_columns if col not in df.columns]
             if missing_columns:
-                logger.warning(
-                    f"Missing columns from STOOQ data for {symbol}: {missing_columns}"
-                )
+                logger.warning(f"Missing columns from STOOQ data for {symbol}: {missing_columns}")
                 # Fill missing columns with NaN
                 for col in missing_columns:
                     df[col] = pd.NA
@@ -86,9 +80,7 @@ class AlternativeDataFetcher:
             logger.error(f"❌ STOOQ error for {symbol}: {e}")
             return pd.DataFrame()
 
-    def fetch_from_alpha_vantage(
-        self, symbol: str, start_date: str = None
-    ) -> pd.DataFrame:
+    def fetch_from_alpha_vantage(self, symbol: str, start_date: str = None) -> pd.DataFrame:
         """
         Fetch historical data from Alpha Vantage API.
         Requires API key (free tier available).
@@ -154,9 +146,7 @@ class AlternativeDataFetcher:
             logger.error(f"❌ Alpha Vantage error for {symbol}: {e}")
             return pd.DataFrame()
 
-    def fetch_from_yahoo_direct(
-        self, symbol: str, start_date: str = None, end_date: str = None
-    ) -> pd.DataFrame:
+    def fetch_from_yahoo_direct(self, symbol: str, start_date: str = None, end_date: str = None) -> pd.DataFrame:
         """
         Fetch data directly from Yahoo Finance (without yfinance library).
         Uses Yahoo's download API directly.
@@ -261,14 +251,10 @@ class AlternativeDataFetcher:
                     continue
 
                 if not df.empty and len(df) > 0:
-                    logger.info(
-                        f"✅ Successfully fetched {len(df)} records for {symbol} from {source}"
-                    )
+                    logger.info(f"✅ Successfully fetched {len(df)} records for {symbol} from {source}")
                     return df
                 else:
-                    logger.warning(
-                        f"No data from {source} for {symbol}, trying next source..."
-                    )
+                    logger.warning(f"No data from {source} for {symbol}, trying next source...")
 
             except Exception as e:
                 logger.error(f"Error fetching from {source} for {symbol}: {e}")
@@ -305,13 +291,9 @@ class AlternativeDataFetcher:
 
         # Use config rate limit if available
         if not delay_seconds and self.config:
-            delay_seconds = self.config.ALTERNATIVE_DATA_SOURCES.get(
-                "rate_limit_seconds", 1.5
-            )
+            delay_seconds = self.config.ALTERNATIVE_DATA_SOURCES.get("rate_limit_seconds", 1.5)
 
-        logger.info(
-            f"Fetching historical data for {len(symbols)} symbols (pandas-datareader enhanced)"
-        )
+        logger.info(f"Fetching historical data for {len(symbols)} symbols (pandas-datareader enhanced)")
         logger.info(f"Symbols: {symbols}")
 
         results = {}
@@ -329,22 +311,14 @@ class AlternativeDataFetcher:
             if not df.empty:
                 results[symbol] = df
                 successful_fetches += 1
-                logger.info(
-                    f"✅ Success ({successful_fetches}/{len(symbols)}): {symbol}"
-                )
+                logger.info(f"✅ Success ({successful_fetches}/{len(symbols)}): {symbol}")
             else:
-                logger.warning(
-                    f"❌ Failed ({successful_fetches}/{len(symbols)}): {symbol}"
-                )
+                logger.warning(f"❌ Failed ({successful_fetches}/{len(symbols)}): {symbol}")
 
-        logger.info(
-            f"Completed fetching: {successful_fetches}/{len(symbols)} symbols successful"
-        )
+        logger.info(f"Completed fetching: {successful_fetches}/{len(symbols)} symbols successful")
         return results
 
-    def save_historical_data(
-        self, data_dict: Dict[str, pd.DataFrame], output_dir: Path
-    ) -> Path:
+    def save_historical_data(self, data_dict: Dict[str, pd.DataFrame], output_dir: Path) -> Path:
         """Save historical data to CSV files and create a combined dataset."""
         try:
             output_dir = Path(output_dir)
@@ -375,16 +349,10 @@ class AlternativeDataFetcher:
                     metadata = {
                         "created_at": datetime.now().isoformat(),
                         "symbols_count": len(data_dict),
-                        "successful_symbols": len(
-                            [s for s, df in data_dict.items() if not df.empty]
-                        ),
+                        "successful_symbols": len([s for s, df in data_dict.items() if not df.empty]),
                         "date_range": {
-                            "start": combined_df.index.min().isoformat()
-                            if not combined_df.empty
-                            else None,
-                            "end": combined_df.index.max().isoformat()
-                            if not combined_df.empty
-                            else None,
+                            "start": combined_df.index.min().isoformat() if not combined_df.empty else None,
+                            "end": combined_df.index.max().isoformat() if not combined_df.empty else None,
                         },
                         "individual_files": individual_files,
                         "combined_file": str(combined_path),
@@ -394,9 +362,7 @@ class AlternativeDataFetcher:
                     with open(metadata_path, "w") as f:
                         json.dump(metadata, f, indent=2)
 
-                    logger.info(
-                        f"Historical data processing complete. Metadata saved to {metadata_path}"
-                    )
+                    logger.info(f"Historical data processing complete. Metadata saved to {metadata_path}")
                     return metadata_path
 
             return output_dir

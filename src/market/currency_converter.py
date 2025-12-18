@@ -151,9 +151,7 @@ class CurrencyConverter:
 
         # Partial match for complex strings
         for standard_code, aliases in self.currency_aliases.items():
-            if any(
-                alias.lower() in currency_lower for alias in aliases if len(alias) > 2
-            ):
+            if any(alias.lower() in currency_lower for alias in aliases if len(alias) > 2):
                 if standard_code == "HKドル":
                     return "HKD"
                 return standard_code
@@ -172,9 +170,7 @@ class CurrencyConverter:
         for standard_term, aliases in self.fund_name_patterns.items():
             for alias in aliases:
                 # Case-sensitive replacement for Japanese text
-                if any(
-                    char > "\u3040" for char in alias
-                ):  # Contains Japanese characters
+                if any(char > "\u3040" for char in alias):  # Contains Japanese characters
                     normalized = normalized.replace(alias, standard_term)
                 else:
                     # Case-insensitive for English
@@ -259,30 +255,22 @@ class CurrencyConverter:
 
         try:
             # Find closest date
-            trade_date_only = (
-                trade_date.date() if hasattr(trade_date, "date") else trade_date
-            )
+            trade_date_only = trade_date.date() if hasattr(trade_date, "date") else trade_date
 
             # Get rate for exact date or closest available date
             if forex_col in self.forex_data.columns:
                 # Try exact date first
                 if trade_date_only in self.forex_data.index.date:
-                    rate = self.forex_data.loc[
-                        self.forex_data.index.date == trade_date_only, forex_col
-                    ].iloc[0]
+                    rate = self.forex_data.loc[self.forex_data.index.date == trade_date_only, forex_col].iloc[0]
                     if pd.notna(rate):
                         return float(rate)
 
                 # Find nearest date
-                nearest_idx = self.forex_data.index.get_indexer(
-                    [trade_date], method="nearest"
-                )[0]
+                nearest_idx = self.forex_data.index.get_indexer([trade_date], method="nearest")[0]
                 if nearest_idx >= 0:
                     rate = self.forex_data.iloc[nearest_idx][forex_col]
                     if pd.notna(rate):
-                        logger.debug(
-                            f"Using nearest rate for {currency} on {trade_date}: {rate}"
-                        )
+                        logger.debug(f"Using nearest rate for {currency} on {trade_date}: {rate}")
                         return float(rate)
 
             # Fallback to default rates
@@ -295,9 +283,7 @@ class CurrencyConverter:
             logger.error(f"Error getting exchange rate for {currency}: {e}")
             return 1.0
 
-    def convert_to_jpy_unified_price(
-        self, trade_data: Dict
-    ) -> Tuple[float, float, Dict]:
+    def convert_to_jpy_unified_price(self, trade_data: Dict) -> Tuple[float, float, Dict]:
         """
         Convert trade data to unified JPY pricing.
 
@@ -359,14 +345,10 @@ class CurrencyConverter:
                 "exchange_rate": exchange_rate,
                 "is_investment_fund": is_fund,
                 "fund_10000x_applied": fund_adjustment,
-                "conversion_date": trade_date.strftime("%Y-%m-%d")
-                if trade_date
-                else None,
+                "conversion_date": trade_date.strftime("%Y-%m-%d") if trade_date else None,
             }
 
-            logger.debug(
-                f"Conversion: {security_name} {price} {currency} -> {price_jpy:.2f} JPY"
-            )
+            logger.debug(f"Conversion: {security_name} {price} {currency} -> {price_jpy:.2f} JPY")
 
             return price_jpy, amount_jpy, conversion_info
 
@@ -397,21 +379,13 @@ class CurrencyConverter:
                     "trade_date": row.get("trade_date"),
                 }
 
-                price_jpy, amount_jpy, conversion_info = (
-                    self.convert_to_jpy_unified_price(trade_data)
-                )
+                price_jpy, amount_jpy, conversion_info = self.convert_to_jpy_unified_price(trade_data)
 
                 df.at[idx, "price_jpy_unified"] = price_jpy
                 df.at[idx, "amount_jpy_unified"] = amount_jpy
-                df.at[idx, "conversion_rate"] = conversion_info.get(
-                    "exchange_rate", 1.0
-                )
-                df.at[idx, "is_investment_fund"] = conversion_info.get(
-                    "is_investment_fund", False
-                )
-                df.at[idx, "fund_10000x_applied"] = conversion_info.get(
-                    "fund_10000x_applied", False
-                )
+                df.at[idx, "conversion_rate"] = conversion_info.get("exchange_rate", 1.0)
+                df.at[idx, "is_investment_fund"] = conversion_info.get("is_investment_fund", False)
+                df.at[idx, "fund_10000x_applied"] = conversion_info.get("fund_10000x_applied", False)
 
             logger.info("Successfully added unified pricing columns")
             return df

@@ -70,14 +70,10 @@ class DataLoader:
                     return "sell"
                 return s.lower()
 
-            df.loc[:, "transaction_type"] = df["transaction_type"].apply(
-                standardize_transaction_type
-            )
+            df.loc[:, "transaction_type"] = df["transaction_type"].apply(standardize_transaction_type)
 
         if "currency" in df.columns:
-            df.loc[:, "currency"] = df["currency"].apply(
-                lambda x: str(x).strip().upper() if pd.notna(x) else "JPY"
-            )
+            df.loc[:, "currency"] = df["currency"].apply(lambda x: str(x).strip().upper() if pd.notna(x) else "JPY")
 
         df.loc[:, "data_source"] = source_file
 
@@ -95,9 +91,7 @@ class DataLoader:
         df["currency"] = "JPY"
         df = self._standardize_columns(df, file_path.name)
 
-        self.logger.info(
-            f"Successfully loaded {len(df)} trading records from {file_path.name}"
-        )
+        self.logger.info(f"Successfully loaded {len(df)} trading records from {file_path.name}")
         return df
 
     def load_rakuten_us_data(self, file_path):
@@ -112,9 +106,7 @@ class DataLoader:
         df["currency"] = "USD"
         df = self._standardize_columns(df, file_path.name)
 
-        self.logger.info(
-            f"Successfully loaded {len(df)} trading records from {file_path.name}"
-        )
+        self.logger.info(f"Successfully loaded {len(df)} trading records from {file_path.name}")
         return df
 
     def load_rakuten_investment_data(self, file_path):
@@ -125,9 +117,7 @@ class DataLoader:
         if df.empty:
             return df
 
-        df = df.rename(
-            columns=self.config.COLUMN_MAPPINGS.get("rakuten_investment", {})
-        )
+        df = df.rename(columns=self.config.COLUMN_MAPPINGS.get("rakuten_investment", {}))
         df["currency"] = df.get("currency", "JPY")
         df["currency"] = df.get("currency", "JPY")
         if "security_code" not in df.columns:
@@ -135,9 +125,7 @@ class DataLoader:
 
         df = self._standardize_columns(df, file_path.name)
 
-        self.logger.info(
-            f"Successfully loaded {len(df)} trading records from {file_path.name}"
-        )
+        self.logger.info(f"Successfully loaded {len(df)} trading records from {file_path.name}")
         return df
 
     def load_rakuten_ch_data(self, file_path):
@@ -153,9 +141,7 @@ class DataLoader:
             df["currency"] = "HKD"
         df = self._standardize_columns(df, file_path.name)
 
-        self.logger.info(
-            f"Successfully loaded {len(df)} trading records from {file_path.name}"
-        )
+        self.logger.info(f"Successfully loaded {len(df)} trading records from {file_path.name}")
         return df
 
     def load_sbi_domestic_data(self, file_path):
@@ -170,9 +156,7 @@ class DataLoader:
         df["currency"] = "JPY"
         df = self._standardize_columns(df, file_path.name)
 
-        self.logger.info(
-            f"Successfully loaded {len(df)} trading records from {file_path.name}"
-        )
+        self.logger.info(f"Successfully loaded {len(df)} trading records from {file_path.name}")
         return df
 
     def load_sbi_foreign_data(self, file_path):
@@ -199,18 +183,14 @@ class DataLoader:
 
         if "security_name" in df.columns:
             # Improved regex to handle 1-5 chars, optional dot (e.g. BRK.B)
-            df["security_code"] = df["security_name"].str.extract(
-                r"([A-Z]{1,5}(?:\.[A-Z])?)"
-            )
+            df["security_code"] = df["security_name"].str.extract(r"([A-Z]{1,5}(?:\.[A-Z])?)")
 
         else:
             df["security_code"] = ""
 
         df = self._standardize_columns(df, file_path.name)
 
-        self.logger.info(
-            f"Successfully loaded {len(df)} trading records from {file_path.name}"
-        )
+        self.logger.info(f"Successfully loaded {len(df)} trading records from {file_path.name}")
         return df
 
     def load_wise_data(self, file_path):
@@ -223,9 +203,7 @@ class DataLoader:
 
         df = self._standardize_columns(df, file_path.name)
 
-        self.logger.info(
-            f"Successfully loaded {len(df)} trading records from {file_path.name}"
-        )
+        self.logger.info(f"Successfully loaded {len(df)} trading records from {file_path.name}")
         return df
 
     def load_portfolio_data(self, file_path):
@@ -261,16 +239,12 @@ class DataLoader:
                             portfolio_data.append(
                                 {
                                     "security_code": fields[1],
-                                    "security_name": fields[2]
-                                    if len(fields) > 2
-                                    else "",
-                                    "quantity": float(fields[4])
-                                    if len(fields) > 4 and fields[4]
-                                    else 0,
+                                    "security_name": fields[2] if len(fields) > 2 else "",
+                                    "quantity": float(fields[4]) if len(fields) > 4 and fields[4] else 0,
                                     "data_source": file_path.name,
                                 }
                             )
-                    except:
+                    except Exception:
                         continue
 
             df = pd.DataFrame(portfolio_data)
@@ -301,13 +275,11 @@ class DataLoader:
                                 {
                                     "security_code": code,
                                     "security_name": name,
-                                    "quantity": float(fields[2])
-                                    if len(fields) > 2 and fields[2]
-                                    else 0,
+                                    "quantity": float(fields[2]) if len(fields) > 2 and fields[2] else 0,
                                     "data_source": file_path.name,
                                 }
                             )
-                    except:
+                    except Exception:
                         continue
 
             df = pd.DataFrame(portfolio_data)
@@ -325,16 +297,14 @@ class DataLoader:
             for encoding in encodings:
                 for skiprows in skiprows_options:
                     try:
-                        df = pd.read_csv(
-                            file_path, encoding=encoding, skiprows=skiprows
-                        )
+                        df = pd.read_csv(file_path, encoding=encoding, skiprows=skiprows)
                         if not df.empty and len(df.columns) >= 5:
                             df["data_source"] = file_path.name
                             self.logger.info(
                                 f"Successfully read {file_path.name} with encoding={encoding}, skiprows={skiprows}"
                             )
                             return df
-                    except:
+                    except Exception:
                         continue
 
             return pd.DataFrame()
@@ -343,12 +313,8 @@ class DataLoader:
             return pd.DataFrame()
 
     def load_all_broker_data(self, data_dir):
-        self.logger.info(
-            f"Loading data from all brokers in {data_dir} (CODES-enhanced)"
-        )
-        self.logger.info(
-            "Using direct file processing approach inspired by CODES/1concat.py..."
-        )
+        self.logger.info(f"Loading data from all brokers in {data_dir} (CODES-enhanced)")
+        self.logger.info("Using direct file processing approach inspired by CODES/1concat.py...")
 
         all_trades_data = []
         csv_files = list(Path(data_dir).rglob("*.csv"))
@@ -357,9 +323,7 @@ class DataLoader:
         for csv_file in csv_files:
             try:
                 file_type = self.detect_file_type(csv_file.name)
-                self.logger.info(
-                    f"Detected file type '{file_type}' for {csv_file.name}"
-                )
+                self.logger.info(f"Detected file type '{file_type}' for {csv_file.name}")
 
                 self.logger.info(f"Loading file: {csv_file}")
 
@@ -380,9 +344,7 @@ class DataLoader:
                 elif file_type == "portfolio":
                     df = self.load_portfolio_data(csv_file)
                 else:
-                    self.logger.info(
-                        f"Unknown file type for {csv_file.name}, trying CODES-style direct processing"
-                    )
+                    self.logger.info(f"Unknown file type for {csv_file.name}, trying CODES-style direct processing")
                     df = self._try_codes_style_processing(csv_file)
 
                 if df is not None and not df.empty:
@@ -403,9 +365,7 @@ class DataLoader:
             return combined_df
 
         combined_df = combined_df.copy()
-        combined_df.loc[:, "trade_date"] = pd.to_datetime(
-            combined_df["trade_date"], errors="coerce"
-        )
+        combined_df.loc[:, "trade_date"] = pd.to_datetime(combined_df["trade_date"], errors="coerce")
         combined_df = combined_df.dropna(subset=["trade_date"])
         if not combined_df.empty:
             combined_df = combined_df.sort_values("trade_date").reset_index(drop=True)
