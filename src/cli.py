@@ -1,19 +1,25 @@
 #!/usr/bin/env python3
-import sys
+"""TraHist CLI - User Story Based Commands"""
+
 import argparse
-from src.commands import fetch, portfolio, unified
+import sys
+
 
 def main():
     parser = argparse.ArgumentParser(
         description="TraHist: Trade History Analyzer & Portfolio Manager",
-        epilog="Use '%(prog)s <command> --help' for command-specific help."
+        epilog="Use '%(prog)s <command> --help' for command-specific help.",
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    # Register subcommands
-    fetch.register(subparsers)
-    portfolio.register(subparsers)
-    unified.register(subparsers)
+    # Import commands module dynamically to avoid circular imports
+    from src.commands import fetch, portfolio, report, unified
+
+    # Register subcommands with user story-based names
+    fetch.register(subparsers, command_name="import")
+    portfolio.register(subparsers, command_name="view")
+    unified.register(subparsers, command_name="analyze")
+    report.register(subparsers)
 
     args = parser.parse_args()
 
@@ -23,6 +29,7 @@ def main():
 
     # Dispatch to the selected command's run function
     return args.func(args)
+
 
 if __name__ == "__main__":
     sys.exit(main())

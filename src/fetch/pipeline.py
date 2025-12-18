@@ -1,12 +1,14 @@
-from src.config import Config
-from src.market.forex import ForexDataManager
-from src.data.loaders import DataLoader
-from src.utils.helpers import get_timestamp
-from src.market.stocks import StockDataManager
-from src.market.data_converter import DataConverter
-from src.market.fund_dictionary_builder import FundDictionaryBuilder
-import pandas as pd
 import json
+
+import pandas as pd
+
+from src.data.loaders import DataLoader
+from src.market.data_converter import DataConverter
+from src.market.forex import ForexDataManager
+from src.market.fund_dictionary_builder import FundDictionaryBuilder
+from src.market.stocks import StockDataManager
+from src.utils.helpers import get_timestamp
+
 
 def update_market_data(config, logger):
     logger.info("=== Updating Market Data (Incremental) ===")

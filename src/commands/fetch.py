@@ -1,17 +1,21 @@
 
-import sys
 from src.config import Config
-from src.utils.helpers import setup_logging
 from src.fetch.pipeline import (
-    update_market_data,
-    load_and_process_trades,
-    update_stock_prices,
+    build_fund_dictionary,
     create_unified_csv,
-    build_fund_dictionary
+    load_and_process_trades,
+    update_market_data,
+    update_stock_prices,
 )
+from src.utils.helpers import setup_logging
 
-def register(subparsers):
-    parser = subparsers.add_parser("fetch", help="Fetch and Ingest Data (Market Data + Raw Trades)")
+
+def register(subparsers, command_name: str = "import"):
+    """Register the import (data fetch) command."""
+    parser = subparsers.add_parser(
+        command_name, 
+        help="[1] データ取込: Import broker CSVs + download market data"
+    )
     parser.add_argument(
         "--download",
         action="store_true",

@@ -25,12 +25,8 @@ class Config:
     
     # 3. REPORTS (Presentation/View)
     REPORTS_DIR = DATA_DIR / "reports"
-    
-    # Legacy aliases (to be removed after refactor)
-    PROCESSED_DATA_DIR = INTERIM_DIR
-    OUTPUT_DIR = REPORTS_DIR
 
-    # Resources directory (formerly DIC)
+    # Resources directory
     RESOURCES_DIR = BASE_DIR / "resources"
 
     # Create directories if they don't exist
@@ -97,6 +93,7 @@ class Config:
             "銘柄名": "security_name",
             "通貨": "currency",
             "売買区分": "transaction_type",
+            "取引区分": "transaction_type",  # Alternative column name in some CH files
             "信用区分": "margin_type",
             "数量［株］": "quantity",
             "単価": "price",

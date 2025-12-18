@@ -64,9 +64,9 @@ class DataLoader:
 
             def standardize_transaction_type(val):
                 s = str(val).strip()
-                if s in ["買付", "現物買", "再投資"]:
+                if s in ["買付", "現物買", "再投資", "買"]:
                     return "buy"
-                elif s in ["売付", "現物売"]:
+                elif s in ["売付", "現物売", "売"]:
                     return "sell"
                 return s.lower()
 

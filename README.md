@@ -1,10 +1,8 @@
-# Trade History Analyzer
+# Trade History Analyzer (TraHist)
 
-Multiple broker trade history analysis tool with JPY unification and automated fund mapping.
+証券会社の取引履歴を分析するツール。JPY統合と自動ファンドマッピング機能付き。
 
 ## Quick Start
-
-### Setup
 
 ```bash
 git clone <repository-url>
@@ -12,28 +10,33 @@ cd trahist
 uv sync
 ```
 
-### Usage
+## Usage - User Stories
 
-Use `task` to run specific workflows. The workflow is split into **Fetching** (data processing) and **Running** (analysis).
+| ストーリー | コマンド | 説明 |
+|-----------|---------|------|
+| **[1] データ取込** | `task import -- --download` | 証券会社CSVを読み込み、市場データをダウンロード |
+| **[2] ポートフォリオ確認** | `task view` | 現在の保有銘柄とP&Lを表示 |
+| **[3] パフォーマンス分析** | `task analyze` | 過去のパフォーマンス指標を分析 |
+| **[4] レポート出力** | `task report` | チャートと包括的レポートを生成 |
+| **フルパイプライン** | `task pipeline` | 全ステップを順次実行 |
+| **クリーン** | `task clean` | 生成データを削除（rawは安全） |
 
-| Task | Command | Description |
-| :--- | :--- | :--- |
-| **1. Fetch Data** | `task fetch -- --download` | Reads `data/raw`, downloads market data, and builds `data/interim` & `data/unified`. |
-| **2. Run Analysis** | `task run` | Reads `data/unified`, generates reports in `data/reports`. |
-| **Clean** | `task clean` | Destructively cleans all generated data (keeps `data/raw` safe). |
+## Data Directory Structure
 
-## Data Directory Structure (Clean Architecture)
-
-- **`data/raw/`**: Place your broker CSVs here.
-- **`data/interim/`**: Internal processing artifacts (market data, normalized trades).
-- **`data/unified/`**: The "Gold" dataset. `trades_unified_*.csv` contains all your trades with JPY prices.
-- **`data/reports/`**: Final outputs. Charts, JSON analysis, and performance CSVs.
+```
+data/
+├── raw/          # Input: 証券会社CSVをここに配置
+├── interim/      # Staging: 市場データ、正規化された取引
+├── unified/      # Gold: trades_unified_*.csv (JPY価格付き)
+└── reports/      # Output: チャート、JSON分析、CSVレポート
+```
 
 ## Key Features
 
-- **Fund Mapping**: Automatically converts `eMAXIS Slim 全世界株式` -> `ACWI` (Ticker).
-- **JPY Unification**: Converts `150.5 USD` -> `22575 JPY` using historical daily rates.
-- **Separation of Concerns**: `fetch` logic is completely isolated from `analysis`, ensuring safety and reproducibility.
+- **Fund Mapping**: `eMAXIS Slim 全世界株式` → `ACWI` (Ticker) 自動変換
+- **JPY Unification**: `150.5 USD` → `22575 JPY` 日次レートで変換
+- **Separation of Concerns**: `import` と `analyze` を完全分離
 
 ## License
+
 Personal Use Only.

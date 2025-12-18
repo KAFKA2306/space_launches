@@ -5,39 +5,41 @@ tasks:
     cmds:
       - task --list
 
-  fetch:
-    desc: "1. [Data Ingestion] Load raw broker CSVs, download market data, and build unified dataset"
-    cmds:
-      - uv run python -m src.cli fetch {{.CLI_ARGS}}
+  # ==================================================
+  # USER STORY TASKS
+  # ==================================================
 
-  run:
-    desc: "2. [DEPRECATED] Use 'task portfolio'"
+  import:
+    desc: "[1] データ取込: Import broker CSVs + download market data → unified dataset"
     cmds:
-      - echo "⚠️  'task run' is deprecated. Using 'task portfolio'..."
-      - task portfolio {{.CLI_ARGS}}
-  
-  portfolio:
-    desc: "2. [Portfolio Report] Calculate P&L, holdings, and asset allocation (processed -> reports)"
+      - uv run python -m src.cli import {{.CLI_ARGS}}
+
+  view:
+    desc: "[2] ポートフォリオ確認: View current holdings and P&L"
     cmds:
-      - uv run python -m src.cli portfolio {{.CLI_ARGS}}
+      - uv run python -m src.cli view {{.CLI_ARGS}}
 
   analyze:
-    desc: "3. [DEPRECATED] Use 'task unified'"
+    desc: "[3] パフォーマンス分析: Analyze historical performance metrics"
     cmds:
-      - echo "⚠️  'task analyze' is deprecated. Using 'task unified'..."
-      - task unified {{.CLI_ARGS}}
+      - uv run python -m src.cli analyze {{.CLI_ARGS}}
 
-  unified:
-    desc: "3. [Deep Analysis] Analyze full trade history (Unified CSV) for advanced insights"
+  report:
+    desc: "[4] レポート出力: Generate charts and comprehensive reports"
     cmds:
-      - uv run python -m src.cli unified {{.CLI_ARGS}}
+      - uv run python -m src.cli report {{.CLI_ARGS}}
 
-  all:
-    desc: "Run complete pipeline: fetch → portfolio → unified"
+  pipeline:
+    desc: "フルパイプライン: Run complete workflow (import → view → analyze → report)"
     cmds:
-      - task: fetch
-      - task: portfolio
-      - task: unified
+      - task: import
+      - task: view
+      - task: analyze
+      - task: report
+
+  # ==================================================
+  # UTILITY TASKS
+  # ==================================================
 
   clean:
     desc: Clean all artifacts (cache + data)

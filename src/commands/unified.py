@@ -1,15 +1,21 @@
 
 import logging
 from pathlib import Path
+
 from src.analysis.unified_csv_analyzer import UnifiedCSVAnalyzer
 from src.config import Config
 
-def register(subparsers):
-    parser = subparsers.add_parser("unified", help="Unified CSV Analysis")
+
+def register(subparsers, command_name: str = "analyze"):
+    """Register the analyze (unified analysis) command."""
+    parser = subparsers.add_parser(
+        command_name, 
+        help="[3] パフォーマンス分析: Analyze historical performance metrics"
+    )
     parser.add_argument(
         "--csv-file",
         type=str,
-        help="Path to unified CSV file (default: latest in data/output/unified_csv/)",
+        help="Path to unified CSV file (default: latest in data/unified/)",
     )
 
     parser.add_argument(
@@ -21,7 +27,7 @@ def register(subparsers):
     parser.add_argument(
         "--output-dir",
         type=str,
-        default=str(Config.OUTPUT_DIR / "unified_analysis"),
+        default=str(Config.REPORTS_DIR / "unified_analysis"),
         help="Output directory for reports and charts",
     )
 

@@ -1,14 +1,20 @@
 
+
 import pandas as pd
-from pathlib import Path
+
 from src.analysis.portfolio import PortfolioAnalyzer
 from src.analysis.visualization import TradeVisualizer
 from src.config import Config
 from src.data.loaders import perform_eda_analysis
-from src.utils.helpers import setup_logging, get_timestamp
+from src.utils.helpers import get_timestamp, setup_logging
 
-def register(subparsers):
-    parser = subparsers.add_parser("portfolio", help="Run Standard Portfolio Analysis")
+
+def register(subparsers, command_name: str = "view"):
+    """Register the view (portfolio) command."""
+    parser = subparsers.add_parser(
+        command_name, 
+        help="[2] ポートフォリオ確認: View current holdings and P&L"
+    )
     parser.set_defaults(func=run)
 
 def setup_environment():
@@ -114,7 +120,7 @@ def create_visualizations(
     logger.info("=== Creating Visualizations ===")
 
     visualizer = TradeVisualizer(config)
-    charts_dir = config.OUTPUT_DIR / "charts"
+    charts_dir = config.REPORTS_DIR / "charts"
     charts_dir.mkdir(exist_ok=True)
 
     if not holdings_df.empty and summary:
@@ -196,7 +202,7 @@ def run(args):
         print_summary(summary, activity)
 
         logger.info("Analysis completed successfully!")
-        print(f"\nResults saved to: {config.OUTPUT_DIR}")
+        print(f"\nResults saved to: {config.REPORTS_DIR}")
         return 0
 
     except Exception as e:
