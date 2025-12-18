@@ -28,7 +28,7 @@ data/output/*
 data/raw/*
 !data/raw/README.md
 !data/raw/.gitkeep
-resources/
+!data/examples/
 
 # Claude settings
 .claude/
