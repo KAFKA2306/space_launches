@@ -61,7 +61,6 @@ def run(args):
     """Generate reports and visualizations."""
     log_level = logging.INFO if args.verbose else logging.WARNING
     logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s - %(message)s")
-    logging.getLogger(__name__)
 
     # Find unified CSV
     csv_file, fund_mapping_file = find_latest_unified_csv()

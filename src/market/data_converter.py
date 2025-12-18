@@ -29,7 +29,6 @@ class DataConverter:
         mapping = {}
         try:
             # Load the security mapping file
-            # Load the security mapping file
             mapping_file = self.config.RESOURCES_DIR / "securitycode2.csv"
 
             if mapping_file.exists():

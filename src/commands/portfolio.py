@@ -3,7 +3,6 @@ import pandas as pd
 from src.analysis.portfolio import PortfolioAnalyzer
 from src.analysis.visualization import TradeVisualizer
 from src.config import Config
-from src.data.loaders import perform_eda_analysis
 from src.utils.helpers import get_timestamp, setup_logging
 
 
@@ -177,8 +176,6 @@ def run(args):
             return 1
 
         holdings_df, summary, activity, performance_df = analyze_portfolio(trades_df, price_data, config, logger)
-
-        perform_eda_analysis(trades_df, config, logger)
 
         create_visualizations(
             trades_df,

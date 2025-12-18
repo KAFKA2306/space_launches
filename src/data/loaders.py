@@ -119,7 +119,6 @@ class DataLoader:
 
         df = df.rename(columns=self.config.COLUMN_MAPPINGS.get("rakuten_investment", {}))
         df["currency"] = df.get("currency", "JPY")
-        df["currency"] = df.get("currency", "JPY")
         if "security_code" not in df.columns:
             df["security_code"] = ""
 
@@ -371,7 +370,3 @@ class DataLoader:
             combined_df = combined_df.sort_values("trade_date").reset_index(drop=True)
 
         return combined_df
-
-
-def perform_eda_analysis(trades_df, config, logger):
-    pass

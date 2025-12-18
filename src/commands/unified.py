@@ -71,7 +71,6 @@ def run(args):
     # Setup logging
     log_level = logging.INFO if args.verbose else logging.WARNING
     logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s - %(message)s")
-    logging.getLogger(__name__)
 
     # Find CSV file
     if args.csv_file:

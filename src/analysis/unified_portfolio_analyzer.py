@@ -182,8 +182,7 @@ class UnifiedPortfolioAnalyzer:
         for ticker, data in holdings.items():
             if data["total_shares"] > 0:  # 現在保有中のもののみ
                 # 平均取得単価計算
-                if data["total_shares"] > 0:
-                    data["avg_cost_per_share_jpy"] = data["total_cost_jpy"] / data["total_shares"]
+                data["avg_cost_per_share_jpy"] = data["total_cost_jpy"] / data["total_shares"]
 
                 # 現在価格・評価額取得
                 current_price_jpy, current_value_jpy = self._get_current_valuation(
