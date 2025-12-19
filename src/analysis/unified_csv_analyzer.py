@@ -14,7 +14,6 @@ from typing import Dict, Optional
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 
 from src.config import Config
 
@@ -356,17 +355,10 @@ class UnifiedCSVAnalyzer:
 
     def _calculate_daily_portfolio_values(self) -> pd.Series:
         """Calculate daily portfolio values based on cost basis"""
-        # Simplified approach using cumulative investment
         daily_trades = self.trades_df.groupby("trade_date").agg({"amount_jpy_unified": "sum"}).sort_index()
-
-        # Create cumulative investment series
-        cumulative_investment = daily_trades["amount_jpy_unified"].cumsum()
-
-        # Fill gaps with forward fill
-        date_range = pd.date_range(start=cumulative_investment.index.min(), end=datetime.now().date(), freq="D")
-        portfolio_values = cumulative_investment.reindex(date_range).fillna(method="ffill")
-
-        return portfolio_values
+        cumulative = daily_trades["amount_jpy_unified"].cumsum()
+        date_range = pd.date_range(start=cumulative.index.min(), end=datetime.now().date(), freq="D")
+        return cumulative.reindex(date_range).ffill()
 
     def analyze_asset_allocation(self) -> AssetAllocation:
         """Analyze portfolio asset allocation"""
@@ -770,8 +762,7 @@ class UnifiedCSVAnalyzer:
         }
 
         # Save report
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        report_file = output_dir / f"comprehensive_analysis_{timestamp}.json"
+        report_file = output_dir / "comprehensive_analysis.json"
 
         import json
 
@@ -785,192 +776,106 @@ class UnifiedCSVAnalyzer:
     def create_advanced_visualizations(self, output_dir: str = None):
         """Create advanced visualization suite"""
         logger.info("Creating advanced visualizations...")
-
         output_dir = Path(output_dir) if output_dir else Path("data/output/advanced_charts")
         output_dir.mkdir(parents=True, exist_ok=True)
 
         if self.holdings_df is None:
             self.analyze_current_holdings()
 
-        # Set up the plotting style
-        plt.style.use("default")
-        sns.set_palette("husl")
+        plt.style.use("seaborn-v0_8-whitegrid")
+        viz_cfg = Config.get("visualization", {})
+        dpi = viz_cfg.get("dpi", 300)
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # 1. Portfolio Dashboard (6-panel)
+        if not self.holdings_df.empty:
+            fig, axes = plt.subplots(2, 3, figsize=(20, 12))
+            fig.suptitle("Portfolio Dashboard", fontsize=16, fontweight="bold")
+            top = self.holdings_df.nlargest(10, "total_cost_jpy")
+            axes[0, 0].barh(top["symbol"], top["total_cost_jpy"])
+            axes[0, 0].set_title("Top Holdings")
+            for col, ax, title in [("asset_class", axes[0, 1], "Asset Class"), ("region", axes[0, 2], "Region")]:
+                data = self.holdings_df.groupby(col)["total_cost_jpy"].sum()
+                ax.pie(data.values, labels=data.index, autopct="%1.1f%%")
+                ax.set_title(title)
+            acct = self.holdings_df.groupby("account_type")["total_cost_jpy"].sum()
+            axes[1, 0].bar(acct.index, acct.values)
+            axes[1, 0].tick_params(axis="x", rotation=45)
+            axes[1, 0].set_title("By Account")
+            axes[1, 1].hist(self.holdings_df["holding_period_days"], bins=20, alpha=0.7)
+            axes[1, 1].set_title("Holding Period")
+            wts = self.holdings_df["portfolio_weight"].sort_values(ascending=False)
+            axes[1, 2].plot(range(1, len(wts) + 1), wts.cumsum())
+            axes[1, 2].set_title("Concentration")
+            axes[1, 2].grid(True, alpha=0.3)
+            plt.tight_layout()
+            plt.savefig(output_dir / "portfolio_dashboard.png", dpi=dpi, bbox_inches="tight")
+            plt.close()
 
-        # 1. Advanced Portfolio Composition Dashboard
-        self._create_portfolio_dashboard(output_dir / f"portfolio_dashboard_{timestamp}.png")
+        # 2. Asset Allocation (4-panel)
+        if not self.holdings_df.empty:
+            fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+            fig.suptitle("Asset Allocation", fontsize=16, fontweight="bold")
+            for i, (col, ax, title) in enumerate(
+                [("asset_class", axes[0, 0], "Asset Class"), ("region", axes[0, 1], "Region")]
+            ):
+                data = self.holdings_df.groupby(col)["total_cost_jpy"].sum().sort_values()
+                ax.barh(data.index, data.values)
+                ax.set_title(title)
+            curr = self.holdings_df.groupby("currency")["total_cost_jpy"].sum()
+            axes[1, 0].pie(curr.values, labels=curr.index, autopct="%1.1f%%")
+            axes[1, 0].set_title("Currency")
+            fund = self.holdings_df.groupby("is_fund")["total_cost_jpy"].sum()
+            axes[1, 1].pie(fund.values, labels=["Direct" if not x else "Funds" for x in fund.index], autopct="%1.1f%%")
+            axes[1, 1].set_title("Vehicle")
+            plt.tight_layout()
+            plt.savefig(output_dir / "asset_allocation.png", dpi=dpi, bbox_inches="tight")
+            plt.close()
 
-        # 2. Asset Allocation Sunburst
-        self._create_allocation_charts(output_dir / f"asset_allocation_{timestamp}.png")
-
-        # 3. Trading Timeline Analysis
-        self._create_trading_timeline(output_dir / f"trading_timeline_{timestamp}.png")
-
-        # 4. Performance Analytics
-        self._create_performance_charts(output_dir / f"performance_analytics_{timestamp}.png")
-
-        logger.info(f"Advanced visualizations saved to: {output_dir}")
-
-    def _create_portfolio_dashboard(self, output_path: Path):
-        """Create comprehensive portfolio dashboard"""
-        if self.holdings_df.empty:
-            return
-
-        fig, axes = plt.subplots(2, 3, figsize=(20, 12))
-        fig.suptitle("Portfolio Composition Dashboard", fontsize=16, fontweight="bold")
-
-        # 1. Holdings by value
-        top_holdings = self.holdings_df.nlargest(10, "total_cost_jpy")
-        axes[0, 0].barh(top_holdings["symbol"], top_holdings["total_cost_jpy"])
-        axes[0, 0].set_title("Top Holdings by Value (JPY)")
-        axes[0, 0].set_xlabel("Value (JPY)")
-
-        # 2. Asset class distribution
-        asset_dist = self.holdings_df.groupby("asset_class")["total_cost_jpy"].sum()
-        axes[0, 1].pie(asset_dist.values, labels=asset_dist.index, autopct="%1.1f%%")
-        axes[0, 1].set_title("Asset Class Distribution")
-
-        # 3. Regional distribution
-        region_dist = self.holdings_df.groupby("region")["total_cost_jpy"].sum()
-        axes[0, 2].pie(region_dist.values, labels=region_dist.index, autopct="%1.1f%%")
-        axes[0, 2].set_title("Regional Distribution")
-
-        # 4. Account type distribution
-        account_dist = self.holdings_df.groupby("account_type")["total_cost_jpy"].sum()
-        axes[1, 0].bar(account_dist.index, account_dist.values)
-        axes[1, 0].set_title("Holdings by Account Type")
-        axes[1, 0].set_ylabel("Value (JPY)")
-        axes[1, 0].tick_params(axis="x", rotation=45)
-
-        # 5. Holding period analysis
-        axes[1, 1].hist(self.holdings_df["holding_period_days"], bins=20, alpha=0.7)
-        axes[1, 1].set_title("Holding Period Distribution")
-        axes[1, 1].set_xlabel("Days Held")
-        axes[1, 1].set_ylabel("Frequency")
-
-        # 6. Portfolio concentration
-        weights = self.holdings_df["portfolio_weight"].sort_values(ascending=False)
-        axes[1, 2].plot(range(1, len(weights) + 1), weights.cumsum())
-        axes[1, 2].set_title("Portfolio Concentration Curve")
-        axes[1, 2].set_xlabel("Number of Holdings")
-        axes[1, 2].set_ylabel("Cumulative Weight")
-        axes[1, 2].grid(True, alpha=0.3)
-
-        plt.tight_layout()
-        plt.savefig(output_path, dpi=300, bbox_inches="tight")
-        plt.close()
-
-    def _create_allocation_charts(self, output_path: Path):
-        """Create detailed allocation analysis charts"""
-        if self.holdings_df.empty:
-            return
-
-        fig, axes = plt.subplots(2, 2, figsize=(16, 12))
-        fig.suptitle("Asset Allocation Analysis", fontsize=16, fontweight="bold")
-
-        # Asset class with values
-        asset_data = self.holdings_df.groupby("asset_class")["total_cost_jpy"].sum().sort_values(ascending=True)
-        axes[0, 0].barh(asset_data.index, asset_data.values)
-        axes[0, 0].set_title("Asset Class Allocation (JPY)")
-        axes[0, 0].set_xlabel("Value (JPY)")
-
-        # Regional allocation
-        region_data = self.holdings_df.groupby("region")["total_cost_jpy"].sum().sort_values(ascending=True)
-        axes[0, 1].barh(region_data.index, region_data.values)
-        axes[0, 1].set_title("Regional Allocation (JPY)")
-        axes[0, 1].set_xlabel("Value (JPY)")
-
-        # Currency exposure
-        currency_data = self.holdings_df.groupby("currency")["total_cost_jpy"].sum()
-        axes[1, 0].pie(currency_data.values, labels=currency_data.index, autopct="%1.1f%%")
-        axes[1, 0].set_title("Currency Exposure")
-
-        # Investment fund vs direct holdings
-        fund_data = self.holdings_df.groupby("is_fund")["total_cost_jpy"].sum()
-        fund_labels = ["Direct Holdings" if not x else "Investment Funds" for x in fund_data.index]
-        axes[1, 1].pie(fund_data.values, labels=fund_labels, autopct="%1.1f%%")
-        axes[1, 1].set_title("Investment Vehicle Distribution")
-
-        plt.tight_layout()
-        plt.savefig(output_path, dpi=300, bbox_inches="tight")
-        plt.close()
-
-    def _create_trading_timeline(self, output_path: Path):
-        """Create trading timeline analysis"""
+        # 3. Trading Timeline (3-panel)
         fig, axes = plt.subplots(3, 1, figsize=(16, 12))
-        fig.suptitle("Trading Timeline Analysis", fontsize=16, fontweight="bold")
-
-        # Monthly trading volume
-        monthly_volume = self.trades_df.groupby(self.trades_df["trade_date"].dt.to_period("M"))[
-            "amount_jpy_unified"
-        ].sum()
-        axes[0].plot(monthly_volume.index.to_timestamp(), monthly_volume.values, marker="o")
-        axes[0].set_title("Monthly Trading Volume (JPY)")
-        axes[0].set_ylabel("Volume (JPY)")
+        fig.suptitle("Trading Timeline", fontsize=16, fontweight="bold")
+        monthly = self.trades_df.groupby(self.trades_df["trade_date"].dt.to_period("M"))
+        vol = monthly["amount_jpy_unified"].sum()
+        axes[0].plot(vol.index.to_timestamp(), vol.values, marker="o")
+        axes[0].set_title("Monthly Volume")
         axes[0].grid(True, alpha=0.3)
-
-        # Trading frequency
-        monthly_trades = self.trades_df.groupby(self.trades_df["trade_date"].dt.to_period("M")).size()
-        axes[1].bar(monthly_trades.index.to_timestamp(), monthly_trades.values, width=20)
-        axes[1].set_title("Monthly Trading Frequency")
-        axes[1].set_ylabel("Number of Trades")
+        cnt = monthly.size()
+        axes[1].bar(cnt.index.to_timestamp(), cnt.values, width=20)
+        axes[1].set_title("Trade Count")
         axes[1].grid(True, alpha=0.3)
-
-        # Cumulative investment
-        cumulative = self.trades_df.set_index("trade_date")["amount_jpy_unified"].cumsum()
-        axes[2].plot(cumulative.index, cumulative.values)
-        axes[2].set_title("Cumulative Investment (JPY)")
-        axes[2].set_ylabel("Cumulative Amount (JPY)")
-        axes[2].set_xlabel("Date")
+        cum = self.trades_df.set_index("trade_date")["amount_jpy_unified"].cumsum()
+        axes[2].plot(cum.index, cum.values)
+        axes[2].set_title("Cumulative")
         axes[2].grid(True, alpha=0.3)
-
         plt.tight_layout()
-        plt.savefig(output_path, dpi=300, bbox_inches="tight")
+        plt.savefig(output_dir / "trading_timeline.png", dpi=dpi, bbox_inches="tight")
         plt.close()
 
-    def _create_performance_charts(self, output_path: Path):
-        """Create performance analysis charts"""
-        # Calculate daily returns for visualization
-        daily_values = self._calculate_daily_portfolio_values()
-        returns = daily_values.pct_change().dropna()
-
+        # 4. Performance (4-panel)
+        daily = self._calculate_daily_portfolio_values()
+        rets = daily.pct_change().dropna()
         fig, axes = plt.subplots(2, 2, figsize=(16, 12))
-        fig.suptitle("Performance Analytics", fontsize=16, fontweight="bold")
-
-        # Portfolio value over time
-        axes[0, 0].plot(daily_values.index, daily_values.values)
-        axes[0, 0].set_title("Portfolio Value Over Time")
-        axes[0, 0].set_ylabel("Value (JPY)")
+        fig.suptitle("Performance", fontsize=16, fontweight="bold")
+        axes[0, 0].plot(daily.index, daily.values)
+        axes[0, 0].set_title("Portfolio Value")
         axes[0, 0].grid(True, alpha=0.3)
-
-        # Returns distribution
-        axes[0, 1].hist(returns * 100, bins=50, alpha=0.7)
-        axes[0, 1].set_title("Daily Returns Distribution")
-        axes[0, 1].set_xlabel("Returns (%)")
-        axes[0, 1].set_ylabel("Frequency")
+        axes[0, 1].hist(rets * 100, bins=50, alpha=0.7)
+        axes[0, 1].set_title("Returns Distribution")
         axes[0, 1].grid(True, alpha=0.3)
-
-        # Drawdown chart
-        cumulative = (1 + returns).cumprod()
-        running_max = cumulative.expanding().max()
-        drawdown = (cumulative - running_max) / running_max
-
-        axes[1, 0].fill_between(drawdown.index, drawdown * 100, 0, alpha=0.3, color="red")
-        axes[1, 0].set_title("Drawdown Analysis")
-        axes[1, 0].set_ylabel("Drawdown (%)")
+        cumret = (1 + rets).cumprod()
+        dd = (cumret - cumret.expanding().max()) / cumret.expanding().max()
+        axes[1, 0].fill_between(dd.index, dd * 100, 0, alpha=0.3, color="red")
+        axes[1, 0].set_title("Drawdown")
         axes[1, 0].grid(True, alpha=0.3)
-
-        # Rolling volatility
-        rolling_vol = returns.rolling(30).std() * np.sqrt(252) * 100
-        axes[1, 1].plot(rolling_vol.index, rolling_vol.values)
-        axes[1, 1].set_title("30-Day Rolling Volatility")
-        axes[1, 1].set_ylabel("Volatility (%)")
+        vol = rets.rolling(30).std() * np.sqrt(252) * 100
+        axes[1, 1].plot(vol.index, vol.values)
+        axes[1, 1].set_title("30D Volatility")
         axes[1, 1].grid(True, alpha=0.3)
-
         plt.tight_layout()
-        plt.savefig(output_path, dpi=300, bbox_inches="tight")
+        plt.savefig(output_dir / "performance_analytics.png", dpi=dpi, bbox_inches="tight")
         plt.close()
+
+        logger.info(f"Visualizations saved to: {output_dir}")
 
 
 def main():
