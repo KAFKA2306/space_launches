@@ -27,14 +27,19 @@ def find_latest_processed_data(config, logger):
         logger.error(f"Trades directory not found: {trades_dir}. Please run 'task fetch' first.")
         return None, None
 
-    trades_files = list(trades_dir.glob("trades_*.csv"))
-    if not trades_files:
-        logger.error(f"No processed trade data found in {trades_dir}. Please run 'task fetch' first.")
-        return None, None
-
-    # Simple max by mtime
-    latest_trades_file = max(trades_files, key=lambda x: x.stat().st_mtime)
-    logger.info(f"Using latest trades file: {latest_trades_file.name}")
+    # Try non-timestamped file first
+    trades_file = trades_dir / "trades.csv"
+    if trades_file.exists():
+        latest_trades_file = trades_file
+    else:
+        # Fall back to timestamped files
+        trades_files = list(trades_dir.glob("trades_*.csv"))
+        if not trades_files:
+            logger.error(f"No processed trade data found in {trades_dir}. Please run 'task fetch' first.")
+            return None, None
+        latest_trades_file = max(trades_files, key=lambda x: x.stat().st_mtime)
+    
+    logger.info(f"Using trades file: {latest_trades_file.name}")
 
     trades_df = pd.read_csv(latest_trades_file, parse_dates=["trade_date"])
 
@@ -86,7 +91,7 @@ def analyze_portfolio(trades_df, price_data, config, logger):
 
     holdings_df = analyzer.analyze_holdings(trades_df, safe_price_data)
     if not holdings_df.empty:
-        holdings_path = analysis_dir / f"portfolio_holdings_{get_timestamp()}.csv"
+        holdings_path = analysis_dir / "portfolio_holdings.csv"
         holdings_df.to_csv(holdings_path, index=False)
         logger.info(f"Portfolio holdings saved to {holdings_path}")
 
@@ -95,7 +100,7 @@ def analyze_portfolio(trades_df, price_data, config, logger):
     performance_df = analyzer.calculate_security_performance(trades_df, safe_price_data)
 
     if not performance_df.empty:
-        performance_path = analysis_dir / f"security_performance_{get_timestamp()}.csv"
+        performance_path = analysis_dir / "security_performance.csv"
         performance_df.to_csv(performance_path, index=False)
         logger.info(f"Security performance saved to {performance_path}")
 

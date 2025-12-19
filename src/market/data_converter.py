@@ -531,7 +531,7 @@ class DataConverter:
                 trades_json = self.trades_csv_to_json(latest_trades_file)
 
                 # Save trades JSON
-                trades_json_path = output_dir / f"trades_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                trades_json_path = output_dir / "trades.json"
                 self.save_json_to_file(trades_json, trades_json_path)
                 result_paths["trades"] = trades_json_path
 
@@ -542,7 +542,7 @@ class DataConverter:
                 portfolio_json = self.portfolio_csv_to_json(latest_portfolio_file)
 
                 # Save portfolio JSON
-                portfolio_json_path = output_dir / f"portfolio_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                portfolio_json_path = output_dir / "portfolio.json"
                 self.save_json_to_file(portfolio_json, portfolio_json_path)
                 result_paths["portfolio"] = portfolio_json_path
 
@@ -571,7 +571,7 @@ class DataConverter:
                     "ticker_codes": sorted(list(ticker_codes)),
                 }
 
-                tickers_json_path = output_dir / f"ticker_codes_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                tickers_json_path = output_dir / "ticker_codes.json"
                 self.save_json_to_file(ticker_data, tickers_json_path)
                 result_paths["tickers"] = tickers_json_path
 
@@ -615,8 +615,7 @@ class DataConverter:
                 df = df.sort_values("ticker_code")
 
                 # Save to CSV
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                csv_path = output_dir / f"fund_ticker_mapping_{timestamp}.csv"
+                csv_path = output_dir / "fund_ticker_mapping.csv"
                 df.to_csv(csv_path, index=False, encoding="utf-8")
 
                 logger.info(f"Saved {len(mapping_data)} fund mappings to {csv_path}")
@@ -635,13 +634,16 @@ class DataConverter:
             output_dir = Path(output_dir)
             output_dir.mkdir(parents=True, exist_ok=True)
 
-            # Find latest trades file
-            trades_files = list(processed_data_dir.glob("trades_*.csv"))
-            if not trades_files:
-                logger.warning("No trades files found")
-                return None
-
-            latest_trades_file = max(trades_files, key=lambda x: x.stat().st_mtime)
+            # Find trades file - try non-timestamped first, then fall back to timestamped
+            trades_file = processed_data_dir / "trades.csv"
+            if not trades_file.exists():
+                trades_files = list(processed_data_dir.glob("trades_*.csv"))
+                if not trades_files:
+                    logger.warning("No trades files found")
+                    return None
+                trades_file = max(trades_files, key=lambda x: x.stat().st_mtime)
+            
+            latest_trades_file = trades_file
             logger.info(f"Processing trades file: {latest_trades_file}")
 
             # Read and process trades
@@ -698,8 +700,7 @@ class DataConverter:
             df = df[final_columns]
 
             # Save unified CSV
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            unified_csv_path = output_dir / f"trades_unified_{timestamp}.csv"
+            unified_csv_path = output_dir / "trades_unified.csv"
             df.to_csv(unified_csv_path, index=False, encoding="utf-8")
 
             logger.info(f"Created unified trades CSV with {len(df)} trades: {unified_csv_path}")

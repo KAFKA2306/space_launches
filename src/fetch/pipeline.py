@@ -54,7 +54,7 @@ def load_and_process_trades(config, logger):
         return None
 
     # Save to interim/trades
-    trades_path = config.TRADES_DATA_DIR / f"trades_{get_timestamp()}.csv"
+    trades_path = config.TRADES_DATA_DIR / "trades.csv"
     trades_df.to_csv(trades_path, index=False)
     logger.info(f"Processed trades saved to {trades_path}")
 

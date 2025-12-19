@@ -39,13 +39,19 @@ def find_latest_unified_csv():
     if not csv_dir.exists():
         return None, None
 
+    # Try new non-timestamped file first
+    csv_file = csv_dir / "trades_unified.csv"
+    fund_file = csv_dir / "fund_ticker_mapping.csv"
+    
+    if csv_file.exists():
+        return csv_file, fund_file if fund_file.exists() else None
+
+    # Fall back to old timestamped files
     csv_files = list(csv_dir.glob("trades_unified_*.csv"))
     if not csv_files:
         return None, None
 
     latest_csv = max(csv_files, key=lambda x: x.stat().st_mtime)
-
-    # Find corresponding fund mapping file
     fund_mapping_file = None
     timestamp = latest_csv.stem.split("_")[-2:]
     if len(timestamp) == 2:
