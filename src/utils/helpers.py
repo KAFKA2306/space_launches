@@ -8,6 +8,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from src.config import Config
+
 
 def setup_logging(level=logging.INFO):
     """Set up logging configuration."""
@@ -43,7 +45,7 @@ def standardize_date(date_str):
     if pd.isna(date_str) or date_str == "":
         return pd.NaT
 
-    date_formats = ["%Y/%m/%d", "%Y-%m-%d", "%Y年%m月%d日", "%y/%m/%d", "%y-%m-%d"]
+    date_formats = Config.get("date_formats")
 
     for fmt in date_formats:
         try:
@@ -113,7 +115,7 @@ def read_csv_safe(file_path, encoding=None, skiprows=0, **kwargs):
         encodings_to_try.append(detected)
 
     # Add common fallbacks
-    for enc in ["shift_jis", "utf-8", "cp932", "iso-8859-1"]:
+    for enc in Config.get("fallback_encodings"):
         if enc not in encodings_to_try:
             encodings_to_try.append(enc)
 

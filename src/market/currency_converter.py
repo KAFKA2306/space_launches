@@ -188,26 +188,35 @@ class CurrencyConverter:
 
     def _is_investment_fund(self, security_name: str, security_code: str = "") -> bool:
         """Check if the security is an investment fund (mutual fund)."""
-        fund_indicators = [
-            "ファンド",
-            "Fund",
-            "インデックス",
-            "Index",
-            "投信",
-            "投資信託",
-            "eMAXIS",
-            "iFree",
-            "SBI",
-            "ＳＢＩ",
-            "楽天",
-            "Rakuten",
-            "ニッセイ",
-            "Nissay",
-            "Tracers",
-        ]
+        # Use config fund indicators if available, otherwise use defaults
+        fund_indicators = (
+            self.config.FUND_INDICATORS
+            if self.config and hasattr(self.config, "FUND_INDICATORS")
+            else [
+                "ファンド",
+                "Fund",
+                "インデックス",
+                "Index",
+                "投信",
+                "投資信託",
+                "eMAXIS",
+                "iFree",
+                "SBI",
+                "ＳＢＩ",
+                "楽天",
+                "Rakuten",
+                "ニッセイ",
+                "Nissay",
+                "Tracers",
+            ]
+        )
 
         # ETF indicators (these should NOT be treated as 10,000x funds)
-        etf_indicators = ["ETF", "SPDR", "Vanguard", "iShares"]
+        etf_indicators = (
+            self.config.ETF_INDICATORS
+            if self.config and hasattr(self.config, "ETF_INDICATORS")
+            else ["ETF", "SPDR", "Vanguard", "iShares"]
+        )
 
         name_upper = security_name.upper()
 
@@ -235,7 +244,11 @@ class CurrencyConverter:
 
         if self.forex_data.empty:
             # Fallback rates if no forex data available
-            fallback_rates = {"USD": 150.0, "HKD": 19.0, "EUR": 165.0, "CNY": 21.0}
+            fallback_rates = (
+                self.config.FALLBACK_FOREX_RATES
+                if self.config and hasattr(self.config, "FALLBACK_FOREX_RATES")
+                else {"USD": 150.0, "HKD": 19.0, "EUR": 165.0, "CNY": 21.0}
+            )
             rate = fallback_rates.get(currency.upper(), 1.0)
             logger.warning(f"Using fallback rate for {currency}: {rate}")
             return rate
@@ -274,7 +287,11 @@ class CurrencyConverter:
                         return float(rate)
 
             # Fallback to default rates
-            fallback_rates = {"USD": 150.0, "HKD": 19.0, "EUR": 165.0, "CNY": 21.0}
+            fallback_rates = (
+                self.config.FALLBACK_FOREX_RATES
+                if self.config and hasattr(self.config, "FALLBACK_FOREX_RATES")
+                else {"USD": 150.0, "HKD": 19.0, "EUR": 165.0, "CNY": 21.0}
+            )
             rate = fallback_rates.get(currency.upper(), 1.0)
             logger.warning(f"Using fallback rate for {currency}: {rate}")
             return rate

@@ -218,7 +218,7 @@ class ForexDataManager:
 
             # Flexible column name handling for different data sources
             date_column = None
-            possible_date_columns = ["Date", "date", "index", "trade_date", "DATE"]
+            possible_date_columns = self.config.POSSIBLE_DATE_COLUMNS
             logger.info(f"Looking for date column among: {possible_date_columns}")
 
             for col in possible_date_columns:
@@ -296,7 +296,7 @@ class ForexDataManager:
         logger.info(f"Currency distribution: {currency_counts.to_dict()}")
 
         # Check forex data availability
-        forex_columns = ["USDJPY", "EURJPY"]
+        forex_columns = self.config.FOREX_COLUMN_NAMES
         available_forex = [col for col in forex_columns if col in df.columns]
         logger.info(f"Available forex columns: {available_forex}")
 

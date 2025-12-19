@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from src.config import Config
+
 from ..utils.helpers import clean_numeric, read_csv_safe, standardize_date
 
 
@@ -55,7 +57,7 @@ class DataLoader:
         df.loc[:, "trade_date"] = df["trade_date"].apply(standardize_date)
         df.loc[:, "settlement_date"] = df["settlement_date"].apply(standardize_date)
 
-        numeric_columns = ["quantity", "price", "settlement_amount"]
+        numeric_columns = self.config.NUMERIC_COLUMNS
         for col in numeric_columns:
             if col in df.columns:
                 df.loc[:, col] = df[col].apply(clean_numeric)
@@ -82,7 +84,7 @@ class DataLoader:
     def load_rakuten_jp_data(self, file_path):
         self.logger.info(f"Loading Rakuten JP data from {file_path}")
 
-        df = read_csv_safe(file_path, encoding="shift_jis")
+        df = read_csv_safe(file_path, encoding=self.config.DEFAULT_ENCODING)
 
         if df.empty:
             return df
@@ -97,7 +99,7 @@ class DataLoader:
     def load_rakuten_us_data(self, file_path):
         self.logger.info(f"Loading Rakuten US data from {file_path}")
 
-        df = read_csv_safe(file_path, encoding="shift_jis")
+        df = read_csv_safe(file_path, encoding=self.config.DEFAULT_ENCODING)
 
         if df.empty:
             return df
@@ -112,7 +114,7 @@ class DataLoader:
     def load_rakuten_investment_data(self, file_path):
         self.logger.info(f"Loading Rakuten investment data from {file_path}")
 
-        df = read_csv_safe(file_path, encoding="shift_jis")
+        df = read_csv_safe(file_path, encoding=self.config.DEFAULT_ENCODING)
 
         if df.empty:
             return df
@@ -130,7 +132,7 @@ class DataLoader:
     def load_rakuten_ch_data(self, file_path):
         self.logger.info(f"Loading Rakuten CH data from {file_path}")
 
-        df = read_csv_safe(file_path, encoding="shift_jis")
+        df = read_csv_safe(file_path, encoding=self.config.DEFAULT_ENCODING)
 
         if df.empty:
             return df
@@ -146,7 +148,9 @@ class DataLoader:
     def load_sbi_domestic_data(self, file_path):
         self.logger.info(f"Loading SBI domestic data from {file_path}")
 
-        df = read_csv_safe(file_path, encoding="shift_jis", skiprows=8)
+        df = read_csv_safe(
+            file_path, encoding=self.config.DEFAULT_ENCODING, skiprows=self.config.SBI_DOMESTIC_SKIP_ROWS
+        )
 
         if df.empty:
             return df
@@ -161,7 +165,7 @@ class DataLoader:
     def load_sbi_foreign_data(self, file_path):
         self.logger.info(f"Loading SBI foreign data from {file_path}")
 
-        df = read_csv_safe(file_path, encoding="shift_jis", skiprows=2)
+        df = read_csv_safe(file_path, encoding=self.config.DEFAULT_ENCODING, skiprows=self.config.SBI_FOREIGN_SKIP_ROWS)
 
         if df.empty:
             return df
@@ -182,7 +186,7 @@ class DataLoader:
 
         if "security_name" in df.columns:
             # Improved regex to handle 1-5 chars, optional dot (e.g. BRK.B)
-            df["security_code"] = df["security_name"].str.extract(r"([A-Z]{1,5}(?:\.[A-Z])?)")
+            df["security_code"] = df["security_name"].str.extract(self.config.TICKER_REGEX)
 
         else:
             df["security_code"] = ""
@@ -290,7 +294,7 @@ class DataLoader:
 
     def _try_codes_style_processing(self, file_path):
         try:
-            encodings = ["shift_jis", "utf-8"]
+            encodings = Config.get("fallback_encodings", ["shift_jis", "utf-8"])
             skiprows_options = [0, 5]
 
             for encoding in encodings:

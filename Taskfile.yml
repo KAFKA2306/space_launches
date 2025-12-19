@@ -32,7 +32,6 @@ tasks:
   pipeline:
     desc: "フルパイプライン: Run complete workflow (import → view → analyze → report)"
     cmds:
-      - task: import
       - task: view
       - task: analyze
       - task: report

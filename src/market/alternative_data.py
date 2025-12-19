@@ -12,6 +12,8 @@ import pandas_datareader as pdr
 import requests
 from dateutil.relativedelta import relativedelta
 
+from src.config import Config
+
 logger = logging.getLogger(__name__)
 
 
@@ -66,7 +68,7 @@ class AlternativeDataFetcher:
             df = df.sort_index()
 
             # Ensure we have required columns
-            required_columns = ["Open", "High", "Low", "Close", "Volume"]
+            required_columns = self.config.OHLCV_COLUMNS if self.config else ["Open", "High", "Low", "Close", "Volume"]
             missing_columns = [col for col in required_columns if col not in df.columns]
             if missing_columns:
                 logger.warning(f"Missing columns from STOOQ data for {symbol}: {missing_columns}")
@@ -126,7 +128,7 @@ class AlternativeDataFetcher:
 
             # Convert to DataFrame
             df = pd.DataFrame.from_dict(time_series, orient="index")
-            df.columns = ["Open", "High", "Low", "Close", "Volume"]
+            df.columns = self.config.OHLCV_COLUMNS if self.config else ["Open", "High", "Low", "Close", "Volume"]
             df.index = pd.to_datetime(df.index)
             df = df.sort_index()
 
@@ -155,7 +157,8 @@ class AlternativeDataFetcher:
             logger.info(f"Fetching {symbol} from Yahoo Finance (direct)")
 
             # Convert dates to timestamps
-            start_ts = int(pd.to_datetime(start_date or "2020-01-01").timestamp())
+            default_start = Config.get("market_start_date", "2020-01-01")
+            start_ts = int(pd.to_datetime(start_date or default_start).timestamp())
             end_ts = int(pd.to_datetime(end_date or datetime.now()).timestamp())
 
             # Yahoo Finance download URL
@@ -230,7 +233,7 @@ class AlternativeDataFetcher:
             DataFrame with historical price data
         """
         if sources is None:
-            sources = ["stooq", "yahoo", "alpha_vantage"]
+            sources = self.config.DATA_SOURCES if self.config else ["stooq", "yahoo", "alpha_vantage"]
 
         logger.info(f"Fetching historical data for {symbol} using sources: {sources}")
 

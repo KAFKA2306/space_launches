@@ -13,6 +13,9 @@ from src.config import Config
 
 logger = logging.getLogger(__name__)
 
+# Suppress matplotlib font warnings
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+
 # Set style
 plt.style.use("default")
 sns.set_palette("husl")
@@ -71,7 +74,10 @@ class TradeVisualizer:
         if "total_pnl" in holdings_df.columns:
             top_pnl = holdings_df.nlargest(10, "total_pnl").dropna(subset=["total_pnl", "security_code"])
             if not top_pnl.empty:
-                colors = ["green" if x > 0 else "red" for x in top_pnl["total_pnl"]]
+                viz_colors = Config.get("visualization", {}).get("colors", {})
+                pos_color = viz_colors.get("positive", "green")
+                neg_color = viz_colors.get("negative", "red")
+                colors = [pos_color if x > 0 else neg_color for x in top_pnl["total_pnl"]]
                 ax2.bar(range(len(top_pnl)), top_pnl["total_pnl"], color=colors)
                 ax2.set_title("Top 10 P&L by Security")
                 ax2.set_xticks(range(len(top_pnl)))
@@ -312,7 +318,10 @@ class TradeVisualizer:
 
         # Plot trades
         for _, trade in security_trades.iterrows():
-            color = "green" if trade["transaction_type"] == "buy" else "red"
+            viz_colors = Config.get("visualization", {}).get("colors", {})
+            pos_color = viz_colors.get("positive", "green")
+            neg_color = viz_colors.get("negative", "red")
+            color = pos_color if trade["transaction_type"] == "buy" else neg_color
             marker = "^" if trade["transaction_type"] == "buy" else "v"
 
             # Plot trade marker
@@ -349,7 +358,10 @@ class TradeVisualizer:
         trade_dates = security_trades["trade_date"]
         amount_column = "amount_jpy" if "amount_jpy" in security_trades.columns else "settlement_amount"
         trade_amounts = security_trades[amount_column]
-        colors = ["green" if t == "buy" else "red" for t in security_trades["transaction_type"]]
+        viz_colors = Config.get("visualization", {}).get("colors", {})
+        pos_color = viz_colors.get("positive", "green")
+        neg_color = viz_colors.get("negative", "red")
+        colors = [pos_color if t == "buy" else neg_color for t in security_trades["transaction_type"]]
 
         ax2.bar(trade_dates, trade_amounts, color=colors, alpha=0.7, width=10)
         ax2.set_ylabel("Trade Amount (JPY)")
@@ -363,13 +375,16 @@ class TradeVisualizer:
         # Add legend
         from matplotlib.lines import Line2D
 
+        viz_colors = Config.get("visualization", {}).get("colors", {})
+        pos_color = viz_colors.get("positive", "green")
+        neg_color = viz_colors.get("negative", "red")
         legend_elements = [
             Line2D(
                 [0],
                 [0],
                 marker="^",
                 color="w",
-                markerfacecolor="green",
+                markerfacecolor=pos_color,
                 markersize=10,
                 label="Buy",
             ),
@@ -378,7 +393,7 @@ class TradeVisualizer:
                 [0],
                 marker="v",
                 color="w",
-                markerfacecolor="red",
+                markerfacecolor=neg_color,
                 markersize=10,
                 label="Sell",
             ),
@@ -427,7 +442,10 @@ class TradeVisualizer:
 
         # 1. Top performers by total P&L
         top_performers = performance_df.head(10)
-        colors = ["green" if x > 0 else "red" for x in top_performers["total_pnl"]]
+        viz_colors = Config.get("visualization", {}).get("colors", {})
+        pos_color = viz_colors.get("positive", "green")
+        neg_color = viz_colors.get("negative", "red")
+        colors = [pos_color if x > 0 else neg_color for x in top_performers["total_pnl"]]
         ax1.barh(range(len(top_performers)), top_performers["total_pnl"], color=colors)
         ax1.set_title("Top 10 Securities by Total P&L")
         ax1.set_yticks(range(len(top_performers)))

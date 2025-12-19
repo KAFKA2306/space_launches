@@ -23,8 +23,8 @@ class UnifiedPortfolioAnalyzer:
 
     def __init__(self, config: Config = None):
         self.config = config or Config()
-        self.ticker_normalizer = TickerNormalizer()
-        self.currency_unifier = CurrencyUnifier()
+        self.ticker_normalizer = TickerNormalizer(self.config)
+        self.currency_unifier = CurrencyUnifier(self.config)
 
     def unified_portfolio_analysis(self, trades_df: pd.DataFrame, price_data: Optional[pd.DataFrame] = None) -> Dict:
         """
@@ -381,15 +381,18 @@ class UnifiedPortfolioAnalyzer:
         security_name = str(row.get("security_name", "")).lower()
 
         # ETF判定
-        if "etf" in security_name or any(etf_keyword in ticker for etf_keyword in ["VTI", "VOO", "QQQ", "SPY"]):
+        etf_tickers = self.config.PORTFOLIO_ANALYSIS.get("etf_tickers", [])
+        if "etf" in security_name or any(etf_keyword in ticker for etf_keyword in etf_tickers):
             return "ETF"
 
         # REIT判定
-        if "reit" in security_name or "リート" in security_name:
+        reit_keywords = self.config.PORTFOLIO_ANALYSIS.get("reit_keywords", [])
+        if any(reit_keyword in security_name for reit_keyword in reit_keywords):
             return "REIT"
 
         # 債券判定
-        if any(bond_keyword in security_name for bond_keyword in ["債券", "bond", "国債"]):
+        bond_keywords = self.config.PORTFOLIO_ANALYSIS.get("bond_keywords", [])
+        if any(bond_keyword in security_name for bond_keyword in bond_keywords):
             return "Bond"
 
         return "Stock"
@@ -399,18 +402,8 @@ class UnifiedPortfolioAnalyzer:
         if not ticker:
             return "Unknown"
 
-        # 簡易的なセクターマッピング
-        sector_mapping = {
-            "AAPL": "Technology",
-            "MSFT": "Technology",
-            "GOOGL": "Technology",
-            "AMZN": "Consumer Discretionary",
-            "TSLA": "Consumer Discretionary",
-            "NVDA": "Technology",
-            "7203": "Consumer Discretionary",  # Toyota
-            "6758": "Technology",  # Sony
-            "9984": "Technology",  # SoftBank
-        }
+        # Config から セクターマッピング取得
+        sector_mapping = self.config.SECTOR_MAPPING
 
         return sector_mapping.get(str(ticker).upper(), "Other")
 
@@ -420,15 +413,13 @@ class UnifiedPortfolioAnalyzer:
             return "Unknown"
 
         source_lower = str(data_source).lower()
+        broker_keywords = self.config.BROKER_KEYWORDS
 
-        if "rakuten" in source_lower or "tradehistory" in source_lower:
-            return "Rakuten"
-        elif "sbi" in source_lower or "savefile" in source_lower or "yakujo" in source_lower:
-            return "SBI"
-        elif "wise" in source_lower:
-            return "Wise"
-        else:
-            return "Other"
+        for broker_name, keywords in broker_keywords.items():
+            if any(keyword in source_lower for keyword in keywords):
+                return broker_name
+
+        return "Other"
 
     def _get_current_valuation(
         self, ticker: str, shares: float, price_data: Optional[pd.DataFrame]
@@ -458,7 +449,7 @@ class UnifiedPortfolioAnalyzer:
         asset_class_count = trades_df["asset_class"].nunique()
 
         # 簡易分散スコア（0-100）
-        max_possible_diversity = 10  # 仮の最大値
+        max_possible_diversity = self.config.PORTFOLIO_ANALYSIS.get("max_possible_diversity", 10)
         diversity_score = min(
             100,
             (region_count + currency_count + asset_class_count) / max_possible_diversity * 100,
@@ -523,21 +514,10 @@ class UnifiedPortfolioAnalyzer:
 class TickerNormalizer:
     """ティッカー名正規化クラス"""
 
-    def __init__(self):
-        # ティッカー統合マッピング
-        self.ticker_mappings = {
-            # 投資信託 -> 代表ETFへの統合
-            "ACWI_FUND": "ACWI",  # 全世界株式系ファンド
-            "VWO_FUND": "VWO",  # 新興国株式系ファンド
-            "VOO_FUND": "VOO",  # S&P500系ファンド
-            # 同一企業の異なる市場上場銘柄統合
-            "9984.T": "9984",  # SoftBank Tokyo
-            "AAPL": "AAPL",  # Apple
-            "GOOGL": "GOOGL",  # Google
-            # 地域別同一銘柄統合
-            "0700.HK": "700",  # Tencent Hong Kong
-            "00700": "700",  # Tencent別表記
-        }
+    def __init__(self, config: Config = None):
+        self.config = config or Config()
+        # Configからティッカー統合マッピングを取得
+        self.ticker_mappings = self.config.TICKER_MAPPINGS.copy()
 
     def normalize_ticker(self, ticker: str) -> str:
         """ティッカーの正規化"""
@@ -568,38 +548,43 @@ class TickerNormalizer:
         """投資信託名からティッカーへのマッピング"""
         fund_name_lower = str(fund_name).lower()
 
-        if "emaxis slim 全世界" in fund_name_lower or "sbi・全世界株式" in fund_name_lower:
-            return "ACWI"
-        elif "新興国株式" in fund_name_lower:
-            return "VWO"
-        elif "emaxis slim 米国" in fund_name_lower or "s&p500" in fund_name_lower:
-            return "VOO"
-        elif "全米株式" in fund_name_lower:
-            return "VTI"
-        else:
-            return "FUND_OTHER"
+        # Configからファンド名マッピングを取得
+        fund_mappings = self.config.FUND_NAME_MAPPINGS if hasattr(self, "config") else {}
+        for ticker, patterns in fund_mappings.items():
+            if any(pattern in fund_name_lower for pattern in patterns):
+                return ticker
+
+        return "FUND_OTHER"
 
 
 class CurrencyUnifier:
     """通貨統一処理クラス"""
 
-    def __init__(self):
+    def __init__(self, config: Config = None):
+        self.config = config or Config()
         self.base_currency = "JPY"
 
-        # 通貨統一マッピング
-        self.currency_mappings = {
-            "JPY": "JPY",
-            "円": "JPY",
-            "USD": "USD",
-            "ドル": "USD",
-            "HKD": "HKD",
-            "HK$": "HKD",
-            "HKドル": "HKD",
-            "EUR": "EUR",
-            "ユーロ": "EUR",
-            "GBP": "GBP",
-            "英ポンド": "GBP",
-        }
+        # Use config for currency mappings if available
+        if hasattr(self.config, "CURRENCY_NORMALIZATION"):
+            self.currency_mappings = {}
+            for standard, aliases in self.config.CURRENCY_NORMALIZATION.items():
+                for alias in aliases:
+                    self.currency_mappings[alias] = standard
+        else:
+            # Fallback to default mappings
+            self.currency_mappings = {
+                "JPY": "JPY",
+                "円": "JPY",
+                "USD": "USD",
+                "ドル": "USD",
+                "HKD": "HKD",
+                "HK$": "HKD",
+                "HKドル": "HKD",
+                "EUR": "EUR",
+                "ユーロ": "EUR",
+                "GBP": "GBP",
+                "英ポンド": "GBP",
+            }
 
     def normalize_currency(self, currency: str) -> str:
         """通貨名の正規化"""

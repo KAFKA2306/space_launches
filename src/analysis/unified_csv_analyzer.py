@@ -16,20 +16,15 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
+from src.config import Config
+
 warnings.filterwarnings("ignore")
 
-# Configure matplotlib for Japanese text
-plt.rcParams["font.family"] = [
-    "DejaVu Sans",
-    "Hiragino Sans",
-    "Yu Gothic",
-    "Meiryo",
-    "Takao",
-    "IPAexGothic",
-    "IPAPGothic",
-    "VL PGothic",
-    "Noto Sans CJK JP",
-]
+# Suppress matplotlib font warnings
+logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
+
+# Configure matplotlib for Japanese text (DejaVu Sans is always available as fallback)
+plt.rcParams["font.family"] = Config.get("font_family")
 
 logger = logging.getLogger(__name__)
 
@@ -89,14 +84,7 @@ class UnifiedCSVAnalyzer:
         df["settlement_date"] = pd.to_datetime(df["settlement_date"])
 
         # Handle numeric columns
-        numeric_cols = [
-            "quantity",
-            "price",
-            "price_jpy_unified",
-            "settlement_amount",
-            "amount_jpy_unified",
-            "conversion_rate",
-        ]
+        numeric_cols = Config.get("unified_numeric_columns")
         for col in numeric_cols:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors="coerce")
