@@ -22,18 +22,31 @@ def setup_logging(level=logging.INFO):
 
 
 def clean_numeric(value):
-    """Clean and convert value to numeric."""
+    """Clean and convert value to numeric.
+    
+    Handles Japanese financial formats like:
+    - '100,000' -> 100000
+    - '100,000(499)' -> 100000 (ignores points in parentheses)
+    - '100,000円' -> 100000
+    """
     if pd.isna(value) or value == "-" or value == "":
         return np.nan
 
     if isinstance(value, (int, float)):
         return float(value)
 
-    # Remove commas, currency symbols, and parentheses
-    value = str(value).replace(",", "").replace("円", "").replace("(", "").replace(")", "")
+    value_str = str(value)
+    
+    # Handle 'amount(points)' format: extract value BEFORE parentheses
+    # This is common in Japanese broker CSVs: 100,000(499) = 100k yen + 499 points
+    if "(" in value_str:
+        value_str = value_str.split("(")[0]
+    
+    # Remove commas and currency symbols
+    value_str = value_str.replace(",", "").replace("円", "").strip()
 
     # Extract numeric value
-    match = re.search(r"-?\d+(\.\d+)?", value)
+    match = re.search(r"-?\d+(\.\d+)?", value_str)
     if match:
         return float(match.group())
 

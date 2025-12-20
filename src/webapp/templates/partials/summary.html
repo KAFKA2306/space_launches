@@ -1,0 +1,35 @@
+{% if summary %}
+<div class="card">
+    <div class="card-title">Portfolio Summary</div>
+    <div class="stats-grid">
+        <div class="stat">
+            <div class="stat-value">{{ summary.total_holdings }}</div>
+            <div class="stat-label">Holdings</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value amount">¥{{ "{:,.0f}".format(summary.total_value) }}</div>
+            <div class="stat-label">Total Value</div>
+        </div>
+        <div class="stat">
+            <div
+                class="stat-value amount {% if summary.total_realized_pnl >= 0 %}positive{% else %}negative{% endif %}">
+                ¥{{ "{:,.0f}".format(summary.total_realized_pnl) }}
+            </div>
+            <div class="stat-label">Realized P&L</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value {% if summary.pnl_pct >= 0 %}positive{% else %}negative{% endif %}">
+                {{ "{:.2f}".format(summary.pnl_pct) }}%
+            </div>
+            <div class="stat-label">Return %</div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-title">Portfolio Summary</div>
+    <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">
+        No data available. Run <code>task import</code> first.
+    </p>
+</div>
+{% endif %}

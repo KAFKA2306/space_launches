@@ -791,7 +791,7 @@ class UnifiedCSVAnalyzer:
             fig, axes = plt.subplots(2, 3, figsize=(20, 12))
             fig.suptitle("Portfolio Dashboard", fontsize=16, fontweight="bold")
             top = self.holdings_df.nlargest(10, "total_cost_jpy")
-            axes[0, 0].barh(top["symbol"], top["total_cost_jpy"])
+            axes[0, 0].barh(top["symbol"].astype(str), top["total_cost_jpy"])
             axes[0, 0].set_title("Top Holdings")
             for col, ax, title in [("asset_class", axes[0, 1], "Asset Class"), ("region", axes[0, 2], "Region")]:
                 data = self.holdings_df.groupby(col)["total_cost_jpy"].sum()
