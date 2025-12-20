@@ -64,12 +64,14 @@ def run(args):
     print("=" * 60)
     
     # formatting for print
-    cols = ["symbol", "security_name", "quantity", "average_cost_jpy", "current_value_jpy", "unrealized_pnl_jpy", "unrealized_pnl_pct", "portfolio_weight"]
+    cols = ["symbol", "security_name", "quantity", "current_price", "average_cost_jpy", "current_value_jpy", "unrealized_pnl_jpy", "unrealized_pnl_pct", "portfolio_weight"]
     # Ensure cols exist
     existing_cols = [c for c in cols if c in holdings.columns]
     
     display_df = holdings[existing_cols].copy()
     
+    if "current_price" in display_df.columns:
+        display_df["current_price"] = display_df["current_price"].map(lambda x: f"¥{x:,.2f}" if pd.notna(x) else "-")
     if "current_value_jpy" in display_df.columns:
         display_df["current_value_jpy"] = display_df["current_value_jpy"].map(lambda x: f"¥{x:,.0f}" if pd.notna(x) else "-")
     if "quantity" in display_df.columns:
