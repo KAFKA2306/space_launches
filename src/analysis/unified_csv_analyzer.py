@@ -170,6 +170,10 @@ class UnifiedCSVAnalyzer:
                 }
 
             holdings[symbol]["last_transaction"] = max(holdings[symbol]["last_transaction"], trade["trade_date"])
+            
+            # If any trade is a fund, mark the holding as a fund (prevents ETF price being applied to fund units)
+            if trade.get("is_investment_fund", False):
+                holdings[symbol]["is_fund"] = True
 
             if trade["transaction_type"] in ["buy", "buy付", "投信金額買付"]:
                 holdings[symbol]["quantity"] += trade["quantity"] or 0
@@ -322,6 +326,12 @@ class UnifiedCSVAnalyzer:
                     elif security_name in self.fund_mapping:
                         continue
 
+                # Skip price application for Japanese investment funds (is_fund=True)
+                # These have quantities in 口 (units) that shouldn't be multiplied by US ETF prices
+                is_fund = bool(row.get("is_fund", False))
+                if is_fund:
+                    continue
+
                 # Try to find price with various suffixes if direct match fails
                 raw_price = latest_prices.get(symbol)
                 price = self._force_scalar(raw_price)
@@ -343,7 +353,7 @@ class UnifiedCSVAnalyzer:
                     is_fund = bool(row.get("is_fund", False))  # Force bool
                     quantity = self._force_scalar(row["quantity"])
 
-                    # JPY Assets
+                    # JPY Assets (Japanese stocks, J-REITs, etc.)
                     if currency in ["JPY", "円"] or str(symbol).endswith(".JP") or str(symbol).endswith(".T"):
                         if is_fund and float(price) > 100:  # 10000 unit pricing check for funds
                             current_value = (quantity / 10000) * price
@@ -351,7 +361,7 @@ class UnifiedCSVAnalyzer:
                             current_value = quantity * price
 
                     # USD Assets
-                    elif currency == "USD" or not any(c in symbol for c in [".JP", ".T"]):
+                    elif currency in ["USD", "ＵＳドル"]:
                         if pd.notna(usdjpy):
                             current_value = quantity * price * usdjpy
                         else:
@@ -361,8 +371,14 @@ class UnifiedCSVAnalyzer:
                         if symbol == "MSTR":
                              logger.info(f"MSTR Pricing: Q={quantity} P={price} FX={usdjpy} Val={current_value}")
 
+                    # HKD Assets (Hong Kong stocks)
+                    elif currency in ["HKD", "HKドル"]:
+                        hkdjpy = 20.0  # Approximate HKD to JPY rate
+                        current_value = quantity * price * hkdjpy
+
                     else:
-                        current_value = quantity * price  # Fallback
+                        # Unknown currency - use cost basis instead of potentially wrong calculation
+                        current_value = row["total_cost_jpy"]
 
                     self.holdings_df.at[idx, "current_value_jpy"] = current_value
 
