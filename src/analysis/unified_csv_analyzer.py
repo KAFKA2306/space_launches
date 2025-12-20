@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 
 from src.config import Config
+from src.market.stocks import StockDataManager
 
 warnings.filterwarnings("ignore")
 
@@ -71,6 +72,9 @@ class UnifiedCSVAnalyzer:
         self.holdings_df = None
         self.performance_df = None
         self.risk_metrics = None
+
+        # Data managers for price updates
+        self.stock_manager = StockDataManager()
 
         logger.info(f"Loaded {len(self.trades_df)} trades from unified CSV")
 
@@ -193,15 +197,115 @@ class UnifiedCSVAnalyzer:
         self.holdings_df = pd.DataFrame(holdings_data)
 
         if not self.holdings_df.empty:
-            # Add portfolio weight
-            total_value = self.holdings_df["total_cost_jpy"].sum()
-            self.holdings_df["portfolio_weight"] = self.holdings_df["total_cost_jpy"] / total_value
+            # Fetch and apply latest market prices
+            try:
+                logger.info("Fetching latest market prices...")
+                # Get unique symbols
+                symbols = set(self.holdings_df["symbol"].unique())
+                # Add USDJPY for currency conversion if needed
+                if "USD" in self.holdings_df["currency"].unique():
+                    symbols.add("USDJPY=X")
+
+                # Update price data
+                price_file = Config.MARKET_DATA_DIR / "latest_prices.csv"
+                self.stock_manager.update_stock_prices(price_file, symbols, batch_size=10)
+
+                # Load prices
+                price_data = self.stock_manager.load_stock_prices(price_file)
+                latest_prices = self.stock_manager.get_latest_prices(price_data)
+
+                # Apply prices to holdings
+                self._apply_market_prices(latest_prices)
+
+            except Exception as e:
+                logger.error(f"Failed to update market prices: {e}")
+
+            # Add portfolio weight (update based on new market value if available)
+            # Use current value if available, otherwise cost basis
+            value_col = "current_value_jpy" if "current_value_jpy" in self.holdings_df.columns else "total_cost_jpy"
+            # Fill NaN values in value_col with total_cost_jpy as fallback
+            if value_col == "current_value_jpy":
+                self.holdings_df[value_col] = self.holdings_df[value_col].fillna(self.holdings_df["total_cost_jpy"])
+
+            total_value = self.holdings_df[value_col].sum()
+            self.holdings_df["portfolio_weight"] = self.holdings_df[value_col] / total_value
 
             # Classify asset types
             self.holdings_df = self._classify_assets(self.holdings_df)
 
         logger.info(f"Found {len(self.holdings_df)} current holdings")
         return self.holdings_df
+
+    def _apply_market_prices(self, latest_prices: pd.Series):
+        """Apply latest market prices to holdings and calculate current value"""
+        if latest_prices.empty or self.holdings_df is None or self.holdings_df.empty:
+            return
+
+        logger.info(f"Applying latest prices for {len(latest_prices)} securities")
+
+        # Initialize new columns
+        self.holdings_df["current_price"] = np.nan
+        self.holdings_df["current_value_jpy"] = np.nan
+        self.holdings_df["unrealized_pnl_jpy"] = np.nan
+        self.holdings_df["unrealized_pnl_pct"] = np.nan
+
+        # Get USDJPY rate if needed
+        usdjpy = latest_prices.get("USDJPY=X")
+        if pd.isna(usdjpy):
+            # Fallback to recent rate from config or default
+            usdjpy = 150.0
+
+        for idx, row in self.holdings_df.iterrows():
+            symbol = row["symbol"]
+            security_name = row["security_name"]
+
+            # Skip valuation for Mapped Funds (Cost Basis is safer than proxy price mismatch)
+            if self.fund_mapping and security_name in self.fund_mapping:
+                logger.debug(f"Skipping valuation for mapped fund: {security_name} -> {symbol}")
+                continue
+
+            # Try to find price with various suffixes if direct match fails
+            price = latest_prices.get(symbol)
+            if pd.isna(price):
+                if str(symbol).endswith(".JP"):
+                    price = latest_prices.get(str(symbol).replace(".JP", ".T"))
+                elif str(symbol).isdigit():
+                    price = latest_prices.get(f"{symbol}.T")
+
+            if pd.notna(price):
+                self.holdings_df.at[idx, "current_price"] = price
+
+                # Calculate current value in JPY
+                currency = row.get("currency", "JPY")
+                is_fund = row.get("is_fund", False)
+                quantity = row["quantity"]
+
+                # JPY Assets
+                if currency in ["JPY", "円"] or str(symbol).endswith(".JP") or str(symbol).endswith(".T"):
+                    if is_fund and price > 100:  # 10000 unit pricing check for funds
+                        current_value = (quantity / 10000) * price
+                    else:
+                        current_value = quantity * price
+
+                # USD Assets
+                elif currency == "USD" or not any(c in symbol for c in [".JP", ".T"]):
+                    if pd.notna(usdjpy):
+                        current_value = quantity * price * usdjpy
+                    else:
+                        current_value = quantity * price * 150  # Fallback
+
+                else:
+                    current_value = quantity * price  # Fallback
+
+                self.holdings_df.at[idx, "current_value_jpy"] = current_value
+
+                # Calculate P&L
+                cost = row["total_cost_jpy"]
+                pnl = current_value - cost
+                pnl_pct = (pnl / cost * 100) if cost > 0 else 0
+
+                self.holdings_df.at[idx, "unrealized_pnl_jpy"] = pnl
+                self.holdings_df.at[idx, "unrealized_pnl_pct"] = pnl_pct
 
     def _classify_assets(self, df: pd.DataFrame) -> pd.DataFrame:
         """Classify assets by type, region, and sector"""

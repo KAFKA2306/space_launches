@@ -7,7 +7,6 @@ from src.market.data_converter import DataConverter
 from src.market.forex import ForexDataManager
 from src.market.fund_dictionary_builder import FundDictionaryBuilder
 from src.market.stocks import StockDataManager
-from src.utils.helpers import get_timestamp
 
 
 def update_market_data(config, logger):

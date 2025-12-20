@@ -3,7 +3,7 @@ import pandas as pd
 from src.analysis.portfolio import PortfolioAnalyzer
 from src.analysis.visualization import TradeVisualizer
 from src.config import Config
-from src.utils.helpers import get_timestamp, setup_logging
+from src.utils.helpers import setup_logging
 
 
 def register(subparsers, command_name: str = "view"):
@@ -38,7 +38,7 @@ def find_latest_processed_data(config, logger):
             logger.error(f"No processed trade data found in {trades_dir}. Please run 'task fetch' first.")
             return None, None
         latest_trades_file = max(trades_files, key=lambda x: x.stat().st_mtime)
-    
+
     logger.info(f"Using trades file: {latest_trades_file.name}")
 
     trades_df = pd.read_csv(latest_trades_file, parse_dates=["trade_date"])

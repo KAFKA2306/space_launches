@@ -42,7 +42,7 @@ def find_latest_unified_csv():
     # Try new non-timestamped file first
     csv_file = csv_dir / "trades_unified.csv"
     fund_file = csv_dir / "fund_ticker_mapping.csv"
-    
+
     if csv_file.exists():
         return csv_file, fund_file if fund_file.exists() else None
 

@@ -12,6 +12,13 @@
         </div>
         <div class="stat">
             <div
+                class="stat-value amount {% if summary.total_unrealized_pnl >= 0 %}positive{% else %}negative{% endif %}">
+                ¥{{ "{:,.0f}".format(summary.total_unrealized_pnl) }}
+            </div>
+            <div class="stat-label">Unrealized P&L</div>
+        </div>
+        <div class="stat">
+            <div
                 class="stat-value amount {% if summary.total_realized_pnl >= 0 %}positive{% else %}negative{% endif %}">
                 ¥{{ "{:,.0f}".format(summary.total_realized_pnl) }}
             </div>

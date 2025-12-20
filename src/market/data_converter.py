@@ -642,7 +642,7 @@ class DataConverter:
                     logger.warning("No trades files found")
                     return None
                 trades_file = max(trades_files, key=lambda x: x.stat().st_mtime)
-            
+
             latest_trades_file = trades_file
             logger.info(f"Processing trades file: {latest_trades_file}")
 

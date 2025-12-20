@@ -37,6 +37,10 @@ data/
 - **JPY Unification**: `150.5 USD` → `22575 JPY` 日次レートで変換
 - **Separation of Concerns**: `import` と `analyze` を完全分離
 
+## Documentation
+
+- [Data Architecture & Formatting Standards](docs/DATA_STANDARDS.md) - Strict guide on data ingestion and schema.
+
 ## License
 
 Personal Use Only.

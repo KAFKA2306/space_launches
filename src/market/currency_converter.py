@@ -208,6 +208,15 @@ class CurrencyConverter:
                 "ニッセイ",
                 "Nissay",
                 "Tracers",
+                "ブル",  # Leveraged bull funds
+                "ベア",  # Leveraged bear funds
+                "レバレッジ",  # Leveraged
+                "REIT",  # Real estate funds
+                "リート",
+                "NZAM",  # Fund brand
+                "auAM",  # Fund brand
+                "為替ヘッジ",  # Hedged funds
+                "Slim",  # eMAXIS Slim series
             ]
         )
 
@@ -228,8 +237,10 @@ class CurrencyConverter:
         if any(indicator in security_name for indicator in fund_indicators):
             return True
 
-        # If security_code is empty, it's likely a fund
-        if not security_code or security_code.strip() == "":
+        # If security_code is empty or NaN, it's likely a fund
+        if not security_code or (isinstance(security_code, float) and pd.isna(security_code)):
+            return True
+        if isinstance(security_code, str) and security_code.strip() == "":
             return True
 
         return False
@@ -310,12 +321,15 @@ class CurrencyConverter:
             - conversion_info: Details about the conversion
         """
         try:
-            security_name = trade_data.get("security_name", "")
+            security_name = str(trade_data.get("security_name", "") or "")
             security_code = trade_data.get("security_code", "")
-            currency = trade_data.get("currency", "JPY")
-            price = float(trade_data.get("price", 0))
-            quantity = float(trade_data.get("quantity", 0))
-            settlement_amount = float(trade_data.get("settlement_amount", 0))
+            raw_currency = trade_data.get("currency", "JPY")
+            currency = str(raw_currency) if pd.notna(raw_currency) else "JPY"
+            price = float(trade_data.get("price", 0) or 0)
+            quantity = float(trade_data.get("quantity", 0) or 0)
+            # Handle NaN settlement_amount
+            raw_settlement = trade_data.get("settlement_amount", 0)
+            settlement_amount = float(raw_settlement) if pd.notna(raw_settlement) else 0
             trade_date = trade_data.get("trade_date")
 
             # Parse trade date
@@ -329,7 +343,11 @@ class CurrencyConverter:
             is_fund = self._is_investment_fund(security_name, security_code)
 
             # Calculate unified JPY price
-            if currency.upper() == "JPY":
+            # Normalize currency for comparison
+            currency_upper = currency.upper() if isinstance(currency, str) else "JPY"
+            is_jpy = currency_upper in ["JPY", "円"]
+
+            if is_jpy:
                 price_jpy = price
                 if is_fund and price > 100:  # Apply 10,000x rule for Japanese funds
                     price_jpy = price / 10000
@@ -353,9 +371,17 @@ class CurrencyConverter:
                     is_settlement_in_foreign = True
 
             # Decide conversion
-            amount_jpy = settlement_amount
-            if currency.upper() != "JPY" and is_settlement_in_foreign:
+            if settlement_amount == 0 or pd.isna(settlement_amount):
+                # Fallback: calculate from price * quantity
+                if is_fund and is_jpy:
+                    # Japanese investment funds: price is per 10,000 units
+                    amount_jpy = (quantity / 10000) * price
+                else:
+                    amount_jpy = price * quantity * exchange_rate
+            elif not is_jpy and is_settlement_in_foreign:
                 amount_jpy = settlement_amount * exchange_rate
+            else:
+                amount_jpy = settlement_amount
 
             conversion_info = {
                 "original_currency": currency,

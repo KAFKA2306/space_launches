@@ -23,7 +23,7 @@ def setup_logging(level=logging.INFO):
 
 def clean_numeric(value):
     """Clean and convert value to numeric.
-    
+
     Handles Japanese financial formats like:
     - '100,000' -> 100000
     - '100,000(499)' -> 100000 (ignores points in parentheses)
@@ -35,13 +35,18 @@ def clean_numeric(value):
     if isinstance(value, (int, float)):
         return float(value)
 
+    import unicodedata
+
     value_str = str(value)
     
+    # Normalize unicode characters (handles full-width numbers/punctuation)
+    value_str = unicodedata.normalize("NFKC", value_str)
+
     # Handle 'amount(points)' format: extract value BEFORE parentheses
     # This is common in Japanese broker CSVs: 100,000(499) = 100k yen + 499 points
     if "(" in value_str:
         value_str = value_str.split("(")[0]
-    
+
     # Remove commas and currency symbols
     value_str = value_str.replace(",", "").replace("円", "").strip()
 

@@ -44,6 +44,10 @@ class DataLoader:
             return "sbi_foreign"
         elif "wise" in filename:
             return "wise"
+        elif "monex" in filename:
+            return "monex"
+        elif "binance" in filename:
+            return "binance"
         elif "assetbalance" in filename or "new_file" in filename:
             return "portfolio"
 
@@ -197,6 +201,7 @@ class DataLoader:
         return df
 
     def load_wise_data(self, file_path):
+        """Load Wise transfer data - note: these are transfers, not stock trades."""
         self.logger.info(f"Loading Wise data from {file_path}")
 
         df = read_csv_safe(file_path, encoding="utf-8")
@@ -204,7 +209,153 @@ class DataLoader:
         if df.empty:
             return df
 
+        # Wise files are transfer records, not stock trades
+        # Only import if it looks like a stock transaction file
+        if "stock" in file_path.name.lower():
+            # Map columns for Wise stock transactions
+            column_mapping = {
+                "作成日": "trade_date",
+                "完了日": "settlement_date",
+                "送金額（手数料差し引き後）": "amount",
+                "送金元通貨": "currency",
+                "備考": "security_name",
+            }
+            df = df.rename(columns=column_mapping)
+
+            # Wise stock files may contain asset transfers
+            if "ID" in df.columns and df["ID"].str.contains("ASSETS", na=False).any():
+                self.logger.info("Wise file contains asset transfer records")
+                df["transaction_type"] = df.apply(
+                    lambda row: "buy" if "WITHDRAWAL" not in str(row.get("ID", "")) else "sell", axis=1
+                )
+            else:
+                self.logger.info("Wise file doesn't appear to contain tradable assets, skipping")
+                return pd.DataFrame()
+
+            df = self._standardize_columns(df, file_path.name)
+            self.logger.info(f"Successfully loaded {len(df)} Wise stock records from {file_path.name}")
+            return df
+        else:
+            self.logger.info(f"Skipping non-stock Wise file: {file_path.name}")
+            return pd.DataFrame()
+
+    def load_monex_data(self, file_path):
+        """Load Monex broker trading data."""
+        self.logger.info(f"Loading Monex data from {file_path}")
+
+        # Monex files have a header row with creation date that needs to be skipped
+        df = read_csv_safe(file_path, encoding="shift_jis", skiprows=1)
+
+        if df.empty:
+            return df
+
+        # Map Monex columns to standard format
+        column_mapping = {
+            "約定日": "trade_date",
+            "受渡日": "settlement_date",
+            "口座": "account_type",
+            "商品": "product_type",
+            "取引": "transaction_type",
+            "銘柄コード": "security_code",
+            "銘柄名": "security_name",
+            "数量（株/口）/返済数量": "quantity",
+            "単価/返済約定単価": "price",
+            "手数料": "commission",
+            "税金(手数料消費税及び譲渡益税)": "tax",
+            "受渡金額(円)": "settlement_amount",
+        }
+        df = df.rename(columns=column_mapping)
+
+        # Filter out non-trade rows (like deposits)
+        if "transaction_type" in df.columns:
+            # Keep only actual trades (買付, 売付, etc.)
+            valid_transactions = df["transaction_type"].notna() & df["transaction_type"].str.contains(
+                "買付|売付|お買付|お売付", na=False
+            )
+            df = df[valid_transactions]
+
+        # Filter out MRF (Money Reserve Fund) records - these are cash management, not investments
+        if "security_name" in df.columns:
+            mrf_mask = df["security_name"].str.contains("ＭＲＦ|MRF", na=False)
+            if mrf_mask.any():
+                self.logger.info(f"Filtering out {mrf_mask.sum()} MRF (Money Reserve Fund) records")
+                df = df[~mrf_mask]
+
+        # Ensure security_code is string
+        if "security_code" in df.columns:
+            df["security_code"] = df["security_code"].astype(str).replace("nan", "")
+
+        df["currency"] = "JPY"
         df = self._standardize_columns(df, file_path.name)
+
+        self.logger.info(f"Successfully loaded {len(df)} trading records from {file_path.name}")
+        return df
+
+    def load_binance_data(self, file_path):
+        """Load Binance trading data from zip file containing xlsx."""
+        import io
+        import zipfile
+
+        self.logger.info(f"Loading Binance data from {file_path}")
+
+        try:
+            with zipfile.ZipFile(file_path, "r") as z:
+                xlsx_files = [f for f in z.namelist() if f.endswith(".xlsx")]
+                if not xlsx_files:
+                    self.logger.warning(f"No xlsx files found in {file_path}")
+                    return pd.DataFrame()
+
+                xlsx_name = xlsx_files[0]
+                self.logger.info(f"Reading {xlsx_name} from zip")
+
+                with z.open(xlsx_name) as f:
+                    df = pd.read_excel(io.BytesIO(f.read()))
+
+        except RuntimeError as e:
+            if "encrypted" in str(e).lower() or "password" in str(e).lower():
+                self.logger.warning(f"Binance zip file is password-protected: {file_path}")
+                return pd.DataFrame()
+            raise
+        except Exception as e:
+            self.logger.error(f"Failed to read Binance zip: {e}")
+            return pd.DataFrame()
+
+        if df.empty:
+            return df
+
+        # Map Binance columns to standard format
+        # Typical Binance columns: Time, Pair, Side, Price, Executed, Amount, Fee
+        column_mapping = {
+            "Time": "trade_date",
+            "UTC_Time": "trade_date",
+            "Date(UTC)": "trade_date",
+            "Pair": "security_code",
+            "Symbol": "security_code",
+            "Side": "transaction_type",
+            "Type": "transaction_type",
+            "Operation": "transaction_type",
+            "Price": "price",
+            "Executed": "quantity",
+            "Filled": "quantity",
+            "Amount": "amount",
+            "Total": "amount",
+            "Fee": "commission",
+            "Coin": "currency",
+        }
+        df = df.rename(columns={k: v for k, v in column_mapping.items() if k in df.columns})
+
+        # Standardize transaction types
+        if "transaction_type" in df.columns:
+            df["transaction_type"] = df["transaction_type"].apply(
+                lambda x: "buy"
+                if str(x).upper() in ["BUY", "DEPOSIT"]
+                else "sell"
+                if str(x).upper() in ["SELL", "WITHDRAW"]
+                else str(x).lower()
+            )
+
+        df["data_source"] = file_path.name
+        df = self._finalize_dataframe(df)
 
         self.logger.info(f"Successfully loaded {len(df)} trading records from {file_path.name}")
         return df
@@ -320,41 +471,49 @@ class DataLoader:
         self.logger.info("Using direct file processing approach inspired by CODES/1concat.py...")
 
         all_trades_data = []
+        # Find CSV files
         csv_files = list(Path(data_dir).rglob("*.csv"))
-        self.logger.info(f"Found {len(csv_files)} total CSV files")
+        # Also find zip files (for Binance)
+        zip_files = list(Path(data_dir).rglob("*.zip"))
+        all_files = csv_files + zip_files
+        self.logger.info(f"Found {len(csv_files)} CSV files and {len(zip_files)} zip files")
 
-        for csv_file in csv_files:
+        for data_file in all_files:
             try:
-                file_type = self.detect_file_type(csv_file.name)
-                self.logger.info(f"Detected file type '{file_type}' for {csv_file.name}")
+                file_type = self.detect_file_type(data_file.name)
+                self.logger.info(f"Detected file type '{file_type}' for {data_file.name}")
 
-                self.logger.info(f"Loading file: {csv_file}")
+                self.logger.info(f"Loading file: {data_file}")
 
                 if file_type == "rakuten_jp":
-                    df = self.load_rakuten_jp_data(csv_file)
+                    df = self.load_rakuten_jp_data(data_file)
                 elif file_type == "rakuten_us":
-                    df = self.load_rakuten_us_data(csv_file)
+                    df = self.load_rakuten_us_data(data_file)
                 elif file_type == "rakuten_investment":
-                    df = self.load_rakuten_investment_data(csv_file)
+                    df = self.load_rakuten_investment_data(data_file)
                 elif file_type == "rakuten_ch":
-                    df = self.load_rakuten_ch_data(csv_file)
+                    df = self.load_rakuten_ch_data(data_file)
                 elif file_type == "sbi_domestic":
-                    df = self.load_sbi_domestic_data(csv_file)
+                    df = self.load_sbi_domestic_data(data_file)
                 elif file_type == "sbi_foreign":
-                    df = self.load_sbi_foreign_data(csv_file)
+                    df = self.load_sbi_foreign_data(data_file)
                 elif file_type == "wise":
-                    df = self.load_wise_data(csv_file)
+                    df = self.load_wise_data(data_file)
+                elif file_type == "monex":
+                    df = self.load_monex_data(data_file)
+                elif file_type == "binance":
+                    df = self.load_binance_data(data_file)
                 elif file_type == "portfolio":
-                    df = self.load_portfolio_data(csv_file)
+                    df = self.load_portfolio_data(data_file)
                 else:
-                    self.logger.info(f"Unknown file type for {csv_file.name}, trying CODES-style direct processing")
-                    df = self._try_codes_style_processing(csv_file)
+                    self.logger.info(f"Unknown file type for {data_file.name}, trying CODES-style direct processing")
+                    df = self._try_codes_style_processing(data_file)
 
                 if df is not None and not df.empty:
                     all_trades_data.append(df)
 
             except Exception as e:
-                self.logger.error(f"Error loading {csv_file}: {e}")
+                self.logger.error(f"Error loading {data_file}: {e}")
                 continue
 
         if not all_trades_data:
