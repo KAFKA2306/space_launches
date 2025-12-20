@@ -15,7 +15,7 @@
     <div id="refresh-status"></div>
 
     <!-- Summary Cards -->
-    <div id="summary" hx-get="/api/summary" hx-trigger="load">
+    <div id="summary" hx-get="/api/summary" hx-trigger="load, dataRefreshed from:body">
         <div class="loading">Loading summary...</div>
     </div>
 
@@ -30,7 +30,8 @@
         <div class="card-title">Current Holdings</div>
         <div class="search-bar">
             <input type="text" name="q" placeholder="Search holdings..." hx-get="/api/holdings"
-                hx-target="#holdings-table" hx-trigger="keyup changed delay:300ms" hx-include="[name='sort']">
+                hx-target="#holdings-table" hx-trigger="keyup changed delay:300ms, dataRefreshed from:body"
+                hx-include="[name='sort']">
             <select name="sort" hx-get="/api/holdings" hx-target="#holdings-table" hx-trigger="change"
                 hx-include="[name='q']">
                 <option value="value">Sort: Value</option>
@@ -38,7 +39,7 @@
                 <option value="name">Sort: Name</option>
             </select>
         </div>
-        <div id="holdings-table" hx-get="/api/holdings" hx-trigger="load">
+        <div id="holdings-table" hx-get="/api/holdings" hx-trigger="load, dataRefreshed from:body">
             <div class="loading">Loading holdings...</div>
         </div>
     </div>
@@ -46,7 +47,7 @@
     <!-- Trades Tab (hidden by default) -->
     <div id="trades-tab" class="card" style="display: none;">
         <div class="card-title">Trade History</div>
-        <div id="trades-table" hx-get="/api/trades" hx-trigger="revealed">
+        <div id="trades-table" hx-get="/api/trades" hx-trigger="revealed, dataRefreshed from:body">
             <div class="loading">Loading trades...</div>
         </div>
     </div>

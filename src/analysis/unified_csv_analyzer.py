@@ -8,6 +8,7 @@ import logging
 import warnings
 from dataclasses import dataclass
 from datetime import datetime
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -106,6 +107,41 @@ class UnifiedCSVAnalyzer:
         if self.fund_mapping_path.exists():
             return pd.read_csv(self.fund_mapping_path)
         return None
+
+    def _force_scalar(self, val):
+        """Recursively reduce pandas/numpy objects to scalar"""
+        if val is None:
+            return np.nan
+        
+        # Keep unwrapping until we get a Python scalar
+        max_iterations = 10
+        for _ in range(max_iterations):
+            if isinstance(val, (pd.Series, pd.DataFrame)):
+                if val.empty:
+                    return np.nan
+                val = val.iloc[0]
+            elif isinstance(val, np.ndarray):
+                if val.size == 0:
+                    return np.nan
+                if val.ndim == 0:
+                    val = val.item()
+                else:
+                    val = val[0]
+            elif isinstance(val, list):
+                if not val:
+                    return np.nan
+                val = val[0]
+            else:
+                break
+        
+        # Final conversion to Python float if it's a numpy type
+        if hasattr(val, 'item'):
+            try:
+                return val.item()
+            except (ValueError, AttributeError):
+                pass
+        
+        return val
 
     def analyze_current_holdings(self) -> pd.DataFrame:
         """Calculate current portfolio holdings with comprehensive metrics"""
@@ -207,8 +243,9 @@ class UnifiedCSVAnalyzer:
                     symbols.add("USDJPY=X")
 
                 # Update price data
-                price_file = Config.MARKET_DATA_DIR / "latest_prices.csv"
-                self.stock_manager.update_stock_prices(price_file, symbols, batch_size=10)
+                price_file = Config.MARKET_DATA_DIR / "stock_prices.csv"
+                # Removed blocking call: prices should be updated via 'task import' or background job
+                # # self.stock_manager.update_stock_prices(price_file, symbols, batch_size=10)
 
                 # Load prices
                 price_data = self.stock_manager.load_stock_prices(price_file)
@@ -241,6 +278,15 @@ class UnifiedCSVAnalyzer:
         if latest_prices.empty or self.holdings_df is None or self.holdings_df.empty:
             return
 
+        # Ensure latest_prices is a Series
+        if isinstance(latest_prices, pd.DataFrame):
+            logger.warning("latest_prices is a DataFrame, taking the last row")
+            latest_prices = latest_prices.iloc[-1]
+        
+        # Ensure it has no duplicates
+        if latest_prices.index.duplicated().any():
+            latest_prices = latest_prices[~latest_prices.index.duplicated(keep="first")]
+
         logger.info(f"Applying latest prices for {len(latest_prices)} securities")
 
         # Initialize new columns
@@ -251,61 +297,85 @@ class UnifiedCSVAnalyzer:
 
         # Get USDJPY rate if needed
         usdjpy = latest_prices.get("USDJPY=X")
+        if isinstance(usdjpy, (pd.Series, pd.DataFrame)):
+             usdjpy = usdjpy.iloc[0] # Handle ambiguity
+        
         if pd.isna(usdjpy):
             # Fallback to recent rate from config or default
             usdjpy = 150.0
 
         for idx, row in self.holdings_df.iterrows():
             symbol = row["symbol"]
-            security_name = row["security_name"]
+            try:
+                security_name = row["security_name"]
 
-            # Skip valuation for Mapped Funds (Cost Basis is safer than proxy price mismatch)
-            if self.fund_mapping and security_name in self.fund_mapping:
-                logger.debug(f"Skipping valuation for mapped fund: {security_name} -> {symbol}")
-                continue
+                # Skip valuation for Mapped Funds (Cost Basis is safer than proxy price mismatch)
+                fund_mapping_exists = self.fund_mapping is not None and (
+                    not isinstance(self.fund_mapping, pd.DataFrame) or not self.fund_mapping.empty
+                )
+                if fund_mapping_exists:
+                    # Check if security_name is in the mapping
+                    if isinstance(self.fund_mapping, pd.DataFrame):
+                        names = self.fund_mapping.iloc[:, 0].tolist() if not self.fund_mapping.empty else []
+                        if security_name in names:
+                            continue
+                    elif security_name in self.fund_mapping:
+                        continue
 
-            # Try to find price with various suffixes if direct match fails
-            price = latest_prices.get(symbol)
-            if pd.isna(price):
-                if str(symbol).endswith(".JP"):
-                    price = latest_prices.get(str(symbol).replace(".JP", ".T"))
-                elif str(symbol).isdigit():
-                    price = latest_prices.get(f"{symbol}.T")
+                # Try to find price with various suffixes if direct match fails
+                raw_price = latest_prices.get(symbol)
+                price = self._force_scalar(raw_price)
+                
+                if pd.isna(price):
+                    if str(symbol).endswith(".JP"):
+                        p = latest_prices.get(str(symbol).replace(".JP", ".T"))
+                        price = self._force_scalar(p)
+                    elif str(symbol).isdigit():
+                        p = latest_prices.get(f"{symbol}.T")
+                        price = self._force_scalar(p)
 
-            if pd.notna(price):
-                self.holdings_df.at[idx, "current_price"] = price
 
-                # Calculate current value in JPY
-                currency = row.get("currency", "JPY")
-                is_fund = row.get("is_fund", False)
-                quantity = row["quantity"]
+                if pd.notna(price):
+                    self.holdings_df.at[idx, "current_price"] = price
 
-                # JPY Assets
-                if currency in ["JPY", "円"] or str(symbol).endswith(".JP") or str(symbol).endswith(".T"):
-                    if is_fund and price > 100:  # 10000 unit pricing check for funds
-                        current_value = (quantity / 10000) * price
+                    # Calculate current value in JPY
+                    currency = row.get("currency", "JPY")
+                    is_fund = bool(row.get("is_fund", False))  # Force bool
+                    quantity = self._force_scalar(row["quantity"])
+
+                    # JPY Assets
+                    if currency in ["JPY", "円"] or str(symbol).endswith(".JP") or str(symbol).endswith(".T"):
+                        if is_fund and float(price) > 100:  # 10000 unit pricing check for funds
+                            current_value = (quantity / 10000) * price
+                        else:
+                            current_value = quantity * price
+
+                    # USD Assets
+                    elif currency == "USD" or not any(c in symbol for c in [".JP", ".T"]):
+                        if pd.notna(usdjpy):
+                            current_value = quantity * price * usdjpy
+                        else:
+                            current_value = quantity * price * 150  # Fallback
+                        
+                        # Logging MSTR for confirmation
+                        if symbol == "MSTR":
+                             logger.info(f"MSTR Pricing: Q={quantity} P={price} FX={usdjpy} Val={current_value}")
+
                     else:
-                        current_value = quantity * price
+                        current_value = quantity * price  # Fallback
 
-                # USD Assets
-                elif currency == "USD" or not any(c in symbol for c in [".JP", ".T"]):
-                    if pd.notna(usdjpy):
-                        current_value = quantity * price * usdjpy
-                    else:
-                        current_value = quantity * price * 150  # Fallback
+                    self.holdings_df.at[idx, "current_value_jpy"] = current_value
 
-                else:
-                    current_value = quantity * price  # Fallback
+                    # Calculate P&L
+                    cost = row["total_cost_jpy"]
+                    pnl = current_value - cost
+                    pnl_pct = (pnl / cost * 100) if cost > 0 else 0
 
-                self.holdings_df.at[idx, "current_value_jpy"] = current_value
-
-                # Calculate P&L
-                cost = row["total_cost_jpy"]
-                pnl = current_value - cost
-                pnl_pct = (pnl / cost * 100) if cost > 0 else 0
-
-                self.holdings_df.at[idx, "unrealized_pnl_jpy"] = pnl
-                self.holdings_df.at[idx, "unrealized_pnl_pct"] = pnl_pct
+                    self.holdings_df.at[idx, "unrealized_pnl_jpy"] = pnl
+                    self.holdings_df.at[idx, "unrealized_pnl_pct"] = pnl_pct
+            
+            except Exception as e:
+                logger.exception(f"Error pricing symbol {symbol}")
 
     def _classify_assets(self, df: pd.DataFrame) -> pd.DataFrame:
         """Classify assets by type, region, and sector"""

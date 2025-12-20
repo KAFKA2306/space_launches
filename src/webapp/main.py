@@ -162,11 +162,18 @@ async def get_trades(request: Request, page: int = 1, limit: int = 20):
 async def refresh_data(request: Request):
     """Trigger data refresh."""
     import subprocess
+    import asyncio
 
-    result = subprocess.run(["task", "import"], capture_output=True, text=True, cwd=Config.BASE_DIR)
+    # Run blocking task in executor
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(
+        None,
+        lambda: subprocess.run(["task", "import", "--", "--download"], capture_output=True, text=True, cwd=Config.BASE_DIR)
+    )
+
     success = result.returncode == 0
 
-    return templates.TemplateResponse(
+    response = templates.TemplateResponse(
         "partials/refresh_result.html",
         {
             "request": request,
@@ -174,3 +181,8 @@ async def refresh_data(request: Request):
             "message": "Data refreshed!" if success else "Refresh failed",
         },
     )
+    
+    if success:
+        response.headers["HX-Trigger"] = "dataRefreshed"
+        
+    return response

@@ -284,6 +284,8 @@ class DataLoader:
         # Ensure security_code is string
         if "security_code" in df.columns:
             df["security_code"] = df["security_code"].astype(str).replace("nan", "")
+            # Fix float-string conversion issue (e.g. "8223.0" -> "8223")
+            df["security_code"] = df["security_code"].apply(lambda x: x.replace(".0", "") if x.endswith(".0") else x)
 
         df["currency"] = "JPY"
         df = self._standardize_columns(df, file_path.name)

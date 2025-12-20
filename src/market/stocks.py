@@ -417,7 +417,9 @@ class StockDataManager:
         if price_data.empty:
             return pd.Series()
 
-        latest_prices = price_data.iloc[-1]
+        # Use ffill to get the last valid observation for each column
+        # This handles cases where different markets have different trading days
+        latest_prices = price_data.ffill().iloc[-1]
         return latest_prices.dropna()
 
     def calculate_returns(self, price_data: pd.DataFrame, period: int = 1) -> pd.DataFrame:
