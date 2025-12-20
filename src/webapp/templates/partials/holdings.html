@@ -37,7 +37,8 @@
             <td style="max-width: 300px;">{{ h.security_name or '-' }}</td>
             <td class="amount">{{ "{:,.0f}".format(qty) }}</td>
             <td class="amount">{% if avg_cost > 0 %}¥{{ "{:,.0f}".format(avg_cost) }}{% else %}-{% endif %}</td>
-            <td class="amount">{% if current_price > 0 %}{{ "{:,.2f}".format(current_price) }}{% else %}-{% endif %}
+            <td class="amount">{% if h.current_price and h.current_price > 0 %}¥{{ "{:,.2f}".format(h.current_price)
+                }}{% else %}-{% endif %}
             </td>
             <td class="amount">{% if market_val > 0 %}¥{{ "{:,.0f}".format(market_val) }}{% else %}-{% endif %}</td>
             <td class="amount {% if pnl >= 0 %}positive{% else %}negative{% endif %}">
