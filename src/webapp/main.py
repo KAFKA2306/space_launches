@@ -186,3 +186,52 @@ async def refresh_data(request: Request):
         response.headers["HX-Trigger"] = "dataRefreshed"
         
     return response
+
+
+@app.get("/api/realtime-prices")
+async def get_realtime_prices():
+    """Fetch real-time prices for key holdings."""
+    import yfinance as yf
+    import asyncio
+    
+    # Get top symbols from current holdings
+    analyzer = get_analyzer()
+    if not analyzer:
+        return {"error": "No data"}
+    
+    holdings = analyzer.analyze_current_holdings()
+    if holdings.empty:
+        return {"error": "No holdings"}
+    
+    # Get non-fund symbols (actual stocks/ETFs)
+    symbols = holdings[~holdings["is_fund"]][["symbol"]].head(20)["symbol"].tolist()
+    
+    # Filter to valid Yahoo Finance symbols
+    valid_symbols = [s for s in symbols if not s.startswith("USDJPY") and not s.isdigit()]
+    
+    # Fetch real-time prices
+    loop = asyncio.get_event_loop()
+    
+    def fetch_prices():
+        prices = {}
+        try:
+            tickers = yf.Tickers(" ".join(valid_symbols[:10]))  # Limit to 10 for speed
+            for sym in valid_symbols[:10]:
+                try:
+                    ticker = tickers.tickers.get(sym)
+                    if ticker:
+                        info = ticker.fast_info
+                        prices[sym] = {
+                            "price": round(info.last_price, 2) if info.last_price else None,
+                            "change": round(info.last_price - info.previous_close, 2) if info.last_price and info.previous_close else None,
+                            "change_pct": round((info.last_price - info.previous_close) / info.previous_close * 100, 2) if info.last_price and info.previous_close else None,
+                        }
+                except Exception:
+                    prices[sym] = {"price": None, "error": "fetch failed"}
+        except Exception as e:
+            return {"error": str(e)}
+        return prices
+    
+    prices = await loop.run_in_executor(None, fetch_prices)
+    return {"prices": prices, "symbols": valid_symbols[:10]}
+
