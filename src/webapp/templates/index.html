@@ -1,70 +1,98 @@
-{% extends "base.html" %}
-
-{% block title %}TraHist - Dashboard{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}TraHist - Dashboard{% endblock %} {%
+block content %}
 <div class="container">
-    <header>
-        <h1>📊 TraHist</h1>
-        <button class="btn btn-primary" hx-post="/api/refresh" hx-target="#refresh-status"
-            hx-indicator=".htmx-indicator">
-            🔄 Refresh Data
-        </button>
-    </header>
+  <header>
+    <h1>📊 TraHist</h1>
+    <button
+      class="btn btn-primary"
+      hx-post="/api/refresh"
+      hx-target="#refresh-status"
+      hx-indicator=".htmx-indicator"
+    >
+      🔄 Refresh Data
+    </button>
+  </header>
 
-    <div id="refresh-status"></div>
+  <div id="refresh-status"></div>
 
-    <!-- Summary Cards -->
-    <div id="summary" hx-get="/api/summary" hx-trigger="load, dataRefreshed from:body">
-        <div class="loading">Loading summary...</div>
+  <!-- Summary Cards -->
+  <div
+    id="summary"
+    hx-get="/api/summary"
+    hx-trigger="load, dataRefreshed from:body"
+  >
+    <div class="loading">Loading summary...</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('holdings')">Holdings</button>
+    <button class="tab" onclick="showTab('trades')">Trades</button>
+  </div>
+
+  <!-- Holdings Tab -->
+  <div id="holdings-tab" class="card">
+    <div class="card-title">Current Holdings</div>
+    <div class="search-bar">
+      <input
+        type="text"
+        name="q"
+        placeholder="Search holdings..."
+        hx-get="/api/holdings"
+        hx-target="#holdings-table"
+        hx-trigger="keyup changed delay:300ms, dataRefreshed from:body"
+        hx-include="[name='sort']"
+      />
+      <select
+        name="sort"
+        hx-get="/api/holdings"
+        hx-target="#holdings-table"
+        hx-trigger="change"
+        hx-include="[name='q']"
+      >
+        <option value="value">Sort: Value</option>
+        <option value="percent">Sort: Return %</option>
+        <option value="pnl">Sort: P&L</option>
+        <option value="name">Sort: Name</option>
+      </select>
     </div>
-
-    <!-- Tabs -->
-    <div class="tabs">
-        <button class="tab active" onclick="showTab('holdings')">Holdings</button>
-        <button class="tab" onclick="showTab('trades')">Trades</button>
+    <div
+      id="holdings-table"
+      hx-get="/api/holdings"
+      hx-trigger="load, dataRefreshed from:body"
+    >
+      <div class="loading">Loading holdings...</div>
     </div>
+  </div>
 
-    <!-- Holdings Tab -->
-    <div id="holdings-tab" class="card">
-        <div class="card-title">Current Holdings</div>
-        <div class="search-bar">
-            <input type="text" name="q" placeholder="Search holdings..." hx-get="/api/holdings"
-                hx-target="#holdings-table" hx-trigger="keyup changed delay:300ms, dataRefreshed from:body"
-                hx-include="[name='sort']">
-            <select name="sort" hx-get="/api/holdings" hx-target="#holdings-table" hx-trigger="change"
-                hx-include="[name='q']">
-                <option value="value">Sort: Value</option>
-                <option value="percent">Sort: Return %</option>
-                <option value="pnl">Sort: P&L</option>
-                <option value="name">Sort: Name</option>
-            </select>
-        </div>
-        <div id="holdings-table" hx-get="/api/holdings" hx-trigger="load, dataRefreshed from:body">
-            <div class="loading">Loading holdings...</div>
-        </div>
+  <!-- Trades Tab (hidden by default) -->
+  <div id="trades-tab" class="card" style="display: none">
+    <div class="card-title">Trade History</div>
+    <div
+      id="trades-table"
+      hx-get="/api/trades"
+      hx-trigger="revealed, dataRefreshed from:body"
+    >
+      <div class="loading">Loading trades...</div>
     </div>
-
-    <!-- Trades Tab (hidden by default) -->
-    <div id="trades-tab" class="card" style="display: none;">
-        <div class="card-title">Trade History</div>
-        <div id="trades-table" hx-get="/api/trades" hx-trigger="revealed, dataRefreshed from:body">
-            <div class="loading">Loading trades...</div>
-        </div>
-    </div>
+  </div>
 </div>
 
 <script>
-    function showTab(tab) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        event.target.classList.add('active');
+  function showTab(tab) {
+    document
+      .querySelectorAll(".tab")
+      .forEach((t) => t.classList.remove("active"));
+    event.target.classList.add("active");
 
-        document.getElementById('holdings-tab').style.display = tab === 'holdings' ? 'block' : 'none';
-        document.getElementById('trades-tab').style.display = tab === 'trades' ? 'block' : 'none';
+    document.getElementById("holdings-tab").style.display =
+      tab === "holdings" ? "block" : "none";
+    document.getElementById("trades-tab").style.display =
+      tab === "trades" ? "block" : "none";
 
-        if (tab === 'trades') {
-            htmx.trigger('#trades-table', 'revealed');
-        }
+    if (tab === "trades") {
+      htmx.trigger("#trades-table", "revealed");
     }
+  }
 </script>
 {% endblock %}

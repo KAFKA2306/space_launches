@@ -1,60 +1,65 @@
 {% if holdings %}
 <table>
-    <thead>
-        <tr>
-            <th>Symbol</th>
-            <th>Name</th>
-            <th>Quantity</th>
-            <th>Avg Cost</th>
-            <th>Current Price</th>
-            <th>Market Value</th>
-            <th>Unrealized P&L</th>
-            <th>%</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for h in holdings %}
-        {% set symbol = h.symbol if h.symbol and h.symbol == h.symbol and h.symbol != 'nan' else '' %}
-        {% set qty = h.quantity if h.quantity == h.quantity else 0 %}
-        {% set avg_cost = h.avg_cost_per_unit_jpy if h.avg_cost_per_unit_jpy == h.avg_cost_per_unit_jpy else 0 %}
-
-        {# Use current value if available, else cost basis #}
-        {% set market_val = h.current_value_jpy if h.current_value_jpy and h.current_value_jpy == h.current_value_jpy
-        else (h.total_cost_jpy if h.total_cost_jpy == h.total_cost_jpy else 0) %}
-
-        {# Current price if available #}
-        {% set current_price = h.current_price if h.current_price and h.current_price == h.current_price else 0 %}
-
-        {# Unrealized P&L #}
-        {% set pnl = h.unrealized_pnl_jpy if h.unrealized_pnl_jpy and h.unrealized_pnl_jpy == h.unrealized_pnl_jpy else
-        0 %}
-        {% set pnl_pct = h.unrealized_pnl_pct if h.unrealized_pnl_pct and h.unrealized_pnl_pct == h.unrealized_pnl_pct
-        else 0 %}
-
-        {% set weight = h.portfolio_weight if h.portfolio_weight == h.portfolio_weight else 0 %}
-        <tr title="{{ h.security_name or '' }}">
-            <td><strong>{{ symbol if symbol else '-' }}</strong></td>
-            <td style="max-width: 300px;">{{ h.security_name or '-' }}</td>
-            <td class="amount">{{ "{:,.0f}".format(qty) }}</td>
-            <td class="amount">{% if avg_cost > 0 %}¥{{ "{:,.0f}".format(avg_cost) }}{% else %}-{% endif %}</td>
-            <td class="amount">{% if h.current_price and h.current_price > 0 %}¥{{ "{:,.2f}".format(h.current_price)
-                }}{% else %}-{% endif %}
-            </td>
-            <td class="amount">{% if market_val > 0 %}¥{{ "{:,.0f}".format(market_val) }}{% else %}-{% endif %}</td>
-            <td class="amount {% if pnl >= 0 %}positive{% else %}negative{% endif %}">
-                {% if pnl != 0 %}
-                ¥{{ "{:,.0f}".format(pnl) }}<br>
-                <span style="font-size: 0.8em;">({{ "{:+.1f}".format(pnl_pct) }}%)</span>
-                {% else %}-{% endif %}
-            </td>
-            <td class="amount">{% if weight > 0 %}{{ "{:.1f}".format(weight * 100) }}%{% else %}-{% endif %}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
+  <thead>
+    <tr>
+      <th>Symbol</th>
+      <th>Name</th>
+      <th>Quantity</th>
+      <th>Avg Cost</th>
+      <th>Current Price</th>
+      <th>Market Value</th>
+      <th>Unrealized P&L</th>
+      <th>%</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for h in holdings %} {% set symbol = h.symbol if h.symbol and h.symbol ==
+    h.symbol and h.symbol != 'nan' else '' %} {% set qty = h.quantity if
+    h.quantity == h.quantity else 0 %} {% set avg_cost = h.avg_cost_per_unit_jpy
+    if h.avg_cost_per_unit_jpy == h.avg_cost_per_unit_jpy else 0 %} {# Use
+    current value if available, else cost basis #} {% set market_val =
+    h.current_value_jpy if h.current_value_jpy and h.current_value_jpy ==
+    h.current_value_jpy else (h.total_cost_jpy if h.total_cost_jpy ==
+    h.total_cost_jpy else 0) %} {# Current price if available #} {% set
+    current_price = h.current_price if h.current_price and h.current_price ==
+    h.current_price else 0 %} {# Unrealized P&L #} {% set pnl =
+    h.unrealized_pnl_jpy if h.unrealized_pnl_jpy and h.unrealized_pnl_jpy ==
+    h.unrealized_pnl_jpy else 0 %} {% set pnl_pct = h.unrealized_pnl_pct if
+    h.unrealized_pnl_pct and h.unrealized_pnl_pct == h.unrealized_pnl_pct else 0
+    %} {% set weight = h.portfolio_weight if h.portfolio_weight ==
+    h.portfolio_weight else 0 %}
+    <tr title="{{ h.security_name or '' }}">
+      <td><strong>{{ symbol if symbol else '-' }}</strong></td>
+      <td style="max-width: 300px">{{ h.security_name or '-' }}</td>
+      <td class="amount">{{ "{:,.0f}".format(qty) }}</td>
+      <td class="amount">
+        {% if avg_cost > 0 %}¥{{ "{:,.0f}".format(avg_cost) }}{% else %}-{%
+        endif %}
+      </td>
+      <td class="amount">
+        {% if h.current_price and h.current_price > 0 %}¥{{
+        "{:,.2f}".format(h.current_price) }}{% else %}-{% endif %}
+      </td>
+      <td class="amount">
+        {% if market_val > 0 %}¥{{ "{:,.0f}".format(market_val) }}{% else %}-{%
+        endif %}
+      </td>
+      <td class="amount {% if pnl >= 0 %}positive{% else %}negative{% endif %}">
+        {% if pnl != 0 %} ¥{{ "{:,.0f}".format(pnl) }}<br />
+        <span style="font-size: 0.8em">({{ "{:+.1f}".format(pnl_pct) }}%)</span>
+        {% else %}-{% endif %}
+      </td>
+      <td class="amount">
+        {% if weight > 0 %}{{ "{:.1f}".format(weight * 100) }}%{% else %}-{%
+        endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
 </table>
-</div>
+
 {% else %}
-<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">
-    No holdings found.
+<p style="color: var(--text-secondary); text-align: center; padding: 2rem">
+  No holdings found.
 </p>
 {% endif %}

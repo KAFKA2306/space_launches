@@ -104,22 +104,22 @@ def run(args):
         "portfolio_weight",
     ]
     existing_cols = [c for c in cols if c in holdings.columns]
-    
+
     # Sort options
     sort_key = "current_value_jpy"
     if args.sort == "percent" and "unrealized_pnl_pct" in holdings.columns:
         sort_key = "unrealized_pnl_pct"
     elif args.sort == "pnl" and "unrealized_pnl_jpy" in holdings.columns:
         sort_key = "unrealized_pnl_jpy"
-        
+
     if sort_key in holdings.columns:
         holdings = holdings.sort_values(sort_key, ascending=False)
-        
+
     display_df = holdings[existing_cols].copy()
 
     # Format without hardcoded Yen sign for raw price (it's in local currency)
     _format_column(display_df, "current_price", lambda x: f"{x:,.2f}" if pd.notna(x) else "-")
-    
+
     # Keep Yen for JPY fields
     _format_column(display_df, "current_value_jpy", _format_currency)
     _format_column(display_df, "quantity", lambda x: f"{x:,.0f}")

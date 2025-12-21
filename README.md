@@ -19,7 +19,17 @@ uv sync
 | **[3] パフォーマンス分析** | `task analyze` | 過去のパフォーマンス指標を分析 |
 | **[4] レポート出力** | `task report` | チャートと包括的レポートを生成 |
 | **フルパイプライン** | `task pipeline` | 全ステップを順次実行 |
+| **Web UI** | `task serve` | ダッシュボードサーバーを起動 (localhost:8000) |
 | **クリーン** | `task clean` | 生成データを削除（rawは安全） |
+
+## Maintenance Tools
+
+### Market Data Repair
+Missing market data can be repaired using the utility script:
+```bash
+python scripts/repair_market_data.py
+```
+This script backfills missing price data for symbols with empty columns or stale data.
 
 ## Data Directory Structure
 

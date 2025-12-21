@@ -48,12 +48,12 @@ class StockDataManager:
     def extract_security_codes(self, trades_df: pd.DataFrame) -> Set[str]:
         """Extract unique security codes from trade data, including mapped fund tickers."""
         codes = set()
-        
+
         # Extract from security_code column
         if "security_code" in trades_df.columns:
             security_codes = trades_df["security_code"].apply(self.process_security_code)
             codes.update(security_codes.dropna().unique())
-        
+
         # Also extract from ticker column (mapped funds)
         if "ticker" in trades_df.columns:
             ticker_codes = trades_df["ticker"].dropna().unique()
@@ -61,14 +61,32 @@ class StockDataManager:
                 processed = self.process_security_code(ticker)
                 if processed:
                     codes.add(processed)
-        
+
         # Add common ETFs that might be mapped from fund names
         # These are commonly held ETFs that should always be downloaded
         common_etfs = [
-            "VTI", "VOO", "VWO", "VEA", "VIG", "VYM", "VXUS",  # Vanguard
-            "SPY", "QQQ", "IWM", "EFA", "EEM", "AGG", "BND",   # iShares/SPDR
-            "ACWI", "ICLN", "SOXX", "NOBL", "GLD", "GLDM",     # Other ETFs
-            "USDJPY=X", "EURJPY=X",                             # Forex
+            "VTI",
+            "VOO",
+            "VWO",
+            "VEA",
+            "VIG",
+            "VYM",
+            "VXUS",  # Vanguard
+            "SPY",
+            "QQQ",
+            "IWM",
+            "EFA",
+            "EEM",
+            "AGG",
+            "BND",  # iShares/SPDR
+            "ACWI",
+            "ICLN",
+            "SOXX",
+            "NOBL",
+            "GLD",
+            "GLDM",  # Other ETFs
+            "USDJPY=X",
+            "EURJPY=X",  # Forex
         ]
         codes.update(common_etfs)
 
@@ -202,24 +220,26 @@ class StockDataManager:
         existing_data = pd.DataFrame()
         new_symbols = set()
         incremental_start_date = self.config.MARKET_START_DATE
-        
+
         if prices_file_path.exists():
             try:
                 existing_data = self.load_stock_prices(prices_file_path)
                 if not existing_data.empty:
                     last_date = existing_data.index.max()
                     incremental_start_date = (last_date + timedelta(days=1)).strftime("%Y-%m-%d")
-                    
+
                     # Find NEW symbols that need full historical data
                     existing_symbols = set(existing_data.columns)
                     new_symbols = security_codes - existing_symbols
-                    existing_to_update = security_codes & existing_symbols
-                    
+                    # existing_to_update = security_codes & existing_symbols
+
                     if new_symbols:
                         logger.info(f"Found {len(new_symbols)} NEW symbols to download full history for")
                         logger.info(f"New symbols: {list(new_symbols)[:10]}{'...' if len(new_symbols) > 10 else ''}")
-                    
-                    logger.info(f"Found existing price data up to {last_date}. Fetching incremental from {incremental_start_date}")
+
+                    logger.info(
+                        f"Found existing price data up to {last_date}. Fetching incremental from {incremental_start_date}"
+                    )
                 else:
                     incremental_start_date = self.config.MARKET_START_DATE
                     logger.info("Existing price file is empty. Starting fresh download")
@@ -238,11 +258,11 @@ class StockDataManager:
         def download_batch(batch, start, end, batch_label):
             """Helper to download a batch of symbols."""
             nonlocal successful_downloads
-            
+
             for attempt in range(retry_count):
                 try:
                     logger.info(f"Downloading {batch_label} (attempt {attempt + 1}/{retry_count})")
-                    
+
                     if len(batch) == 1:
                         data = yf.download(batch[0], start=start, end=end, progress=False)
                         if not data.empty:
@@ -276,7 +296,9 @@ class StockDataManager:
                             batch_data.columns = [col.rstrip(".T") for col in batch_data.columns]
                         batch_data = batch_data.dropna(axis=1, how="all")
                         successful_downloads += len(batch_data.columns) if hasattr(batch_data, "columns") else 1
-                        logger.info(f"✅ Downloaded {len(batch_data.columns) if hasattr(batch_data, 'columns') else 1} securities")
+                        logger.info(
+                            f"✅ Downloaded {len(batch_data.columns) if hasattr(batch_data, 'columns') else 1} securities"
+                        )
                         return batch_data
                     else:
                         logger.warning("No new data returned for batch")
@@ -290,7 +312,7 @@ class StockDataManager:
                     else:
                         logger.error(f"Error downloading batch: {e}")
                         break
-            
+
             logger.error(f"❌ Failed to download {batch_label} after {retry_count} attempts")
             return pd.DataFrame()
 
@@ -299,7 +321,7 @@ class StockDataManager:
             new_symbols_list = list(new_symbols)
             historical_start = self.config.MARKET_START_DATE
             logger.info(f"Downloading full history for {len(new_symbols)} NEW symbols from {historical_start}")
-            
+
             for i in range(0, len(new_symbols_list), batch_size):
                 batch = new_symbols_list[i : i + batch_size]
                 batch_num = (i // batch_size) + 1
@@ -321,8 +343,10 @@ class StockDataManager:
             existing_symbols = security_codes - new_symbols
             if existing_symbols:
                 existing_list = list(existing_symbols)
-                logger.info(f"Downloading incremental updates for {len(existing_symbols)} existing symbols from {incremental_start_date}")
-                
+                logger.info(
+                    f"Downloading incremental updates for {len(existing_symbols)} existing symbols from {incremental_start_date}"
+                )
+
                 for i in range(0, len(existing_list), batch_size):
                     batch = existing_list[i : i + batch_size]
                     batch_num = (i // batch_size) + 1
@@ -334,7 +358,9 @@ class StockDataManager:
                         logger.info(f"Waiting {delay_seconds}s before next batch...")
                         time.sleep(delay_seconds)
 
-                    batch_data = download_batch(batch, incremental_start_date, end_date, f"INCREMENTAL batch {batch_num}/{total_batches}")
+                    batch_data = download_batch(
+                        batch, incremental_start_date, end_date, f"INCREMENTAL batch {batch_num}/{total_batches}"
+                    )
                     if not batch_data.empty:
                         if new_price_data.empty:
                             new_price_data = batch_data

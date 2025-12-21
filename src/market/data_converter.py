@@ -170,11 +170,11 @@ class DataConverter:
             # Check if security name contains Japanese characters (non-ASCII)
             # This catches "eMAXIS", "SMT", "auAM...ファンド" etc.
             is_japanese_name = any(ord(c) > 127 for c in security_name)
-            
+
             if is_japanese_name:
                 logger.warning(f"Blocking unsafe mapping: '{security_name}' -> '{ticker}' (JP Name -> US ETF mismatch)")
                 return False
-                
+
         return True
 
     def _normalize_for_matching(self, name: str) -> str:

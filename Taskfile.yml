@@ -60,6 +60,7 @@ tasks:
     cmds:
       - uvx ruff check . --fix
       - uvx ruff format .
+      - npx -y prettier --write "src/webapp/templates/**/*.html"
 
   serve:
     desc: "Web UI: Start FastAPI + htmx dashboard"

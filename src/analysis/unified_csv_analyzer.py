@@ -193,13 +193,15 @@ class UnifiedCSVAnalyzer:
             if value_col == "current_value_jpy":
                 # Ensure numeric type before filling
                 self.holdings_df[value_col] = pd.to_numeric(self.holdings_df[value_col], errors="coerce")
-                
+
                 # Fill missing current values with cost basis (safe fallback)
                 self.holdings_df[value_col] = self.holdings_df[value_col].fillna(self.holdings_df["total_cost_jpy"])
-                
+
                 # Recalculate P&L based on valid/filled current values
-                self.holdings_df["unrealized_pnl_jpy"] = self.holdings_df[value_col] - self.holdings_df["total_cost_jpy"]
-                
+                self.holdings_df["unrealized_pnl_jpy"] = (
+                    self.holdings_df[value_col] - self.holdings_df["total_cost_jpy"]
+                )
+
                 # Calculate P&L % safely handles division by zero
                 cost_series = self.holdings_df["total_cost_jpy"]
                 valid_cost = cost_series != 0
@@ -252,7 +254,7 @@ class UnifiedCSVAnalyzer:
                     str(symbol).replace(".JP", ""),
                     f"{symbol}.T" if str(symbol).isdigit() else None,
                 ]
-                
+
                 for variant in symbol_variants:
                     if variant:
                         price = self._force_scalar(latest_prices.get(variant))
