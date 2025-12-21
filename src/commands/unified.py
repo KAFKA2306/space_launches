@@ -5,8 +5,8 @@ import pandas as pd
 
 from src.analysis.unified_csv_analyzer import UnifiedCSVAnalyzer
 from src.config import Config
-from src.fetch.pipeline import create_unified_csv
-from src.fetch.status import PipelineStatus, write_pipeline_status
+from src.data.fetch.pipeline import create_unified_csv
+from src.data.fetch.status import PipelineStatus, write_pipeline_status
 from src.utils.helpers import setup_logging
 
 

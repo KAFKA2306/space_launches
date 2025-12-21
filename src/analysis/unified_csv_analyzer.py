@@ -308,13 +308,25 @@ class UnifiedCSVAnalyzer:
 
                 # Direct price lookup for ETFs/stocks (or fallback for funds)
                 price = None
-                symbol_variants = [
-                    ticker,
-                    symbol,
-                    str(ticker).replace(".JP", ".T") if ticker else None,
-                    str(ticker).replace(".JP", "") if ticker else None,
-                    f"{ticker}.T" if ticker and str(ticker).isdigit() else None,
-                ]
+                
+                # Build symbol variants based on currency to avoid cross-exchange mismatches
+                # Example: 2837 in HKD should use 2837.HK, not 2837.T (different securities!)
+                symbol_variants = [ticker, symbol]
+                
+                if currency in ["HKD", "HKドル"]:
+                    # HKD securities: prefer .HK suffix
+                    if ticker and str(ticker).isdigit():
+                        symbol_variants.append(f"{ticker}.HK")
+                elif currency in ["USD", "ＵＳドル", "米国ドル"]:
+                    # USD securities: no suffix typically needed (yfinance uses plain tickers)
+                    pass
+                else:
+                    # JPY or other: try .T suffix for Japanese securities
+                    if ticker:
+                        symbol_variants.append(str(ticker).replace(".JP", ".T"))
+                        symbol_variants.append(str(ticker).replace(".JP", ""))
+                    if ticker and str(ticker).isdigit():
+                        symbol_variants.append(f"{ticker}.T")
 
                 for variant in symbol_variants:
                     if variant:

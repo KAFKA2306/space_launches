@@ -1,11 +1,11 @@
 from src.config import Config
-from src.fetch.pipeline import (
+from src.data.fetch.pipeline import (
     build_fund_dictionary,
     load_and_process_trades,
     update_market_data,
     update_stock_prices,
 )
-from src.fetch.status import PipelineStatus, write_pipeline_status
+from src.data.fetch.status import PipelineStatus, write_pipeline_status
 from src.utils.helpers import setup_logging
 
 
@@ -67,7 +67,7 @@ def run(args):
             try:
                 from datetime import datetime
 
-                from src.fetch.ff5_client import FF5Client
+                from src.data.fetch.ff5_client import FF5Client
 
                 FF5Client("data/raw").download_ff5_factors(datetime(2010, 1, 1), datetime.today())
                 ff5_ok = True
@@ -96,7 +96,7 @@ def run(args):
                 status.errors_count += 1
 
             try:
-                from src.fetch.earnings_client import EarningsClient
+                from src.data.fetch.earnings_client import EarningsClient
 
                 tickers = [t for t in trades_df["symbol"].unique() if isinstance(t, str) and (t.isalnum() or "." in t)]
                 EarningsClient("data/raw").fetch_earnings_dates(tickers)
