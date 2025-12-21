@@ -42,9 +42,20 @@ data/
 
 ## Key Features
 
-- **Fund Mapping**: `eMAXIS Slim 全世界株式` → `ACWI` (Ticker) 自動変換
+- **Fund Mapping**: `eMAXIS Slim 全世界株式` → `ACWI` (Auto + Manual mapping via `resources/securitycode2.csv`)
 - **JPY Unification**: `150.5 USD` → `22575 JPY` 日次レートで変換
 - **Separation of Concerns**: `fetch` と `metrics` を完全分離
+- **Offline-First**: `task run` はネットワーク不要、`task fetch:m` のみダウンロード
+
+## Resources Directory
+
+| File | Purpose |
+|------|---------|
+| `securitycode2.csv` | Manual fund→ticker mappings (source of truth) |
+| `fund_dictionary.json` | Auto-generated dictionary with aliases |
+| `forex_data.csv` | Historical forex rates (USD/JPY, EUR/JPY) |
+| `charts.csv` | Stock price history |
+
 
 ## Documentation
 

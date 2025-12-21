@@ -88,4 +88,52 @@ Data loading includes a derivation step (`CurrencyConverter`):
     *   If `currency` == JPY: `amount`
     *   If `currency` != JPY: `amount * exchange_rate` (Using historical rate lookup if `exchange_rate` missing).
 
+## 5. Fund Dictionary & Ticker Extraction
+
+### A. Fund Dictionary (`resources/fund_dictionary.json`)
+
+Generated artifact mapping investment fund names to proxy ETF tickers for market value calculation.
+
+| Field | Description |
+|-------|-------------|
+| `ticker` | Mapped ETF ticker (e.g., `ACWI`, `VTI`, `1489.T`) |
+| `aliases` | Auto-generated name variations for fuzzy matching |
+| `confidence` | `high` (DIC mapped) or `unmapped` (needs manual) |
+| `source` | `DIC_mapping` or `historical_only` |
+
+**Generation**: `task fetch:m` regenerates from `resources/securitycode2.csv` + trade history.
+
+### B. Security Code Mapping (`resources/securitycode2.csv`)
+
+Manual source of truth for fund-to-ticker mappings.
+
+```csv
+security_name,security_code
+eMAXIS Slim 全世界株式(オール・カントリー),ACWI
+ＳＢＩ・Ｖ・全米株式インデックス・ファンド,VTI
+```
+
+**Ticker Format Conventions**:
+- US ETFs: `ACWI`, `VTI`, `QQQ` (no suffix)
+- Japanese stocks: `1489.T`, `8473.T` (`.T` suffix)
+- HK stocks: `2800.HK` (`.HK` suffix)
+
+### C. Ticker Extraction (`src/data/loaders.py`)
+
+`extract_ticker()` extracts stock codes from SBI foreign data names:
+
+1. **Regex Match**: `\b[A-Z]{1,5}(?:\.[A-Z])?\b`
+2. **Blocklist Filter**: `ADR`, `INC`, `CORP`, `LTD`, `ETF`, etc.
+3. **Last Candidate**: SBI names typically end with actual ticker
+
+**Example**: `阿里巴巴集団（アリババ）ADR BABA` → `BABA` (not `ADR`)
+
+### D. Japanese Stock Code Formats
+
+| Format | Example | Era |
+|--------|---------|-----|
+| 4-digit | `1489` → `1489.T` | ~2023 |
+| 3-digit + letter | `200A` → `200A.T` | 2024+ |
+
 ANY changes to `loaders.py` must be verified against this document to ensure strict regression testing.
+
