@@ -16,8 +16,8 @@
   "ohlcv_columns": ["Open", "High", "Low", "Close", "Volume"],
   "numeric_columns": ["quantity", "price", "settlement_amount"],
   "unified_numeric_columns": [
-    "quantity", "price", "price_jpy_unified",
-    "settlement_amount", "amount_jpy_unified", "conversion_rate"
+    "quantity", "price", "market_price",
+    "settlement_amount", "amount_jpy", "fx_rate"
   ],
   "etf_keywords": ["VTI", "VOO", "QQQ", "SPY", "ACWI", "VWO", "EEM", "AGG", "BND"],
   "fund_indicators": [

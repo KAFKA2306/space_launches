@@ -16,9 +16,9 @@ def main():
     from src.commands import fetch, portfolio, report, unified
 
     # Register subcommands with user story-based names
-    fetch.register(subparsers, command_name="import")
-    portfolio.register(subparsers, command_name="view")
-    unified.register(subparsers, command_name="analyze")
+    fetch.register(subparsers, command_name="fetch")
+    portfolio.register(subparsers, command_name="holdings")
+    unified.register(subparsers, command_name="metrics")
     report.register(subparsers)
 
     args = parser.parse_args()

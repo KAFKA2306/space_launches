@@ -1,8 +1,13 @@
 import logging
 from pathlib import Path
 
+import pandas as pd
+
 from src.analysis.unified_csv_analyzer import UnifiedCSVAnalyzer
 from src.config import Config
+from src.fetch.pipeline import create_unified_csv
+from src.fetch.status import PipelineStatus, write_pipeline_status
+from src.utils.helpers import setup_logging
 
 
 def register(subparsers, command_name: str = "analyze"):
@@ -11,7 +16,7 @@ def register(subparsers, command_name: str = "analyze"):
     parser.add_argument(
         "--csv-file",
         type=str,
-        help="Path to unified CSV file (default: latest in data/unified/)",
+        help="Path to unified CSV file (default: data/unified/trades_unified.csv)",
     )
 
     parser.add_argument(
@@ -37,40 +42,28 @@ def register(subparsers, command_name: str = "analyze"):
 
     parser.add_argument("--holdings-only", action="store_true", help="Analyze holdings only (fastest)")
 
+    parser.add_argument(
+        "--compute",
+        action="store_true",
+        help="Compute holdings and write pipeline status (used by 'task run')",
+    )
+
     parser.add_argument("--verbose", action="store_true", help="Verbose logging")
     parser.set_defaults(func=run)
 
 
-def find_latest_unified_csv(csv_dir: Path = None):
-    """Find the latest unified CSV file"""
-    if csv_dir is None:
-        csv_dir = Config.UNIFIED_DATA_DIR
-
-    if not csv_dir.exists():
-        return None, None
-
-    # Try new non-timestamped file first
-    csv_file = csv_dir / "trades_unified.csv"
-    fund_file = csv_dir / "fund_ticker_mapping.csv"
+def get_unified_csv_path() -> tuple[Path | None, Path | None]:
+    """
+    Get the fixed path to unified CSV file.
+    Per design spec: No 'find_latest_xxx' patterns allowed.
+    Returns (csv_path, fund_mapping_path) or (None, None) if not found.
+    """
+    csv_file = Config.UNIFIED_DATA_DIR / "trades_unified.csv"
+    fund_file = Config.UNIFIED_DATA_DIR / "fund_ticker_mapping.csv"
 
     if csv_file.exists():
         return csv_file, fund_file if fund_file.exists() else None
-
-    # Fall back to old timestamped files for backward compatibility
-    csv_files = list(csv_dir.glob("trades_unified_*.csv"))
-    if not csv_files:
-        return None, None
-
-    latest_csv = max(csv_files, key=lambda x: x.stat().st_mtime)
-    fund_mapping_file = None
-    timestamp = latest_csv.stem.split("_")[-2:]
-    if len(timestamp) == 2:
-        timestamp_str = "_".join(timestamp)
-        fund_files = list(csv_dir.glob(f"fund_ticker_mapping_{timestamp_str}.csv"))
-        if fund_files:
-            fund_mapping_file = fund_files[0]
-
-    return latest_csv, fund_mapping_file
+    return None, None
 
 
 def run(args):
@@ -78,15 +71,80 @@ def run(args):
     log_level = logging.INFO if args.verbose else logging.WARNING
     logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s - %(message)s")
 
-    # Find CSV file
+    config = Config()
+
+    # --compute mode: Create unified CSV from raw + resources, write pipeline status
+    if args.compute:
+        logger = setup_logging()
+        logger.info("=== Starting Compute Pipeline ===")
+        status = PipelineStatus(mode="run")
+
+        try:
+            # 1. Load raw trades (interim should already exist from fetch:c)
+            trades_path = config.TRADES_DATA_DIR / "trades.csv"
+            if not trades_path.exists():
+                logger.error(f"Trades not found: {trades_path}")
+                logger.error("Run 'task fetch:c' first to load raw data into interim")
+                status.errors_count += 1
+                status.mark_complete()
+                write_pipeline_status(status)
+                return 1
+
+            status.stage_raw_loaded = True
+            logger.info(f"✅ Raw trades loaded from: {trades_path}")
+
+            # 2. Check resources exist (forex, charts)
+            forex_path = config.RESOURCES_DIR / "forex_data.csv"
+            charts_path = config.RESOURCES_DIR / "charts.csv"
+            resources_ok = forex_path.exists() and charts_path.exists()
+            if resources_ok:
+                status.stage_resources_read = True
+                logger.info("✅ Resources available (forex + charts)")
+            else:
+                logger.warning("⚠ Some resources missing - unified will have gaps")
+
+            # 3. Create unified CSV
+            unified_path = create_unified_csv(config, logger)
+            if unified_path:
+                status.stage_unified_written = True
+                try:
+                    df = pd.read_csv(unified_path)
+                    status.unified_rows = len(df)
+                    status.unified_schema_ok = True
+                    logger.info(f"✅ Unified CSV created: {unified_path}")
+                except Exception:
+                    pass
+            else:
+                status.errors_count += 1
+
+            # 4. Write pipeline status
+            status.mark_complete()
+            status_file = write_pipeline_status(status)
+            logger.info(f"✅ Pipeline status written: {status_file}")
+
+            if status.is_success():
+                print("✅ Compute pipeline completed successfully!")
+                return 0
+            else:
+                print(f"⚠ Compute completed with {status.errors_count} errors")
+                return 1
+
+        except Exception as e:
+            logger.error(f"Compute pipeline failed: {e}", exc_info=True)
+            status.errors_count += 1
+            status.mark_complete()
+            write_pipeline_status(status)
+            return 1
+
+    # Find CSV file using fixed path (not find_latest pattern)
     if args.csv_file:
         csv_file = Path(args.csv_file)
         fund_mapping_file = Path(args.fund_mapping) if args.fund_mapping else None
     else:
-        csv_file, fund_mapping_file = find_latest_unified_csv()
+        csv_file, fund_mapping_file = get_unified_csv_path()
         if not csv_file:
-            print("❌ No unified CSV files found.")
-            print("💡 Run 'task fetch' first.")
+            print("❌ Unified CSV not found: data/unified/trades_unified.csv")
+            print("💡 Run 'task run' first to generate the unified CSV.")
             return 1
 
     if not csv_file.exists():
@@ -138,20 +196,66 @@ def run(args):
             print(f"✅ Charts saved to: {output_dir}")
 
         else:
-            # Full analysis
-            print("🚀 Running comprehensive analysis...")
+            # Full analysis (Text Only for 'metrics' command)
+            print("🚀 Calculating performance metrics...")
 
-            # Generate report
-            print("📊 Generating report...")
-            report = analyzer.generate_comprehensive_report(str(output_dir))
+            # Generate report data (but don't save unless explicit)
+            # Note: We pass None as output_dir to prevent saving?
+            # Actually generate_comprehensive_report saves if output_dir is passed.
+            # But the args.output_dir has a default.
+            # We will use report_generator directly or just skip the saving parts if possible.
+            # UnifiedCSVAnalyzer.generate_comprehensive_report passes output_dir.
+            # If we want to strictly avoid saving, we should ideally not pass output_dir or modify the analyzer.
+            # However, for now, let's just generate the report to get the DICT, but we know it might save json/csvs.
+            # The plan said "metrics: Show performance stats (text only). Stop generating files."
+            # UnifiedCSVAnalyzer.generate_comprehensive_report calls self.report_generator.generate_comprehensive_report(output_dir)
+            # which definitely saves things.
+            #
+            # WORKAROUND: We will manually call the analysis methods and print the summary,
+            # avoiding generate_comprehensive_report() which saves files.
 
-            # Generate visualizations
-            print("📈 Creating visualizations...")
-            analyzer.create_advanced_visualizations(str(output_dir))
+            # 1. Analyze holdings (fills self.holdings_df)
+            analyzer.analyze_current_holdings()
+
+            # 2. Performance Metrics
+            perf_metrics = analyzer.calculate_performance_metrics()
+
+            # 3. Asset Allocation
+            allocation = analyzer.analyze_asset_allocation()
+
+            # 4. Top Holdings
+            top_holdings = []
+            if analyzer.holdings_df is not None and not analyzer.holdings_df.empty:
+                top_sorted = analyzer.holdings_df.sort_values("portfolio_weight", ascending=False).head(10)
+                top_holdings = top_sorted.to_dict("records")
+
+            # 5. Portfolio Summary Stats
+            total_value = analyzer.holdings_df["current_value_jpy"].sum() if not analyzer.holdings_df.empty else 0
+            total_realized = analyzer.holdings_df["realized_pnl_jpy"].sum() if not analyzer.holdings_df.empty else 0
+
+            # Construct report dict for printing logic below
+            report = {
+                "portfolio_summary": {
+                    "total_holdings": len(analyzer.holdings_df) if analyzer.holdings_df is not None else 0,
+                    "total_portfolio_value_jpy": total_value,
+                    "total_realized_pnl_jpy": total_realized,
+                },
+                "performance_metrics": {
+                    "total_return_pct": perf_metrics.total_return,
+                    "annualized_return_pct": perf_metrics.annualized_return,
+                    "volatility_pct": perf_metrics.volatility,
+                    "sharpe_ratio": perf_metrics.sharpe_ratio,
+                    "max_drawdown_pct": perf_metrics.max_drawdown,
+                },
+                "asset_allocation": {"by_asset_class": allocation.by_asset_class},
+                "top_holdings": top_holdings,
+            }
+            # Skip visualization creation
+            # analyzer.create_advanced_visualizations(str(output_dir))
 
             # Print summary
             print(f"\n{'=' * 50}")
-            print("🎯 ANALYSIS COMPLETE")
+            print("🎯 METRICS SUMMARY")
             print(f"{'=' * 50}")
 
             portfolio_summary = report["portfolio_summary"]

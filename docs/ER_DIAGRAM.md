@@ -372,7 +372,9 @@ erDiagram
         string account_type "Account category"
         string source_file "Raw data filename"
         string data_source "Broker identifier"
-        float amount_jpy_unified "Derived JPY value"
+        float amount_jpy "Derived JPY value"
+        float market_price "Unified price in JPY"
+        float fx_rate "Exchange rate used"
     }
 ```
 

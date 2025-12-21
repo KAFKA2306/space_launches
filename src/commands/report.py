@@ -33,34 +33,17 @@ def register(subparsers):
     parser.set_defaults(func=run)
 
 
-def find_latest_unified_csv():
-    """Find the latest unified CSV file."""
-    csv_dir = Config.UNIFIED_DATA_DIR
-    if not csv_dir.exists():
-        return None, None
-
-    # Try new non-timestamped file first
-    csv_file = csv_dir / "trades_unified.csv"
-    fund_file = csv_dir / "fund_ticker_mapping.csv"
+def get_unified_csv_path() -> tuple[Path | None, Path | None]:
+    """
+    Get the fixed path to unified CSV file.
+    Per design spec: No 'find_latest_xxx' patterns allowed.
+    """
+    csv_file = Config.UNIFIED_DATA_DIR / "trades_unified.csv"
+    fund_file = Config.UNIFIED_DATA_DIR / "fund_ticker_mapping.csv"
 
     if csv_file.exists():
         return csv_file, fund_file if fund_file.exists() else None
-
-    # Fall back to old timestamped files
-    csv_files = list(csv_dir.glob("trades_unified_*.csv"))
-    if not csv_files:
-        return None, None
-
-    latest_csv = max(csv_files, key=lambda x: x.stat().st_mtime)
-    fund_mapping_file = None
-    timestamp = latest_csv.stem.split("_")[-2:]
-    if len(timestamp) == 2:
-        timestamp_str = "_".join(timestamp)
-        fund_files = list(csv_dir.glob(f"fund_ticker_mapping_{timestamp_str}.csv"))
-        if fund_files:
-            fund_mapping_file = fund_files[0]
-
-    return latest_csv, fund_mapping_file
+    return None, None
 
 
 def run(args):
@@ -68,11 +51,11 @@ def run(args):
     log_level = logging.INFO if args.verbose else logging.WARNING
     logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s - %(message)s")
 
-    # Find unified CSV
-    csv_file, fund_mapping_file = find_latest_unified_csv()
+    # Find unified CSV using fixed path (per design spec)
+    csv_file, fund_mapping_file = get_unified_csv_path()
     if not csv_file:
-        print("❌ No unified CSV files found.")
-        print("💡 Run 'task import' first to generate data.")
+        print("❌ Unified CSV not found: data/unified/trades_unified.csv")
+        print("💡 Run 'task fetch:c' first to generate data.")
         return 1
 
     print(f"📊 Generating reports from: {csv_file.name}")

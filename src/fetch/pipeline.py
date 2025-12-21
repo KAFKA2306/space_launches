@@ -13,7 +13,7 @@ def update_market_data(config, logger):
     logger.info("=== Updating Market Data (Incremental) ===")
 
     forex_manager = ForexDataManager(config)
-    # Save to interim/market
+    # Save to resources (Single Source of Truth)
     forex_path = config.MARKET_DATA_DIR / "forex_data.csv"
     forex_data = forex_manager.update_forex_data(forex_path)
 
@@ -71,8 +71,8 @@ def update_stock_prices(trades_df, config, logger, use_alternative_sources=False
         logger.warning("No security codes found in trading data")
         return None
 
-    # Save to interim/market
-    price_path = config.MARKET_DATA_DIR / "stock_prices.csv"
+    # Save to resources (Single Source of Truth)
+    price_path = config.MARKET_DATA_DIR / "charts.csv"
     price_data = stock_manager.update_stock_prices(price_path, security_codes)
 
     if not price_data.empty:
@@ -104,7 +104,7 @@ def create_unified_csv(config, logger):
             logger.info(f"  Unique securities: {df['security_code'].nunique()}")
             logger.info(f"  Investment funds mapped: {df['ticker_mapped'].sum()}")
             logger.info(f"  Investment funds identified: {df['is_investment_fund'].sum()}")
-            logger.info(f"  Total JPY amount: {df['amount_jpy_unified'].sum():,.0f} JPY")
+            logger.info(f"  Total JPY amount: {df['amount_jpy'].sum():,.0f} JPY")
 
             return unified_csv_path
         else:

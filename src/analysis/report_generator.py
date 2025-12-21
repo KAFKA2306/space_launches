@@ -173,7 +173,7 @@ class ReportGenerator:
 
         monthly = trades.groupby(trades["trade_date"].dt.to_period("M"))
 
-        vol = monthly["amount_jpy_unified"].sum()
+        vol = monthly["amount_jpy"].sum()
         axes[0].plot(vol.index.to_timestamp(), vol.values, marker="o")
         axes[0].set_title("Monthly Volume")
         axes[0].grid(True, alpha=0.3)
@@ -183,7 +183,7 @@ class ReportGenerator:
         axes[1].set_title("Trade Count")
         axes[1].grid(True, alpha=0.3)
 
-        cum = trades.set_index("trade_date")["amount_jpy_unified"].cumsum()
+        cum = trades.set_index("trade_date")["amount_jpy"].cumsum()
         axes[2].plot(cum.index, cum.values)
         axes[2].set_title("Cumulative")
         axes[2].grid(True, alpha=0.3)

@@ -18,11 +18,12 @@ class Config:
     DATA_DIR = BASE_DIR / "data"
     RAW_DATA_DIR = DATA_DIR / "raw"
     INTERIM_DIR = DATA_DIR / "interim"
-    MARKET_DATA_DIR = INTERIM_DIR / "market"
+    RESOURCES_DIR = BASE_DIR / "resources"
+    # Per design spec: fetch updates resources (Single Source of Truth)
+    MARKET_DATA_DIR = RESOURCES_DIR
     TRADES_DATA_DIR = INTERIM_DIR / "trades"
     UNIFIED_DATA_DIR = DATA_DIR / "unified"
     REPORTS_DIR = DATA_DIR / "reports"
-    RESOURCES_DIR = BASE_DIR / "resources"
 
     # Load external config from resources
     _config_data = None

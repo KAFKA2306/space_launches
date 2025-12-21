@@ -134,18 +134,18 @@ class UnifiedCSVAnalyzer:
 
             if trade["transaction_type"] in ["buy", "buy付", "投信金額買付"]:
                 holdings[symbol]["quantity"] += trade["quantity"] or 0
-                holdings[symbol]["total_cost_jpy"] += trade["amount_jpy_unified"] or 0
+                holdings[symbol]["total_cost_jpy"] += trade["amount_jpy"] or 0
                 holdings[symbol]["buy_trades"].append(
                     {
                         "date": trade["trade_date"],
                         "quantity": trade["quantity"],
-                        "price": trade["price_jpy_unified"],
-                        "amount": trade["amount_jpy_unified"],
+                        "price": trade["market_price"],
+                        "amount": trade["amount_jpy"],
                     }
                 )
             elif trade["transaction_type"] in ["sell", "sell付"]:
                 sold_qty = trade["quantity"] or 0
-                sale_amt = trade["amount_jpy_unified"] or 0
+                sale_amt = trade["amount_jpy"] or 0
                 if holdings[symbol]["quantity"] > 0:
                     avg_cost = holdings[symbol]["total_cost_jpy"] / holdings[symbol]["quantity"]
                     cost_of_sold = avg_cost * sold_qty
@@ -156,7 +156,7 @@ class UnifiedCSVAnalyzer:
                     {
                         "date": trade["trade_date"],
                         "quantity": sold_qty,
-                        "price": trade["price_jpy_unified"],
+                        "price": trade["market_price"],
                         "amount": sale_amt,
                     }
                 )
@@ -334,7 +334,7 @@ class UnifiedCSVAnalyzer:
             return PerformanceMetrics(0, 0, 0, 0, 0, 0, 0, 0)
 
         buy_trades = self.trades_df[self.trades_df["transaction_type"] == "buy"]
-        total_invested = buy_trades["amount_jpy_unified"].sum()
+        total_invested = buy_trades["amount_jpy"].sum()
         current_value = self.holdings_df["total_cost_jpy"].sum()
         realized_pnl = self.holdings_df["realized_pnl_jpy"].sum()
 
@@ -373,8 +373,8 @@ class UnifiedCSVAnalyzer:
 
     def _calculate_daily_portfolio_values(self) -> pd.Series:
         """Calculate daily portfolio values based on cost basis."""
-        daily = self.trades_df.groupby("trade_date").agg({"amount_jpy_unified": "sum"}).sort_index()
-        cum = daily["amount_jpy_unified"].cumsum()
+        daily = self.trades_df.groupby("trade_date").agg({"amount_jpy": "sum"}).sort_index()
+        cum = daily["amount_jpy"].cumsum()
         dates = pd.date_range(start=cum.index.min(), end=datetime.now().date(), freq="D")
         return cum.reindex(dates).ffill()
 
@@ -399,8 +399,8 @@ class UnifiedCSVAnalyzer:
 
         return {
             "avg_monthly_trades": monthly.mean(),
-            "total_invested_jpy": buy["amount_jpy_unified"].sum(),
-            "total_divested_jpy": sell["amount_jpy_unified"].sum(),
+            "total_invested_jpy": buy["amount_jpy"].sum(),
+            "total_divested_jpy": sell["amount_jpy"].sum(),
             "unique_securities_traded": self.trades_df["security_code"].nunique(),
             "account_usage": self.trades_df["account_type"].value_counts().to_dict(),
         }

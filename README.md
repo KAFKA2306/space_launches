@@ -10,26 +10,25 @@ cd trahist
 uv sync
 ```
 
-## Usage - User Stories
+## Usage - Task Commands
 
-| ストーリー | コマンド | 説明 |
-|-----------|---------|------|
-| **[1] データ取込** | `task import -- --download` | 証券会社CSVを読み込み、市場データをダウンロード |
-| **[2] ポートフォリオ確認** | `task view` | 現在の保有銘柄とP&Lを表示 |
-| **[3] パフォーマンス分析** | `task analyze` | 過去のパフォーマンス指標を分析 |
-| **[4] レポート出力** | `task report` | チャートと包括的レポートを生成 |
-| **フルパイプライン** | `task pipeline` | 全ステップを順次実行 |
-| **Web UI** | `task serve` | ダッシュボードサーバーを起動 (localhost:8000) |
-| **クリーン** | `task clean` | 生成データを削除（rawは安全） |
+| Task | Action |
+|------|--------|
+| **`task fetch:c`** | **[Offline]** Convert raw broker CSVs to unified format |
+| **`task fetch:m`** | **[Network]** Download latest market data from Yahoo Finance |
+| **`task run`** | **Full Pipeline**: fetch:c → compute → status confirmation |
+| **`task holdings`** | List current portfolio positions and value |
+| **`task metrics`** | Show performance stats and asset allocation |
+| **`task serve`** | Launch the web dashboard |
+| `task report` | Generate static analysis files |
+| `task clean` | Clean generated data |
 
-## Maintenance Tools
+### Design Principles
 
-### Market Data Repair
-Missing market data can be repaired using the utility script:
-```bash
-python scripts/repair_market_data.py
-```
-This script backfills missing price data for symbols with empty columns or stale data.
+- **Offline by Default**: `task fetch:c` and `task run` never access the network
+- **Explicit Network**: `task fetch:m` is the only command that downloads data
+- **Pipeline Status**: Every run writes `data/unified/pipeline_status.csv`
+- **Single Source of Truth**: `data/unified/trades_unified.csv` is the authoritative data
 
 ## Data Directory Structure
 
@@ -37,7 +36,7 @@ This script backfills missing price data for symbols with empty columns or stale
 data/
 ├── raw/          # Input: 証券会社CSVをここに配置
 ├── interim/      # Staging: 市場データ、正規化された取引
-├── unified/      # Gold: trades_unified_*.csv (JPY価格付き)
+├── unified/      # Gold: trades_unified.csv, pipeline_status.csv
 └── reports/      # Output: チャート、JSON分析、CSVレポート
 ```
 
@@ -45,12 +44,13 @@ data/
 
 - **Fund Mapping**: `eMAXIS Slim 全世界株式` → `ACWI` (Ticker) 自動変換
 - **JPY Unification**: `150.5 USD` → `22575 JPY` 日次レートで変換
-- **Separation of Concerns**: `import` と `analyze` を完全分離
+- **Separation of Concerns**: `fetch` と `metrics` を完全分離
 
 ## Documentation
 
-- [Data Architecture & Formatting Standards](docs/DATA_STANDARDS.md) - Strict guide on data ingestion and schema.
-- [Web Interface Documentation](docs/web_interface.md) - Guide to using the web dashboard.
+- [Data Architecture & Formatting Standards](docs/DATA_STANDARDS.md)
+- [Design Specification](docs/DESIGN_SPEC.md) - Authoritative design reference
+- [Web Interface Documentation](docs/web_interface.md)
 
 ## License
 

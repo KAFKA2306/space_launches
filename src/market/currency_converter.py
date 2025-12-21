@@ -37,14 +37,15 @@ class CurrencyConverter:
                 "us dollar",
             ],
             "EUR": ["EUR", "ユーロ", "欧州ユーロ", "€", "euro", "european euro"],
-            "HKD": ["HKD", "香港ドル", "HK$", "hong kong dollar", "hk dollar"],
-            "HKドル": [
+            "HKD": [
                 "HKD",
-                "香港ドル",
                 "HK$",
+                "Hong Kong Dollar",
+                "香港ドル",
+                "HKドル",
                 "hong kong dollar",
                 "hk dollar",
-            ],  # Special case
+            ],
             "CNY": ["CNY", "中国元", "人民元", "chinese yuan", "rmb"],
             "GBP": ["GBP", "英ポンド", "英国ポンド", "£", "pound", "british pound"],
             "AUD": ["AUD", "豪ドル", "オーストラリアドル", "australian dollar"],
@@ -108,12 +109,15 @@ class CurrencyConverter:
     def _load_forex_data(self) -> pd.DataFrame:
         """Load forex rate data from files."""
         try:
-            # Try to load existing forex data
+            # Per design spec: resources is Single Source of Truth
             base_dir = Path(__file__).parent.parent.parent
-            forex_file = base_dir / "data" / "processed" / "forex_data.csv"
+            forex_file = base_dir / "resources" / "forex_data.csv"
 
             if forex_file.exists():
                 forex_df = pd.read_csv(forex_file, parse_dates=["Date"])
+                # Ensure date is timezone-naive for compatibility with trade_date
+                if pd.api.types.is_datetime64_any_dtype(forex_df["Date"]):
+                     forex_df["Date"] = forex_df["Date"].dt.tz_localize(None)
                 forex_df.set_index("Date", inplace=True)
                 logger.info(f"Loaded forex data: {len(forex_df)} records")
                 return forex_df
@@ -150,10 +154,9 @@ class CurrencyConverter:
                 return standard_code
 
         # Partial match for complex strings
+        # Partial match for complex strings
         for standard_code, aliases in self.currency_aliases.items():
             if any(alias.lower() in currency_lower for alias in aliases if len(alias) > 2):
-                if standard_code == "HKドル":
-                    return "HKD"
                 return standard_code
 
         logger.warning(f"Unknown currency: {currency_input}, defaulting to JPY")
@@ -260,8 +263,8 @@ class CurrencyConverter:
                 if self.config and hasattr(self.config, "FALLBACK_FOREX_RATES")
                 else {"USD": 150.0, "HKD": 19.0, "EUR": 165.0, "CNY": 21.0}
             )
-            rate = fallback_rates.get(currency.upper(), 1.0)
-            logger.warning(f"Using fallback rate for {currency}: {rate}")
+            rate = fallback_rates.get(normalized_currency, 1.0)
+            logger.warning(f"Using fallback rate for {normalized_currency} (orig: {currency}): {rate}")
             return rate
 
         # Map currency to forex column
@@ -278,6 +281,10 @@ class CurrencyConverter:
             return 1.0
 
         try:
+            # Normalize trade_date to remove timezone if present for index compatibility
+            if hasattr(trade_date, "tzinfo") and trade_date.tzinfo is not None:
+                trade_date = trade_date.replace(tzinfo=None)
+
             # Find closest date
             trade_date_only = trade_date.date() if hasattr(trade_date, "date") else trade_date
 
@@ -303,8 +310,8 @@ class CurrencyConverter:
                 if self.config and hasattr(self.config, "FALLBACK_FOREX_RATES")
                 else {"USD": 150.0, "HKD": 19.0, "EUR": 165.0, "CNY": 21.0}
             )
-            rate = fallback_rates.get(currency.upper(), 1.0)
-            logger.warning(f"Using fallback rate for {currency}: {rate}")
+            rate = fallback_rates.get(normalized_currency, 1.0)
+            logger.warning(f"Using fallback rate for {normalized_currency} (orig: {currency}): {rate}")
             return rate
 
         except Exception as e:
@@ -405,9 +412,11 @@ class CurrencyConverter:
             logger.info(f"Adding unified JPY pricing to {len(df)} trades")
 
             # Initialize new columns
-            df["price_jpy_unified"] = 0.0
-            df["amount_jpy_unified"] = 0.0
-            df["conversion_rate"] = 1.0
+            # Initialize new columns
+            df["market_price"] = 0.0
+            df["amount_jpy"] = 0.0
+            df["fx_rate"] = 1.0
+            df["market_value_jpy"] = 0.0
             df["is_investment_fund"] = False
             df["fund_10000x_applied"] = False
 
@@ -424,9 +433,10 @@ class CurrencyConverter:
 
                 price_jpy, amount_jpy, conversion_info = self.convert_to_jpy_unified_price(trade_data)
 
-                df.at[idx, "price_jpy_unified"] = price_jpy
-                df.at[idx, "amount_jpy_unified"] = amount_jpy
-                df.at[idx, "conversion_rate"] = conversion_info.get("exchange_rate", 1.0)
+                df.at[idx, "market_price"] = price_jpy
+                df.at[idx, "amount_jpy"] = amount_jpy
+                df.at[idx, "fx_rate"] = conversion_info.get("exchange_rate", 1.0)
+                df.at[idx, "market_value_jpy"] = amount_jpy
                 df.at[idx, "is_investment_fund"] = conversion_info.get("is_investment_fund", False)
                 df.at[idx, "fund_10000x_applied"] = conversion_info.get("fund_10000x_applied", False)
 

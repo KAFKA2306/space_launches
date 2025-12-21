@@ -1,17 +1,20 @@
 from src.config import Config
 from src.fetch.pipeline import (
     build_fund_dictionary,
-    create_unified_csv,
     load_and_process_trades,
     update_market_data,
     update_stock_prices,
 )
+from src.fetch.status import PipelineStatus, write_pipeline_status
 from src.utils.helpers import setup_logging
 
 
 def register(subparsers, command_name: str = "import"):
     """Register the import (data fetch) command."""
-    parser = subparsers.add_parser(command_name, help="[1] データ取込: Import broker CSVs + download market data")
+    parser = subparsers.add_parser(
+        command_name,
+        help="[1] データ取込: Import broker CSVs + optionally download market data",
+    )
     parser.add_argument(
         "--download",
         action="store_true",
@@ -27,11 +30,8 @@ def register(subparsers, command_name: str = "import"):
         action="store_true",
         help="Build comprehensive fund dictionary from historical data",
     )
-    parser.add_argument(
-        "--skip-unified",
-        action="store_true",
-        help="Skip creating unified CSV after fetching",
-    )
+    # Note: --skip-unified removed. Per design spec, fetch doesn't create unified CSV.
+    # Unified CSV creation is the responsibility of the 'run' command.
     parser.set_defaults(func=run)
 
 
@@ -46,40 +46,73 @@ def run(args):
     config, logger = setup_environment()
     logger.info("Starting Data Fetch/Ingest Process")
 
+    # Initialize pipeline status tracker with mode='fetch'
+    status = PipelineStatus(mode="fetch")
+
     try:
         if args.build_fund_dict:
             build_fund_dictionary(config, logger)
 
-        # 1. Market Data (Global)
+        # 1. Market Data (Global) - only if explicitly requested
         if args.download:
-            update_market_data(config, logger)
+            try:
+                update_market_data(config, logger)
+                status.stage_market_updated = "ran"
+            except Exception as e:
+                logger.error(f"Market data update failed: {e}")
+                status.stage_market_updated = "failed"
+                status.errors_count += 1
+        else:
+            status.stage_market_updated = "skipped"
 
         # 2. Ingest Trades (Local Raw -> Processed)
         trades_df = load_and_process_trades(config, logger)
 
         if trades_df is None:
             logger.error("Failed to load trades. Aborting.")
+            status.errors_count += 1
+            status.mark_complete()
+            write_pipeline_status(status)
             return 1
 
-        # 3. Market Data (Specific to Trades)
-        if args.download:
-            update_stock_prices(
-                trades_df,
-                config,
-                logger,
-                use_alternative_sources=args.alternative_data,
-            )
+        status.stage_raw_loaded = True
+
+        # 3. Market Data (Specific to Trades) - only if download requested
+        if args.download and status.stage_market_updated == "ran":
+            try:
+                update_stock_prices(
+                    trades_df,
+                    config,
+                    logger,
+                    use_alternative_sources=args.alternative_data,
+                )
+            except Exception as e:
+                logger.error(f"Stock price update failed: {e}")
+                status.stage_market_updated = "failed"
+                status.errors_count += 1
 
         # 3.5 Build Fund Dictionary (from the just-processed trades)
         build_fund_dictionary(config, logger)
 
-        # 4. Create Unified CSV (Transformation)
-        if not args.skip_unified:
-            create_unified_csv(config, logger)
+        # Per design spec: fetch does NOT create unified CSV
+        # Unified CSV creation is the responsibility of the 'run' command
+        # Set unified_written to False since fetch doesn't handle this
 
-        logger.info("Fetch/Ingest completed successfully!")
-        return 0
+        # Mark pipeline complete and write status
+        status.mark_complete()
+        status_file = write_pipeline_status(status)
+
+        if status.is_success():
+            logger.info("Fetch/Ingest completed successfully!")
+            logger.info(f"Pipeline status written to: {status_file}")
+            return 0
+        else:
+            logger.warning(f"Fetch completed with {status.errors_count} errors")
+            return 1
 
     except Exception as e:
         logger.error(f"Error during fetch: {e}", exc_info=True)
+        status.errors_count += 1
+        status.mark_complete()
+        write_pipeline_status(status)
         return 1

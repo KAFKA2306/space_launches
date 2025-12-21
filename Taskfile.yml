@@ -5,65 +5,60 @@ tasks:
     cmds:
       - task --list
 
-  # ==================================================
-  # USER STORY TASKS
-  # ==================================================
+  # === Core Pipeline Tasks ===
 
-  import:
-    desc: "[1] データ取込: Import broker CSVs + download market data → unified dataset"
+  fetch:c:
+    desc: "[Offline] Load raw broker CSVs into interim (no unified, no network)"
     cmds:
-      - uv run python -m src.cli import {{.CLI_ARGS}}
+      - uv run python -m src.cli fetch {{.CLI_ARGS}}
 
-  view:
-    desc: "[2] ポートフォリオ確認: View current holdings and P&L"
+  fetch:m:
+    desc: "[Network] Update resources with latest market data (forex + stock prices)"
     cmds:
-      - uv run python -m src.cli view {{.CLI_ARGS}}
+      - uv run python -m src.cli fetch --download {{.CLI_ARGS}}
 
-  analyze:
-    desc: "[3] パフォーマンス分析: Analyze historical performance metrics"
+  run:
+    desc: "Full pipeline: load raw → read resources → create unified → status"
     cmds:
-      - uv run python -m src.cli analyze {{.CLI_ARGS}}
+      - task: fetch:c
+      - uv run python -m src.cli metrics --compute {{.CLI_ARGS}}
+
+  # === View Commands ===
+
+  holdings:
+    desc: "List current portfolio holdings (quantity, cost, value)"
+    cmds:
+      - uv run python -m src.cli holdings {{.CLI_ARGS}}
+
+  metrics:
+    desc: "Show performance metrics and asset allocation summary"
+    cmds:
+      - uv run python -m src.cli metrics {{.CLI_ARGS}}
+
+  # === Web & Reports ===
+
+  serve:
+    desc: "Start Web Dashboard"
+    cmds:
+      - uv run uvicorn src.webapp.main:app --reload --host 0.0.0.0 --port 8000
 
   report:
-    desc: "[4] レポート出力: Generate charts and comprehensive reports"
+    desc: "Generate static report files (charts, html, json)"
     cmds:
       - uv run python -m src.cli report {{.CLI_ARGS}}
 
-  pipeline:
-    desc: "フルパイプライン: Run complete workflow (import → view → analyze → report)"
-    cmds:
-      - task: view
-      - task: analyze
-      - task: report
-
-  # ==================================================
-  # UTILITY TASKS
-  # ==================================================
+  # === Support Tasks ===
 
   clean:
-    desc: Clean all artifacts (cache + data)
-    deps: [clean:cache, clean:data]
-
-  clean:cache:
-    desc: Remove __pycache__ and .pyc files
+    desc: "Delete generated data"
     cmds:
+      - rm -rf data/interim data/unified data/reports data/processed data/output
       - find . -type d -name "__pycache__" -exec rm -rf {} +
       - find . -type f -name "*.pyc" -delete
 
-  clean:data:
-    desc: "Remove generated data (Safe: keeps raw data)"
-    cmds:
-      - rm -rf data/interim data/unified data/reports data/processed data/output
-
   test:
-    desc: Run tests and linting
+    desc: "Run quality checks"
     cmds:
       - uvx ruff check . --fix
       - uvx ruff format .
       - npx -y prettier --write "src/webapp/templates/**/*.html"
-
-  serve:
-    desc: "Web UI: Start FastAPI + htmx dashboard"
-    cmds:
-      - uv run uvicorn src.webapp.main:app --reload --host 0.0.0.0 --port 8000
-

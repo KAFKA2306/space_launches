@@ -386,9 +386,9 @@ class DataConverter:
                     "transaction_type": row["transaction_type"] if pd.notna(row["transaction_type"]) else "",
                     "quantity": float(row["quantity"]) if pd.notna(row["quantity"]) else 0.0,
                     "price": float(row["price"]) if pd.notna(row["price"]) else 0.0,
-                    "price_jpy_unified": round(price_jpy, 4),  # Unified JPY price
+                    "price_jpy_unified": round(price_jpy, 4),  # Unified JPY price (market_price)
                     "settlement_amount": float(row["settlement_amount"]) if pd.notna(row["settlement_amount"]) else 0.0,
-                    "amount_jpy_unified": round(amount_jpy, 2),  # Unified JPY amount
+                    "amount_jpy_unified": round(amount_jpy, 2),  # Unified JPY amount (amount_jpy)
                     "currency": self.currency_converter.normalize_currency_code(
                         row["currency"] if pd.notna(row["currency"]) else "JPY"
                     ),
@@ -702,11 +702,12 @@ class DataConverter:
                 "transaction_type",
                 "quantity",
                 "price",
-                "price_jpy_unified",
+                "market_price",
                 "settlement_amount",
-                "amount_jpy_unified",
+                "amount_jpy",
                 "currency",
-                "conversion_rate",
+                "fx_rate",
+                "market_value_jpy",
                 "is_investment_fund",
                 "fund_10000x_applied",
                 "ticker_mapped",

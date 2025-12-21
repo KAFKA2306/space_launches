@@ -74,13 +74,14 @@ async def get_trades(request: Request, page: int = 1, limit: int = 20):
 
 @app.post("/api/refresh", response_class=HTMLResponse)
 async def refresh_data(request: Request):
-    """Trigger data refresh."""
+    """
+    Trigger data refresh (offline conversion only).
+    Per design spec: Refresh = fetch:c re-execution (no network).
+    """
     loop = asyncio.get_event_loop()
     result = await loop.run_in_executor(
         None,
-        lambda: subprocess.run(
-            ["task", "import", "--", "--download"], capture_output=True, text=True, cwd=Config.BASE_DIR
-        ),
+        lambda: subprocess.run(["task", "fetch:c"], capture_output=True, text=True, cwd=Config.BASE_DIR),
     )
     success = result.returncode == 0
     response = templates.TemplateResponse(
@@ -92,12 +93,31 @@ async def refresh_data(request: Request):
     return response
 
 
-@app.get("/api/realtime-prices")
-async def get_realtime_prices():
-    """Fetch real-time prices for key holdings."""
-    analyzer = services.get_analyzer()
-    if not analyzer:
-        return {"error": "No data"}
+@app.post("/api/refresh-market", response_class=HTMLResponse)
+async def refresh_market_data(request: Request):
+    """
+    Trigger market data update (requires network).
+    Per design spec: Market data fetch is explicit opt-in only.
+    """
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(
+        None,
+        lambda: subprocess.run(["task", "fetch:m"], capture_output=True, text=True, cwd=Config.BASE_DIR),
+    )
+    success = result.returncode == 0
+    response = templates.TemplateResponse(
+        "partials/refresh_result.html",
+        {
+            "request": request,
+            "success": success,
+            "message": "Market data updated!" if success else "Market update failed",
+        },
+    )
+    if success:
+        response.headers["HX-Trigger"] = "dataRefreshed"
+    return response
 
-    holdings = analyzer.analyze_current_holdings()
-    return await services.fetch_realtime_prices(holdings)
+
+# NOTE: /api/realtime-prices removed per design spec.
+# Web display is offline-only. Real-time data fetch violates reproducibility.
+# Use 'task fetch:m' explicitly to update resources with latest market data.

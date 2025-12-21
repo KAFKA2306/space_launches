@@ -41,10 +41,15 @@ The "Trades" section lists your historical transactions.
 ## Data Management
 
 ### Refreshing Data
-The "Refresh Data" button in the header allows you to trigger a backend update. This runs the `task import -- --download` command to:
-1. Reload CSV data from the `data/raw` directory.
-2. Download the latest market data for your holdings.
-3. Re-calculate portfolio statistics.
+### Refreshing Data
+The "Refresh Data" button triggers a **local calculation update** (`task fetch:c` + `task run`). It:
+1. Reloads raw CSV data from the `data/raw` directory.
+2. Re-calculates portfolio statistics using existing resources.
+
+**Note**: This is an offline operation. To download new market data (forex/stock prices), use the CLI command:
+```bash
+task fetch:m
+```
 
 **Note**: This process may take a few moments. The UI will indicate when the refresh is complete.
 
