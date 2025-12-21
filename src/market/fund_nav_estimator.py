@@ -97,9 +97,7 @@ class FundNavEstimator:
         with open(self.fund_dict_path, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    def is_investment_fund(
-        self, security_name: str, security_code: str = "", is_fund_flag: bool = False
-    ) -> bool:
+    def is_investment_fund(self, security_name: str, security_code: str = "", is_fund_flag: bool = False) -> bool:
         """
         Determine if a security is an investment fund eligible for NAV estimation.
 
@@ -113,12 +111,12 @@ class FundNavEstimator:
         """
         # 1. Check Dictionary First (The "Truth")
         funds = self.fund_dict.get("funds", {})
-        
+
         # Check exact name
         if security_name in funds:
             ftype = funds[security_name].get("type", "fund")
             return ftype == "fund"
-        
+
         # Check aliases
         for fund_name, entry in funds.items():
             if security_name in entry.get("aliases", []):
@@ -136,10 +134,10 @@ class FundNavEstimator:
             return True
 
         name_upper = str(security_name).upper()
-        
+
         # Exclude specific patterns that might match keywords but are definitely not funds
         # (Though dictionary registration is the preferred way to handle these)
-        
+
         for indicator in self.FUND_INDICATORS:
             if indicator.upper() in name_upper or indicator in security_name:
                 return True

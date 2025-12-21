@@ -46,72 +46,87 @@ def run(args):
     config, logger = setup_environment()
     logger.info("Starting Data Fetch/Ingest Process")
 
-    # Initialize pipeline status tracker with mode='fetch'
     status = PipelineStatus(mode="fetch")
+    ff5_ok = False
 
     try:
         if args.build_fund_dict:
             build_fund_dictionary(config, logger)
 
-        # 1. Market Data (Global) - only if explicitly requested
+        # 1. Market Data (Global)
         if args.download:
             try:
                 update_market_data(config, logger)
                 status.stage_market_updated = "ran"
             except Exception as e:
-                logger.error(f"Market data update failed: {e}")
+                logger.error(f"Forex/Global market update failed: {e}")
                 status.stage_market_updated = "failed"
+                status.errors_count += 1
+
+            # FF5 Factors (Critical)
+            try:
+                from datetime import datetime
+
+                from src.fetch.ff5_client import FF5Client
+
+                FF5Client("data/raw").download_ff5_factors(datetime(2010, 1, 1), datetime.today())
+                ff5_ok = True
+            except Exception as e:
+                logger.error(f"FF5 download failed: {e}")
                 status.errors_count += 1
         else:
             status.stage_market_updated = "skipped"
 
-        # 2. Ingest Trades (Local Raw -> Processed)
+        # 2. Ingest Trades
         trades_df = load_and_process_trades(config, logger)
-
         if trades_df is None:
-            logger.error("Failed to load trades. Aborting.")
+            logger.error("Failed to load trades. HARD_FAIL.")
             status.errors_count += 1
             status.mark_complete()
             write_pipeline_status(status)
             return 1
-
         status.stage_raw_loaded = True
 
-        # 3. Market Data (Specific to Trades) - only if download requested
-        if args.download and status.stage_market_updated == "ran":
+        # 3. Market Data (Specific) - Both are non-critical
+        if args.download:
             try:
-                update_stock_prices(
-                    trades_df,
-                    config,
-                    logger,
-                    use_alternative_sources=args.alternative_data,
-                )
+                update_stock_prices(trades_df, config, logger, use_alternative_sources=args.alternative_data)
             except Exception as e:
-                logger.error(f"Stock price update failed: {e}")
-                status.stage_market_updated = "failed"
+                logger.warning(f"Stock prices partially failed: {e}")
                 status.errors_count += 1
 
-        # 3.5 Build Fund Dictionary (from the just-processed trades)
+            try:
+                from src.fetch.earnings_client import EarningsClient
+
+                tickers = [t for t in trades_df["symbol"].unique() if isinstance(t, str) and (t.isalnum() or "." in t)]
+                EarningsClient("data/raw").fetch_earnings_dates(tickers)
+            except Exception as e:
+                logger.warning(f"Earnings fetch failed: {e}")
+                status.errors_count += 1
+
+        # 3.5 Build Fund Dictionary
         build_fund_dictionary(config, logger)
 
-        # Per design spec: fetch does NOT create unified CSV
-        # Unified CSV creation is the responsibility of the 'run' command
-        # Set unified_written to False since fetch doesn't handle this
-
-        # Mark pipeline complete and write status
+        # Finalize
         status.mark_complete()
-        status_file = write_pipeline_status(status)
+        write_pipeline_status(status)
 
-        if status.is_success():
-            logger.info("Fetch/Ingest completed successfully!")
-            logger.info(f"Pipeline status written to: {status_file}")
+        # Success Definition:
+        # - HARD_FAIL: trades failed to load
+        # - PARTIAL_SUCCESS: FF5 OK but prices/earnings had issues
+        # - FULL_SUCCESS: No errors
+        if status.errors_count == 0:
+            logger.info("Fetch completed successfully (FULL_SUCCESS).")
             return 0
+        elif ff5_ok:
+            logger.warning(f"Fetch completed with {status.errors_count} non-critical errors (PARTIAL_SUCCESS).")
+            return 0  # CI/automation should continue
         else:
-            logger.warning(f"Fetch completed with {status.errors_count} errors")
+            logger.error("Fetch failed: FF5 critical data missing (HARD_FAIL).")
             return 1
 
     except Exception as e:
-        logger.error(f"Error during fetch: {e}", exc_info=True)
+        logger.error(f"Critical error during fetch: {e}", exc_info=True)
         status.errors_count += 1
         status.mark_complete()
         write_pipeline_status(status)

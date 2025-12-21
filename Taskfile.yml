@@ -35,6 +35,11 @@ tasks:
     cmds:
       - uv run python -m src.cli metrics {{.CLI_ARGS}}
 
+  analyze:ff5:
+    desc: "Run FF5 Alpha Verification (Offline). Required: --strategy-csv <path>"
+    cmds:
+      - uv run python -m src.analysis.ff5.main {{.CLI_ARGS}}
+
   # === Web & Reports ===
 
   serve:
