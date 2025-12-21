@@ -109,12 +109,15 @@ class UnifiedCSVAnalyzer:
         holdings = {}
 
         for _, trade in self.trades_df.iterrows():
-            symbol = trade["security_code"] or trade["original_security_code"] or "Unknown"
+            # Use security_name as the unique key to prevent merging different funds
+            # that happen to be mapped to the same reference ticker (e.g., 1343.T)
+            security_name = trade["security_name"] or "Unknown"
+            ticker = trade["security_code"] or trade["original_security_code"] or ""
 
-            if symbol not in holdings:
-                holdings[symbol] = {
-                    "security_name": trade["security_name"],
-                    "ticker": trade["security_code"],
+            if security_name not in holdings:
+                holdings[security_name] = {
+                    "security_name": security_name,
+                    "ticker": ticker,  # Keep ticker for price lookups
                     "quantity": 0,
                     "total_cost_jpy": 0,
                     "realized_pnl_jpy": 0,
@@ -128,14 +131,14 @@ class UnifiedCSVAnalyzer:
                     "last_transaction": trade["trade_date"],
                 }
 
-            holdings[symbol]["last_transaction"] = max(holdings[symbol]["last_transaction"], trade["trade_date"])
+            holdings[security_name]["last_transaction"] = max(holdings[security_name]["last_transaction"], trade["trade_date"])
             if trade.get("is_investment_fund", False):
-                holdings[symbol]["is_fund"] = True
+                holdings[security_name]["is_fund"] = True
 
             if trade["transaction_type"] in ["buy", "buy付", "投信金額買付"]:
-                holdings[symbol]["quantity"] += trade["quantity"] or 0
-                holdings[symbol]["total_cost_jpy"] += trade["amount_jpy"] or 0
-                holdings[symbol]["buy_trades"].append(
+                holdings[security_name]["quantity"] += trade["quantity"] or 0
+                holdings[security_name]["total_cost_jpy"] += trade["amount_jpy"] or 0
+                holdings[security_name]["buy_trades"].append(
                     {
                         "date": trade["trade_date"],
                         "quantity": trade["quantity"],
@@ -146,13 +149,13 @@ class UnifiedCSVAnalyzer:
             elif trade["transaction_type"] in ["sell", "sell付"]:
                 sold_qty = trade["quantity"] or 0
                 sale_amt = trade["amount_jpy"] or 0
-                if holdings[symbol]["quantity"] > 0:
-                    avg_cost = holdings[symbol]["total_cost_jpy"] / holdings[symbol]["quantity"]
+                if holdings[security_name]["quantity"] > 0:
+                    avg_cost = holdings[security_name]["total_cost_jpy"] / holdings[security_name]["quantity"]
                     cost_of_sold = avg_cost * sold_qty
-                    holdings[symbol]["realized_pnl_jpy"] += sale_amt - cost_of_sold
-                    holdings[symbol]["total_cost_jpy"] -= cost_of_sold
-                holdings[symbol]["quantity"] -= sold_qty
-                holdings[symbol]["sell_trades"].append(
+                    holdings[security_name]["realized_pnl_jpy"] += sale_amt - cost_of_sold
+                    holdings[security_name]["total_cost_jpy"] -= cost_of_sold
+                holdings[security_name]["quantity"] -= sold_qty
+                holdings[security_name]["sell_trades"].append(
                     {
                         "date": trade["trade_date"],
                         "quantity": sold_qty,
@@ -162,12 +165,21 @@ class UnifiedCSVAnalyzer:
                 )
 
         holdings_data = []
-        for symbol, h in holdings.items():
+        for name, h in holdings.items():
             if h["quantity"] > 0:
                 avg_cost = h["total_cost_jpy"] / h["quantity"] if h["quantity"] > 0 else 0
+                # Use ticker as symbol for display if available, otherwise use truncated name
+                ticker_val = h["ticker"]
+                if pd.notna(ticker_val) and str(ticker_val).strip():
+                    display_symbol = str(ticker_val).strip()
+                else:
+                    # Use first 12 chars of security name as fallback symbol
+                    display_symbol = name[:12] if name else "Unknown"
+                    ticker_val = ""  # Ensure it's an empty string, not NaN
                 holdings_data.append(
                     {
-                        "symbol": symbol,
+                        "symbol": display_symbol,
+                        "ticker": ticker_val,  # Keep separate ticker for price lookups
                         "security_name": h["security_name"],
                         "quantity": h["quantity"],
                         "avg_cost_per_unit_jpy": avg_cost,
@@ -243,16 +255,20 @@ class UnifiedCSVAnalyzer:
         usdjpy = self._force_scalar(latest_prices.get("USDJPY=X")) or 150.0
 
         for idx, row in self.holdings_df.iterrows():
+            # Use ticker for price lookup (symbol may be a display name for funds)
+            ticker = row.get("ticker", "") or row["symbol"]
             symbol = row["symbol"]
             is_fund = row.get("is_fund", False)
             try:
                 # Try multiple symbol formats to find a price match
                 price = None
+                # Build list of variants to try for price lookup
                 symbol_variants = [
-                    symbol,
-                    str(symbol).replace(".JP", ".T"),
-                    str(symbol).replace(".JP", ""),
-                    f"{symbol}.T" if str(symbol).isdigit() else None,
+                    ticker,  # Primary: use ticker (the mapped ETF code)
+                    symbol,  # Fallback: use display symbol
+                    str(ticker).replace(".JP", ".T") if ticker else None,
+                    str(ticker).replace(".JP", "") if ticker else None,
+                    f"{ticker}.T" if ticker and str(ticker).isdigit() else None,
                 ]
 
                 for variant in symbol_variants:
