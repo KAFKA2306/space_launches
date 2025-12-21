@@ -97,22 +97,49 @@ class FundNavEstimator:
         with open(self.fund_dict_path, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    def is_investment_fund(self, security_name: str, security_code: str = "", is_fund_flag: bool = False) -> bool:
+    def is_investment_fund(
+        self, security_name: str, security_code: str = "", is_fund_flag: bool = False
+    ) -> bool:
         """
-        Determine if a security is an investment fund.
+        Determine if a security is an investment fund eligible for NAV estimation.
 
         Returns True if:
-        - is_fund flag is True
-        - security_code is empty/missing
-        - security_name contains fund indicators
+        - Dictionary has entry with type="fund" (or missing type, defaulting to fund)
+        - Not in dictionary, but matches fund keywords (fallback)
+
+        Returns False if:
+        - Dictionary has entry with type="stock" or "etf"
+        - Not in dictionary and no keywords match
         """
+        # 1. Check Dictionary First (The "Truth")
+        funds = self.fund_dict.get("funds", {})
+        
+        # Check exact name
+        if security_name in funds:
+            ftype = funds[security_name].get("type", "fund")
+            return ftype == "fund"
+        
+        # Check aliases
+        for fund_name, entry in funds.items():
+            if security_name in entry.get("aliases", []):
+                ftype = entry.get("type", "fund")
+                return ftype == "fund"
+
+        # 2. Fallback to heuristics if not in dictionary
+        # If explicitly flagged as fund by source, trust it unless we know better
         if is_fund_flag:
             return True
 
+        # Heuristic checks
         if not security_code or pd.isna(security_code) or str(security_code).strip() == "":
+            # Missing code usually implies fund (unless it's a manual entry error)
             return True
 
         name_upper = str(security_name).upper()
+        
+        # Exclude specific patterns that might match keywords but are definitely not funds
+        # (Though dictionary registration is the preferred way to handle these)
+        
         for indicator in self.FUND_INDICATORS:
             if indicator.upper() in name_upper or indicator in security_name:
                 return True

@@ -64,8 +64,10 @@ class FundDictionaryBuilder:
                     logger.info(f"Processing {trade_file.name}: {len(df)} trades")
 
                     for _, row in df.iterrows():
-                        security_name = str(row.get("security_name", "")).strip()
-                        security_code = str(row.get("security_code", "")).strip()
+                        security_name_value = row.get("security_name", "")
+                        security_code_value = row.get("security_code", "")
+                        security_name = "" if pd.isna(security_name_value) else str(security_name_value).strip()
+                        security_code = "" if pd.isna(security_code_value) else str(security_code_value).strip()
 
                         # Identify investment funds (no security code or fund-like names)
                         if security_name and self._is_likely_fund(security_name, security_code):

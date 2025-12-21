@@ -90,6 +90,22 @@ def filter_and_sort_holdings(df: pd.DataFrame, q: str, sort: str) -> pd.DataFram
     return df
 
 
+def filter_trades(df: pd.DataFrame, q: str) -> pd.DataFrame:
+    """Filter trades DataFrame."""
+    if q:
+        # Vectorized string search
+        q = q.lower()
+        # Search in security_code (ticker), security_name, and original_security_code
+        mask = (
+            df["security_code"].astype(str).str.lower().str.contains(q, na=False)
+            | df["security_name"].astype(str).str.lower().str.contains(q, na=False)
+            | df["original_security_code"].astype(str).str.lower().str.contains(q, na=False)
+        )
+        df = df[mask]
+
+    return df
+
+
 async def fetch_realtime_prices(holdings: pd.DataFrame) -> dict:
     """Fetch real-time prices for key holdings."""
     if holdings.empty:

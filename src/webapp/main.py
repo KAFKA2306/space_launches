@@ -51,24 +51,25 @@ async def get_holdings(request: Request, q: str = "", sort: str = "value"):
 
 
 @app.get("/api/trades", response_class=HTMLResponse)
-async def get_trades(request: Request, page: int = 1, limit: int = 20):
-    """Get trades table partial with pagination."""
+async def get_trades(request: Request, q: str = ""):
+    """Get trades table partial (all trades, filtered by query)."""
     analyzer = services.get_analyzer()
     trades = []
-    has_more = False
 
     if analyzer:
         df = analyzer.trades_df.copy().sort_values("trade_date", ascending=False)
         df["trade_date"] = df["trade_date"].astype(str)
 
-        start = (page - 1) * limit
-        page_df = df.iloc[start : start + limit].where(pd.notna(df), None)
-        trades = page_df.to_dict("records")
-        has_more = (start + limit) < len(df)
+        # Filter if query provided
+        if q:
+            df = services.filter_trades(df, q)
+
+        # Convert to records (all trades)
+        trades = df.where(pd.notna(df), None).to_dict("records")
 
     return templates.TemplateResponse(
         "partials/trades.html",
-        {"request": request, "trades": trades, "page": page, "has_more": has_more},
+        {"request": request, "trades": trades},
     )
 
 

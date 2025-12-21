@@ -47,6 +47,40 @@ class StockDataManager:
         else:
             return code
 
+    def _normalize_price_columns(self, price_data: pd.DataFrame) -> pd.DataFrame:
+        """Normalize price column names to yfinance-compatible symbols."""
+        if price_data.empty:
+            return price_data
+
+        normalized_columns = {}
+        for col in price_data.columns:
+            if pd.isna(col):
+                continue
+            col_str = str(col).strip()
+            normalized = self.process_security_code(col_str) or col_str
+            if normalized not in normalized_columns:
+                normalized_columns[normalized] = []
+            normalized_columns[normalized].append(col)
+
+        needs_normalization = any(
+            len(cols) > 1 or str(cols[0]).strip() != norm for norm, cols in normalized_columns.items()
+        )
+        if not needs_normalization:
+            return price_data
+
+        columns_data = {}
+        for norm, cols in normalized_columns.items():
+            cols_sorted = sorted(cols, key=lambda c: price_data[c].notna().sum(), reverse=True)
+            series = price_data[cols_sorted[0]].copy()
+            for col in cols_sorted[1:]:
+                series = series.combine_first(price_data[col])
+            columns_data[norm] = series
+
+        normalized_data = pd.concat(columns_data, axis=1)
+
+        logger.info("Normalized price columns to yfinance-compatible symbols")
+        return normalized_data
+
     def extract_security_codes(self, trades_df: pd.DataFrame) -> Set[str]:
         """Extract unique security codes from trade data, including mapped fund tickers."""
         codes = set()
@@ -174,7 +208,7 @@ class StockDataManager:
             logger.warning("No stock price data available")
             return pd.DataFrame()
         elif existing_data.empty:
-            combined_data = new_price_data
+            combined_data = self._normalize_price_columns(new_price_data)
         elif new_price_data.empty:
             combined_data = existing_data
         else:
@@ -295,7 +329,7 @@ class StockDataManager:
 
                     if not batch_data.empty:
                         if hasattr(batch_data, "columns"):
-                            batch_data.columns = [col.rstrip(".T") for col in batch_data.columns]
+                            batch_data = self._normalize_price_columns(batch_data)
                         batch_data = batch_data.dropna(axis=1, how="all")
                         successful_downloads += len(batch_data.columns) if hasattr(batch_data, "columns") else 1
                         logger.info(
@@ -403,6 +437,8 @@ class StockDataManager:
             # Remove any duplicate dates
             combined_data = combined_data[~combined_data.index.duplicated(keep="last")]
 
+            combined_data = self._normalize_price_columns(combined_data)
+
         # Save updated data
         self.save_stock_prices(combined_data, prices_file_path)
 
@@ -422,6 +458,7 @@ class StockDataManager:
             if dic_charts_path.exists():
                 logger.info(f"Loading fallback stock data from {dic_charts_path}")
                 fallback_data = pd.read_csv(dic_charts_path, index_col=0, parse_dates=True)
+                fallback_data = self._normalize_price_columns(fallback_data)
 
                 # Clean up timezone information if present
                 if fallback_data.index.tz is not None:
@@ -433,25 +470,16 @@ class StockDataManager:
 
                 # Map security codes to available columns
                 for code in security_codes:
-                    # Try different variations of the security code
-                    variations = [
-                        code,  # Original code
-                        code.rstrip(".T"),  # Remove .T suffix
-                        f"{code}.T",  # Add .T suffix
-                        code.replace(".T", ""),  # Replace .T
-                    ]
-
-                    for variation in variations:
-                        if variation in available_securities:
-                            requested_securities.add(variation)
-                            break
+                    normalized_code = self.process_security_code(code) or str(code).strip()
+                    if normalized_code in available_securities:
+                        requested_securities.add(normalized_code)
+                        continue
+                    if code in available_securities:
+                        requested_securities.add(code)
 
                 if requested_securities:
                     # Select only the securities we found
                     filtered_data = fallback_data[list(requested_securities)]
-
-                    # Clean column names to remove .T suffix for consistency
-                    filtered_data.columns = [col.rstrip(".T") for col in filtered_data.columns]
 
                     logger.info(
                         f"Loaded {len(filtered_data)} records for {len(filtered_data.columns)} securities from fallback data"
@@ -478,7 +506,8 @@ class StockDataManager:
     def save_stock_prices(self, price_data: pd.DataFrame, output_path: Path):
         """Save stock price data to CSV."""
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        price_data.to_csv(output_path)
+        normalized_data = self._normalize_price_columns(price_data)
+        normalized_data.to_csv(output_path)
         logger.info(f"Stock price data saved to {output_path}")
 
     def load_stock_prices(self, file_path: Path) -> pd.DataFrame:
@@ -488,6 +517,7 @@ class StockDataManager:
             return pd.DataFrame()
 
         price_data = pd.read_csv(file_path, index_col=0, parse_dates=True)
+        price_data = self._normalize_price_columns(price_data)
         logger.info(f"Loaded stock price data with {len(price_data)} records")
         return price_data
 
