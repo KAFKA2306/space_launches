@@ -50,6 +50,7 @@ data/
 ## Documentation
 
 - [Data Architecture & Formatting Standards](docs/DATA_STANDARDS.md) - Strict guide on data ingestion and schema.
+- [Web Interface Documentation](docs/web_interface.md) - Guide to using the web dashboard.
 
 ## License
 
