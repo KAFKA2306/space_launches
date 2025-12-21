@@ -13,32 +13,62 @@
     </tr>
   </thead>
   <tbody>
-    {% for h in holdings %} {% set symbol = h.symbol if h.symbol and h.symbol ==
-    h.symbol and h.symbol != 'nan' else '' %} {% set qty = h.quantity if
-    h.quantity == h.quantity else 0 %} {% set avg_cost = h.avg_cost_per_unit_jpy
-    if h.avg_cost_per_unit_jpy == h.avg_cost_per_unit_jpy else 0 %} {# Use
-    current value if available, else cost basis #} {% set market_val =
-    h.current_value_jpy if h.current_value_jpy and h.current_value_jpy ==
-    h.current_value_jpy else (h.total_cost_jpy if h.total_cost_jpy ==
-    h.total_cost_jpy else 0) %} {# Current price if available #} {% set
+    {% for h in holdings %} {# Handle NaN values safely #} {% set symbol =
+    h.symbol if h.symbol and h.symbol == h.symbol and h.symbol != 'nan' else ''
+    %} {% set qty = h.quantity if h.quantity == h.quantity else 0 %} {% set
+    avg_cost = h.avg_cost_per_unit_jpy if h.avg_cost_per_unit_jpy ==
+    h.avg_cost_per_unit_jpy else 0 %} {% set market_val = h.current_value_jpy if
+    h.current_value_jpy and h.current_value_jpy == h.current_value_jpy else
+    (h.total_cost_jpy if h.total_cost_jpy == h.total_cost_jpy else 0) %} {% set
     current_price = h.current_price if h.current_price and h.current_price ==
-    h.current_price else 0 %} {# Unrealized P&L #} {% set pnl =
-    h.unrealized_pnl_jpy if h.unrealized_pnl_jpy and h.unrealized_pnl_jpy ==
-    h.unrealized_pnl_jpy else 0 %} {% set pnl_pct = h.unrealized_pnl_pct if
-    h.unrealized_pnl_pct and h.unrealized_pnl_pct == h.unrealized_pnl_pct else 0
-    %} {% set weight = h.portfolio_weight if h.portfolio_weight ==
-    h.portfolio_weight else 0 %}
-    <tr title="{{ h.security_name or '' }}">
-      <td><strong>{{ symbol if symbol else '-' }}</strong></td>
-      <td style="max-width: 300px">{{ h.security_name or '-' }}</td>
+    h.current_price else 0 %} {% set pnl = h.unrealized_pnl_jpy if
+    h.unrealized_pnl_jpy and h.unrealized_pnl_jpy == h.unrealized_pnl_jpy else 0
+    %} {% set pnl_pct = h.unrealized_pnl_pct if h.unrealized_pnl_pct and
+    h.unrealized_pnl_pct == h.unrealized_pnl_pct else 0 %} {% set weight =
+    h.portfolio_weight if h.portfolio_weight == h.portfolio_weight else 0 %} {%
+    set price_type = h.price_type if h.price_type else 'cost_basis' %} {% set
+    mapping_confidence = h.mapping_confidence if h.mapping_confidence else
+    'none' %} {% set is_estimated = price_type == 'estimated_nav_index_linked'
+    %}
+
+    <tr
+      title="{{ h.security_name or '' }}{% if is_estimated %} (Estimated NAV - Index-linked){% endif %}"
+    >
+      <td>
+        <strong>{{ symbol if symbol else '-' }}</strong>
+        {% if mapping_confidence and mapping_confidence != 'high' and
+        mapping_confidence != 'none' %}
+        <span
+          title="Low confidence mapping"
+          style="color: var(--warning-color, #f59e0b)"
+          >⚠️</span
+        >
+        {% endif %}
+      </td>
+      <td style="max-width: 300px">
+        {{ h.security_name or '-' }} {% if is_estimated %}
+        <br /><span
+          style="
+            font-size: 0.7em;
+            color: var(--text-secondary, #888);
+            background: var(--surface-color, #333);
+            padding: 1px 4px;
+            border-radius: 3px;
+          "
+          >📊 Estimated NAV</span
+        >
+        {% endif %}
+      </td>
       <td class="amount">{{ "{:,.0f}".format(qty) }}</td>
       <td class="amount">
         {% if avg_cost > 0 %}¥{{ "{:,.2f}".format(avg_cost) }}{% else %}-{%
         endif %}
       </td>
       <td class="amount">
-        {% if h.current_price and h.current_price > 0 %}¥{{
-        "{:,.2f}".format(h.current_price) }}{% else %}-{% endif %}
+        {% if current_price and current_price > 0 %} ¥{{
+        "{:,.2f}".format(current_price) }} {% elif is_estimated %}
+        <span style="color: var(--text-secondary, #888)">–</span>
+        {% else %} - {% endif %}
       </td>
       <td class="amount">
         {% if market_val > 0 %}¥{{ "{:,.0f}".format(market_val) }}{% else %}-{%

@@ -18,16 +18,20 @@
     <tr>
       <td>{{ t.trade_date[:10] if t.trade_date else '-' }}</td>
       <td><strong>{{ t.security_code or '-' }}</strong></td>
-      <td style="
+      <td
+        style="
           max-width: 250px;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
-        ">
+        "
+      >
         {{ t.security_name or '-' }}
       </td>
       <td>
-        <span style="color: {% if t.transaction_type == 'buy' %}var(--positive){% else %}var(--negative){% endif %};">
+        <span
+          style="color: {% if t.transaction_type == 'buy' %}var(--positive){% else %}var(--negative){% endif %};"
+        >
           {{ (t.transaction_type or '') | upper }}
         </span>
       </td>
@@ -47,7 +51,12 @@
 
 {% if has_more %}
 <div style="text-align: center; padding: 1rem">
-  <button class="btn btn-primary" hx-get="/api/trades?page={{ page + 1 }}" hx-target="this" hx-swap="outerHTML">
+  <button
+    class="btn btn-primary"
+    hx-get="/api/trades?page={{ page + 1 }}"
+    hx-target="this"
+    hx-swap="outerHTML"
+  >
     Load More
   </button>
 </div>

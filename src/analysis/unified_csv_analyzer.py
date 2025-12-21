@@ -131,7 +131,9 @@ class UnifiedCSVAnalyzer:
                     "last_transaction": trade["trade_date"],
                 }
 
-            holdings[security_name]["last_transaction"] = max(holdings[security_name]["last_transaction"], trade["trade_date"])
+            holdings[security_name]["last_transaction"] = max(
+                holdings[security_name]["last_transaction"], trade["trade_date"]
+            )
             if trade.get("is_investment_fund", False):
                 holdings[security_name]["is_fund"] = True
 
@@ -231,6 +233,8 @@ class UnifiedCSVAnalyzer:
 
     def _apply_market_prices(self):
         """Apply latest market prices to holdings."""
+        from src.market.fund_nav_estimator import FundNavEstimator
+
         try:
             # Try charts.csv first (primary source), then fall back to stock_prices.csv
             price_file = Config.MARKET_DATA_DIR / "charts.csv"
@@ -250,25 +254,63 @@ class UnifiedCSVAnalyzer:
         if latest_prices.index.duplicated().any():
             latest_prices = latest_prices[~latest_prices.index.duplicated(keep="first")]
 
+        # Initialize FundNavEstimator for investment trusts
+        try:
+            nav_estimator = FundNavEstimator()
+        except Exception as e:
+            logger.warning(f"Failed to initialize FundNavEstimator: {e}")
+            nav_estimator = None
+
+        # Initialize columns
         self.holdings_df["current_price"] = np.nan
         self.holdings_df["current_value_jpy"] = np.nan
         self.holdings_df["unrealized_pnl_jpy"] = np.nan
         self.holdings_df["unrealized_pnl_pct"] = np.nan
+        self.holdings_df["price_type"] = "cost_basis"
+        self.holdings_df["mapped_ticker"] = ""
+        self.holdings_df["mapping_confidence"] = "none"
 
         usdjpy = self._force_scalar(latest_prices.get("USDJPY=X")) or 150.0
 
         for idx, row in self.holdings_df.iterrows():
-            # Use ticker for price lookup (symbol may be a display name for funds)
             ticker = row.get("ticker", "") or row["symbol"]
             symbol = row["symbol"]
+            security_name = row.get("security_name", "")
             is_fund = row.get("is_fund", False)
+            currency = row.get("currency", "JPY")
+            quantity = self._force_scalar(row["quantity"])
+            cost = row["total_cost_jpy"]
+
             try:
-                # Try multiple symbol formats to find a price match
+                # Check if this is an investment fund that should use NAV estimation
+                use_nav_estimation = (
+                    nav_estimator is not None
+                    and is_fund
+                    and nav_estimator.is_investment_fund(security_name, ticker, is_fund)
+                )
+
+                if use_nav_estimation:
+                    # Use scale factor-based NAV estimation for investment trusts
+                    result = nav_estimator.estimate_fund_value(self.trades_df, security_name, quantity, currency)
+
+                    self.holdings_df.at[idx, "mapped_ticker"] = result["mapped_ticker"] or ""
+                    self.holdings_df.at[idx, "mapping_confidence"] = result["mapping_confidence"]
+
+                    if result["current_value"] is not None:
+                        current_value = result["current_value"]
+                        self.holdings_df.at[idx, "current_value_jpy"] = current_value
+                        self.holdings_df.at[idx, "price_type"] = "estimated_nav_index_linked"
+
+                        pnl = current_value - cost
+                        self.holdings_df.at[idx, "unrealized_pnl_jpy"] = pnl
+                        self.holdings_df.at[idx, "unrealized_pnl_pct"] = (pnl / cost * 100) if cost > 0 else 0
+                        continue  # Skip direct price lookup
+
+                # Direct price lookup for ETFs/stocks (or fallback for funds)
                 price = None
-                # Build list of variants to try for price lookup
                 symbol_variants = [
-                    ticker,  # Primary: use ticker (the mapped ETF code)
-                    symbol,  # Fallback: use display symbol
+                    ticker,
+                    symbol,
                     str(ticker).replace(".JP", ".T") if ticker else None,
                     str(ticker).replace(".JP", "") if ticker else None,
                     f"{ticker}.T" if ticker and str(ticker).isdigit() else None,
@@ -282,28 +324,28 @@ class UnifiedCSVAnalyzer:
 
                 if pd.notna(price):
                     self.holdings_df.at[idx, "current_price"] = price
-                    currency = row.get("currency", "JPY")
-                    quantity = self._force_scalar(row["quantity"])
+                    self.holdings_df.at[idx, "price_type"] = "market_price"
 
-                    # For Japanese investment funds, apply 10k rule
+                    # Calculate current value
+                    qty_for_calc = quantity
+                    # For Japanese investment funds with 10k unit rule (when using direct price)
                     if is_fund and quantity > 1000:
-                        # Fund quantities are in 口 units - divide by 10000 for valuation
-                        quantity = quantity / 10000
+                        qty_for_calc = quantity / 10000
 
                     if currency in ["JPY", "円"] or str(symbol).endswith((".JP", ".T")) or str(symbol).isdigit():
-                        current_value = quantity * price
-                    elif currency in ["USD", "ＵＳドル"]:
-                        current_value = quantity * price * usdjpy
+                        current_value = qty_for_calc * price
+                    elif currency in ["USD", "ＵＳドル", "米国ドル"]:
+                        current_value = qty_for_calc * price * usdjpy
                     elif currency in ["HKD", "HKドル"]:
-                        current_value = quantity * price * 20.0
+                        current_value = qty_for_calc * price * 20.0
                     else:
-                        current_value = row["total_cost_jpy"]
+                        current_value = cost
 
                     self.holdings_df.at[idx, "current_value_jpy"] = current_value
-                    cost = row["total_cost_jpy"]
                     pnl = current_value - cost
                     self.holdings_df.at[idx, "unrealized_pnl_jpy"] = pnl
                     self.holdings_df.at[idx, "unrealized_pnl_pct"] = (pnl / cost * 100) if cost > 0 else 0
+
             except Exception as e:
                 logger.exception(f"Error pricing {symbol}: {e}")
 

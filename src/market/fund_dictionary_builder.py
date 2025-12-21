@@ -55,7 +55,7 @@ class FundDictionaryBuilder:
                 logger.warning(f"Interim trades directory not found: {processed_dir}")
                 return fund_names
 
-            trade_files = list(processed_dir.glob("trades.csv")) # Only trades.csv expected
+            trade_files = list(processed_dir.glob("trades.csv"))  # Only trades.csv expected
             logger.info(f"Found {len(trade_files)} trade files to analyze")
 
             for trade_file in trade_files:

@@ -117,7 +117,7 @@ class CurrencyConverter:
                 forex_df = pd.read_csv(forex_file, parse_dates=["Date"])
                 # Ensure date is timezone-naive for compatibility with trade_date
                 if pd.api.types.is_datetime64_any_dtype(forex_df["Date"]):
-                     forex_df["Date"] = forex_df["Date"].dt.tz_localize(None)
+                    forex_df["Date"] = forex_df["Date"].dt.tz_localize(None)
                 forex_df.set_index("Date", inplace=True)
                 logger.info(f"Loaded forex data: {len(forex_df)} records")
                 return forex_df
