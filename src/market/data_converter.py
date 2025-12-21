@@ -95,14 +95,20 @@ class DataConverter:
         # Search in comprehensive fund dictionary first
         ticker = self._search_comprehensive_dictionary(security_name)
         if ticker:
-            logger.debug(f"Found ticker in comprehensive dictionary: '{security_name}' -> '{ticker}'")
-            return ticker
+            if self._is_safe_mapping(security_name, ticker):
+                logger.debug(f"Found ticker in comprehensive dictionary: '{security_name}' -> '{ticker}'")
+                return ticker
+            else:
+                logger.info(f"Rejected unsafe dictionary mapping: '{security_name}' -> '{ticker}'")
 
         # Fallback to old security mapping method
         ticker = self._search_legacy_mapping(security_name)
         if ticker:
-            logger.debug(f"Found ticker in legacy mapping: '{security_name}' -> '{ticker}'")
-            return ticker
+            if self._is_safe_mapping(security_name, ticker):
+                logger.debug(f"Found ticker in legacy mapping: '{security_name}' -> '{ticker}'")
+                return ticker
+            else:
+                logger.info(f"Rejected unsafe legacy mapping: '{security_name}' -> '{ticker}'")
 
         logger.debug(f"No ticker found for fund: {security_name}")
         return None
@@ -151,10 +157,25 @@ class DataConverter:
                     return True
 
             # Regex pattern matching for flexible matching
-            if self._regex_pattern_match(target_normalized, alias_normalized):
-                return True
+            # DISABLED for safety - strict matching only for financial data
+            # if self._regex_pattern_match(target_normalized, alias_normalized):
+            #    return True
 
         return False
+
+    def _is_safe_mapping(self, security_name: str, ticker: str) -> bool:
+        """Check if the mapping is safe (prevents JP Fund -> US ETF mismatches)."""
+        # If ticker looks like a US ETF (letters only, no .T or .JP)
+        if re.match(r"^[A-Z]+$", ticker):
+            # Check if security name contains Japanese characters (non-ASCII)
+            # This catches "eMAXIS", "SMT", "auAM...ファンド" etc.
+            is_japanese_name = any(ord(c) > 127 for c in security_name)
+            
+            if is_japanese_name:
+                logger.warning(f"Blocking unsafe mapping: '{security_name}' -> '{ticker}' (JP Name -> US ETF mismatch)")
+                return False
+                
+        return True
 
     def _normalize_for_matching(self, name: str) -> str:
         """Normalize name for matching purposes."""
@@ -209,11 +230,12 @@ class DataConverter:
         if security_name in self.security_mapping:
             return self.security_mapping[security_name]
 
-        # Fuzzy matching for investment funds
-        for mapped_name, ticker in self.security_mapping.items():
-            if self._names_match(security_name, mapped_name):
-                logger.info(f"Legacy match: '{security_name}' to ticker '{ticker}' via '{mapped_name}'")
-                return ticker
+        # Fuzzy matching disabled due to risk of incorrect Fund -> ETF mapping
+        # (e.g. eMAXIS Slim S&P500 -> VOO causes massive valuation errors)
+        # for mapped_name, ticker in self.security_mapping.items():
+        #     if self._names_match(security_name, mapped_name):
+        #         logger.info(f"Legacy match: '{security_name}' to ticker '{ticker}' via '{mapped_name}'")
+        #         return ticker
 
         return None
 

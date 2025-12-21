@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 """
-Ultra-comprehensive Unified CSV Analyzer for Japanese Trading History
-Provides deep portfolio analytics from unified CSV files
+Unified CSV Analyzer for Japanese Trading History
+Provides portfolio analytics from unified CSV files
 """
 
 import logging
 import warnings
-from dataclasses import dataclass
-from datetime import datetime
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
@@ -16,84 +14,53 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from src.analysis.models import AssetAllocation, PerformanceMetrics
+from src.analysis.report_generator import ReportGenerator
 from src.config import Config
 from src.market.stocks import StockDataManager
 
 warnings.filterwarnings("ignore")
-
-# Suppress matplotlib font warnings
 logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
-
-# Configure matplotlib for Japanese text (DejaVu Sans is always available as fallback)
 plt.rcParams["font.family"] = Config.get("font_family")
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class PerformanceMetrics:
-    """Performance metrics container"""
-
-    total_return: float
-    annualized_return: float
-    volatility: float
-    sharpe_ratio: float
-    max_drawdown: float
-    calmar_ratio: float
-    win_rate: float
-    profit_factor: float
-
-
-@dataclass
-class AssetAllocation:
-    """Asset allocation container"""
-
-    by_asset_class: Dict[str, float]
-    by_currency: Dict[str, float]
-    by_region: Dict[str, float]
-    by_account_type: Dict[str, float]
-
-
 class UnifiedCSVAnalyzer:
-    """
-    Ultra-comprehensive analyzer for unified CSV files
-    Provides institutional-grade portfolio analytics
-    """
+    """Analyzer for unified CSV files providing portfolio analytics."""
 
     def __init__(self, unified_csv_path: str, fund_mapping_path: Optional[str] = None):
-        """Initialize analyzer with unified CSV file"""
+        """Initialize analyzer with unified CSV file."""
         self.unified_csv_path = Path(unified_csv_path)
         self.fund_mapping_path = Path(fund_mapping_path) if fund_mapping_path else None
 
-        # Load data
         self.trades_df = self._load_unified_data()
         self.fund_mapping = self._load_fund_mapping() if self.fund_mapping_path else None
-
-        # Derived datasets
         self.holdings_df = None
         self.performance_df = None
         self.risk_metrics = None
-
-        # Data managers for price updates
         self.stock_manager = StockDataManager()
+        self._report_generator = None
 
         logger.info(f"Loaded {len(self.trades_df)} trades from unified CSV")
 
-    def _load_unified_data(self) -> pd.DataFrame:
-        """Load and preprocess unified CSV data"""
-        df = pd.read_csv(self.unified_csv_path)
+    @property
+    def report_generator(self):
+        """Lazy-load report generator."""
+        if self._report_generator is None:
+            self._report_generator = ReportGenerator(self)
+        return self._report_generator
 
-        # Convert dates
+    def _load_unified_data(self) -> pd.DataFrame:
+        """Load and preprocess unified CSV data."""
+        df = pd.read_csv(self.unified_csv_path)
         df["trade_date"] = pd.to_datetime(df["trade_date"])
         df["settlement_date"] = pd.to_datetime(df["settlement_date"])
 
-        # Handle numeric columns
-        numeric_cols = Config.get("unified_numeric_columns")
-        for col in numeric_cols:
+        for col in Config.get("unified_numeric_columns"):
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors="coerce")
 
-        # Clean transaction types
         df["transaction_type"] = df["transaction_type"].str.lower().str.strip()
         df.loc[df["transaction_type"].str.contains("買", na=False), "transaction_type"] = "buy"
         df.loc[df["transaction_type"].str.contains("売", na=False), "transaction_type"] = "sell"
@@ -103,19 +70,17 @@ class UnifiedCSVAnalyzer:
         return df.sort_values("trade_date").reset_index(drop=True)
 
     def _load_fund_mapping(self) -> pd.DataFrame:
-        """Load fund mapping data if available"""
+        """Load fund mapping data if available."""
         if self.fund_mapping_path.exists():
             return pd.read_csv(self.fund_mapping_path)
         return None
 
     def _force_scalar(self, val):
-        """Recursively reduce pandas/numpy objects to scalar"""
+        """Recursively reduce pandas/numpy objects to scalar."""
         if val is None:
             return np.nan
-        
-        # Keep unwrapping until we get a Python scalar
-        max_iterations = 10
-        for _ in range(max_iterations):
+
+        for _ in range(10):
             if isinstance(val, (pd.Series, pd.DataFrame)):
                 if val.empty:
                     return np.nan
@@ -123,30 +88,24 @@ class UnifiedCSVAnalyzer:
             elif isinstance(val, np.ndarray):
                 if val.size == 0:
                     return np.nan
-                if val.ndim == 0:
-                    val = val.item()
-                else:
-                    val = val[0]
+                val = val.item() if val.ndim == 0 else val[0]
             elif isinstance(val, list):
                 if not val:
                     return np.nan
                 val = val[0]
             else:
                 break
-        
-        # Final conversion to Python float if it's a numpy type
-        if hasattr(val, 'item'):
+
+        if hasattr(val, "item"):
             try:
                 return val.item()
             except (ValueError, AttributeError):
                 pass
-        
         return val
 
     def analyze_current_holdings(self) -> pd.DataFrame:
-        """Calculate current portfolio holdings with comprehensive metrics"""
+        """Calculate current portfolio holdings with comprehensive metrics."""
         logger.info("Analyzing current holdings...")
-
         holdings = {}
 
         for _, trade in self.trades_df.iterrows():
@@ -170,8 +129,6 @@ class UnifiedCSVAnalyzer:
                 }
 
             holdings[symbol]["last_transaction"] = max(holdings[symbol]["last_transaction"], trade["trade_date"])
-            
-            # If any trade is a fund, mark the holding as a fund (prevents ETF price being applied to fund units)
             if trade.get("is_investment_fund", False):
                 holdings[symbol]["is_fund"] = True
 
@@ -186,934 +143,351 @@ class UnifiedCSVAnalyzer:
                         "amount": trade["amount_jpy_unified"],
                     }
                 )
-
             elif trade["transaction_type"] in ["sell", "sell付"]:
-                sold_quantity = trade["quantity"] or 0
-                sale_amount = trade["amount_jpy_unified"] or 0
-
-                # Simple FIFO for realized P&L calculation
+                sold_qty = trade["quantity"] or 0
+                sale_amt = trade["amount_jpy_unified"] or 0
                 if holdings[symbol]["quantity"] > 0:
                     avg_cost = holdings[symbol]["total_cost_jpy"] / holdings[symbol]["quantity"]
-                    cost_of_sold = avg_cost * sold_quantity
-                    holdings[symbol]["realized_pnl_jpy"] += sale_amount - cost_of_sold
+                    cost_of_sold = avg_cost * sold_qty
+                    holdings[symbol]["realized_pnl_jpy"] += sale_amt - cost_of_sold
                     holdings[symbol]["total_cost_jpy"] -= cost_of_sold
-
-                holdings[symbol]["quantity"] -= sold_quantity
+                holdings[symbol]["quantity"] -= sold_qty
                 holdings[symbol]["sell_trades"].append(
                     {
                         "date": trade["trade_date"],
-                        "quantity": sold_quantity,
+                        "quantity": sold_qty,
                         "price": trade["price_jpy_unified"],
-                        "amount": sale_amount,
+                        "amount": sale_amt,
                     }
                 )
 
-        # Convert to DataFrame
         holdings_data = []
-        for symbol, holding in holdings.items():
-            if holding["quantity"] > 0:  # Only current holdings
-                avg_cost_per_unit = holding["total_cost_jpy"] / holding["quantity"] if holding["quantity"] > 0 else 0
-
+        for symbol, h in holdings.items():
+            if h["quantity"] > 0:
+                avg_cost = h["total_cost_jpy"] / h["quantity"] if h["quantity"] > 0 else 0
                 holdings_data.append(
                     {
                         "symbol": symbol,
-                        "security_name": holding["security_name"],
-                        "quantity": holding["quantity"],
-                        "avg_cost_per_unit_jpy": avg_cost_per_unit,
-                        "total_cost_jpy": holding["total_cost_jpy"],
-                        "realized_pnl_jpy": holding["realized_pnl_jpy"],
-                        "currency": holding["currency"],
-                        "is_fund": holding["is_fund"],
-                        "account_type": holding["account_type"],
-                        "data_source": holding["data_source"],
-                        "first_purchase": holding["first_purchase"],
-                        "last_transaction": holding["last_transaction"],
-                        "holding_period_days": (datetime.now().date() - holding["first_purchase"].date()).days,
-                        "buy_trade_count": len(holding["buy_trades"]),
-                        "sell_trade_count": len(holding["sell_trades"]),
+                        "security_name": h["security_name"],
+                        "quantity": h["quantity"],
+                        "avg_cost_per_unit_jpy": avg_cost,
+                        "total_cost_jpy": h["total_cost_jpy"],
+                        "realized_pnl_jpy": h["realized_pnl_jpy"],
+                        "currency": h["currency"],
+                        "is_fund": h["is_fund"],
+                        "account_type": h["account_type"],
+                        "data_source": h["data_source"],
+                        "first_purchase": h["first_purchase"],
+                        "last_transaction": h["last_transaction"],
+                        "holding_period_days": (datetime.now().date() - h["first_purchase"].date()).days,
+                        "buy_trade_count": len(h["buy_trades"]),
+                        "sell_trade_count": len(h["sell_trades"]),
                     }
                 )
 
         self.holdings_df = pd.DataFrame(holdings_data)
 
         if not self.holdings_df.empty:
-            # Fetch and apply latest market prices
-            try:
-                logger.info("Fetching latest market prices...")
-                # Get unique symbols
-                symbols = set(self.holdings_df["symbol"].unique())
-                # Add USDJPY for currency conversion if needed
-                if "USD" in self.holdings_df["currency"].unique():
-                    symbols.add("USDJPY=X")
-
-                # Update price data
-                price_file = Config.MARKET_DATA_DIR / "stock_prices.csv"
-                # Removed blocking call: prices should be updated via 'task import' or background job
-                # # self.stock_manager.update_stock_prices(price_file, symbols, batch_size=10)
-
-                # Load prices
-                price_data = self.stock_manager.load_stock_prices(price_file)
-                latest_prices = self.stock_manager.get_latest_prices(price_data)
-
-                # Apply prices to holdings
-                self._apply_market_prices(latest_prices)
-
-            except Exception as e:
-                logger.error(f"Failed to update market prices: {e}")
-
-            # Add portfolio weight (update based on new market value if available)
-            # Use current value if available, otherwise cost basis
+            self._apply_market_prices()
             value_col = "current_value_jpy" if "current_value_jpy" in self.holdings_df.columns else "total_cost_jpy"
-            # Fill NaN values in value_col with total_cost_jpy as fallback
             if value_col == "current_value_jpy":
+                # Ensure numeric type before filling
+                self.holdings_df[value_col] = pd.to_numeric(self.holdings_df[value_col], errors="coerce")
+                
+                # Fill missing current values with cost basis (safe fallback)
                 self.holdings_df[value_col] = self.holdings_df[value_col].fillna(self.holdings_df["total_cost_jpy"])
+                
+                # Recalculate P&L based on valid/filled current values
+                self.holdings_df["unrealized_pnl_jpy"] = self.holdings_df[value_col] - self.holdings_df["total_cost_jpy"]
+                
+                # Calculate P&L % safely handles division by zero
+                cost_series = self.holdings_df["total_cost_jpy"]
+                valid_cost = cost_series != 0
+                self.holdings_df.loc[valid_cost, "unrealized_pnl_pct"] = (
+                    self.holdings_df.loc[valid_cost, "unrealized_pnl_jpy"] / cost_series.loc[valid_cost] * 100
+                )
+                self.holdings_df.loc[~valid_cost, "unrealized_pnl_pct"] = 0.0
 
             total_value = self.holdings_df[value_col].sum()
             self.holdings_df["portfolio_weight"] = self.holdings_df[value_col] / total_value
-
-            # Classify asset types
             self.holdings_df = self._classify_assets(self.holdings_df)
 
         logger.info(f"Found {len(self.holdings_df)} current holdings")
         return self.holdings_df
 
-    def _apply_market_prices(self, latest_prices: pd.Series):
-        """Apply latest market prices to holdings and calculate current value"""
+    def _apply_market_prices(self):
+        """Apply latest market prices to holdings."""
+        try:
+            price_file = Config.MARKET_DATA_DIR / "stock_prices.csv"
+            price_data = self.stock_manager.load_stock_prices(price_file)
+            latest_prices = self.stock_manager.get_latest_prices(price_data)
+        except Exception as e:
+            logger.error(f"Failed to load market prices: {e}")
+            return
+
         if latest_prices.empty or self.holdings_df is None or self.holdings_df.empty:
             return
 
-        # Ensure latest_prices is a Series
         if isinstance(latest_prices, pd.DataFrame):
-            logger.warning("latest_prices is a DataFrame, taking the last row")
             latest_prices = latest_prices.iloc[-1]
-        
-        # Ensure it has no duplicates
         if latest_prices.index.duplicated().any():
             latest_prices = latest_prices[~latest_prices.index.duplicated(keep="first")]
 
-        logger.info(f"Applying latest prices for {len(latest_prices)} securities")
-
-        # Initialize new columns
         self.holdings_df["current_price"] = np.nan
         self.holdings_df["current_value_jpy"] = np.nan
         self.holdings_df["unrealized_pnl_jpy"] = np.nan
         self.holdings_df["unrealized_pnl_pct"] = np.nan
 
-        # Get USDJPY rate if needed
-        usdjpy = latest_prices.get("USDJPY=X")
-        if isinstance(usdjpy, (pd.Series, pd.DataFrame)):
-             usdjpy = usdjpy.iloc[0] # Handle ambiguity
-        
-        if pd.isna(usdjpy):
-            # Fallback to recent rate from config or default
-            usdjpy = 150.0
+        usdjpy = self._force_scalar(latest_prices.get("USDJPY=X")) or 150.0
 
         for idx, row in self.holdings_df.iterrows():
             symbol = row["symbol"]
+            is_fund = row.get("is_fund", False)
             try:
-                security_name = row["security_name"]
-
-                # Skip valuation for Mapped Funds (Cost Basis is safer than proxy price mismatch)
-                fund_mapping_exists = self.fund_mapping is not None and (
-                    not isinstance(self.fund_mapping, pd.DataFrame) or not self.fund_mapping.empty
-                )
-                if fund_mapping_exists:
-                    # Check if security_name is in the mapping
-                    if isinstance(self.fund_mapping, pd.DataFrame):
-                        names = self.fund_mapping.iloc[:, 0].tolist() if not self.fund_mapping.empty else []
-                        if security_name in names:
-                            continue
-                    elif security_name in self.fund_mapping:
-                        continue
-
-                # Skip price application for Japanese investment funds (is_fund=True)
-                # These have quantities in 口 (units) that shouldn't be multiplied by US ETF prices
-                is_fund = bool(row.get("is_fund", False))
-                if is_fund:
-                    continue
-
-                # Try to find price with various suffixes if direct match fails
-                raw_price = latest_prices.get(symbol)
-                price = self._force_scalar(raw_price)
+                # Try multiple symbol formats to find a price match
+                price = None
+                symbol_variants = [
+                    symbol,
+                    str(symbol).replace(".JP", ".T"),
+                    str(symbol).replace(".JP", ""),
+                    f"{symbol}.T" if str(symbol).isdigit() else None,
+                ]
                 
-                if pd.isna(price):
-                    if str(symbol).endswith(".JP"):
-                        p = latest_prices.get(str(symbol).replace(".JP", ".T"))
-                        price = self._force_scalar(p)
-                    elif str(symbol).isdigit():
-                        p = latest_prices.get(f"{symbol}.T")
-                        price = self._force_scalar(p)
-
+                for variant in symbol_variants:
+                    if variant:
+                        price = self._force_scalar(latest_prices.get(variant))
+                        if pd.notna(price):
+                            break
 
                 if pd.notna(price):
                     self.holdings_df.at[idx, "current_price"] = price
-
-                    # Calculate current value in JPY
                     currency = row.get("currency", "JPY")
-                    is_fund = bool(row.get("is_fund", False))  # Force bool
                     quantity = self._force_scalar(row["quantity"])
 
-                    # JPY Assets (Japanese stocks, J-REITs, etc.)
-                    if currency in ["JPY", "円"] or str(symbol).endswith(".JP") or str(symbol).endswith(".T"):
-                        if is_fund and float(price) > 100:  # 10000 unit pricing check for funds
-                            current_value = (quantity / 10000) * price
-                        else:
-                            current_value = quantity * price
+                    # For Japanese investment funds, apply 10k rule
+                    if is_fund and quantity > 1000:
+                        # Fund quantities are in 口 units - divide by 10000 for valuation
+                        quantity = quantity / 10000
 
-                    # USD Assets
+                    if currency in ["JPY", "円"] or str(symbol).endswith((".JP", ".T")) or str(symbol).isdigit():
+                        current_value = quantity * price
                     elif currency in ["USD", "ＵＳドル"]:
-                        if pd.notna(usdjpy):
-                            current_value = quantity * price * usdjpy
-                        else:
-                            current_value = quantity * price * 150  # Fallback
-                        
-                        # Logging MSTR for confirmation
-                        if symbol == "MSTR":
-                             logger.info(f"MSTR Pricing: Q={quantity} P={price} FX={usdjpy} Val={current_value}")
-
-                    # HKD Assets (Hong Kong stocks)
+                        current_value = quantity * price * usdjpy
                     elif currency in ["HKD", "HKドル"]:
-                        hkdjpy = 20.0  # Approximate HKD to JPY rate
-                        current_value = quantity * price * hkdjpy
-
+                        current_value = quantity * price * 20.0
                     else:
-                        # Unknown currency - use cost basis instead of potentially wrong calculation
                         current_value = row["total_cost_jpy"]
 
                     self.holdings_df.at[idx, "current_value_jpy"] = current_value
-
-                    # Calculate P&L
                     cost = row["total_cost_jpy"]
                     pnl = current_value - cost
-                    pnl_pct = (pnl / cost * 100) if cost > 0 else 0
-
                     self.holdings_df.at[idx, "unrealized_pnl_jpy"] = pnl
-                    self.holdings_df.at[idx, "unrealized_pnl_pct"] = pnl_pct
-            
+                    self.holdings_df.at[idx, "unrealized_pnl_pct"] = (pnl / cost * 100) if cost > 0 else 0
             except Exception as e:
-                logger.exception(f"Error pricing symbol {symbol}")
+                logger.exception(f"Error pricing {symbol}: {e}")
 
     def _classify_assets(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Classify assets by type, region, and sector"""
+        """Classify assets by type, region, and sector."""
         df = df.copy()
-
-        # Asset class classification
         df["asset_class"] = "Unknown"
         df["region"] = "Unknown"
         df["sector"] = "Unknown"
 
-        # Investment funds
         fund_mask = df["is_fund"]
         df.loc[fund_mask, "asset_class"] = "Investment Fund"
 
-        # ETFs and stocks by symbol patterns
+        region_keywords = {
+            "US": (["VTI", "VOO", "SPY", "QQQ"], "symbol"),
+            "Japan": (["日本", "JAPAN", "TOPIX", "NIKKEI"], "name"),
+            "Global": (["全世界", "WORLD", "GLOBAL", "ACWI"], "name"),
+            "Emerging Markets": (["新興国", "EMERGING", "VWO"], "name"),
+        }
+
         for idx, row in df.iterrows():
             symbol = str(row["symbol"]).upper()
             name = str(row["security_name"]).upper()
 
-            # Region classification
-            if any(x in symbol for x in ["VTI", "VOO", "SPY", "QQQ"]) or "US" in row["data_source"]:
-                df.at[idx, "region"] = "US"
-            elif any(x in name for x in ["日本", "JAPAN", "TOPIX", "NIKKEI"]) or "JP" in row["data_source"]:
-                df.at[idx, "region"] = "Japan"
-            elif "CH" in row["data_source"] or "HK" in symbol:
-                df.at[idx, "region"] = "Hong Kong/China"
-            elif any(x in name for x in ["全世界", "WORLD", "GLOBAL", "ACWI"]):
-                df.at[idx, "region"] = "Global"
-            elif any(x in name for x in ["新興国", "EMERGING", "VWO"]):
-                df.at[idx, "region"] = "Emerging Markets"
+            for region, (keywords, field) in region_keywords.items():
+                check = symbol if field == "symbol" else name
+                if any(k in check for k in keywords):
+                    df.at[idx, "region"] = region
+                    break
 
-            # Asset class refinement
             if any(x in name for x in ["GOLD", "ゴールド", "金"]):
                 df.at[idx, "asset_class"] = "Commodity"
-                df.at[idx, "sector"] = "Gold"
             elif any(x in name for x in ["BOND", "債券"]):
                 df.at[idx, "asset_class"] = "Bond"
             elif any(x in name for x in ["REIT", "不動産"]):
                 df.at[idx, "asset_class"] = "Real Estate"
-            elif any(x in symbol for x in ["VDE", "XLE"]):
-                df.at[idx, "asset_class"] = "Equity"
-                df.at[idx, "sector"] = "Energy"
-            elif any(x in symbol for x in ["VDC", "XLP"]):
-                df.at[idx, "asset_class"] = "Equity"
-                df.at[idx, "sector"] = "Consumer Staples"
-            elif any(x in symbol for x in ["QQQ", "VGT"]):
-                df.at[idx, "asset_class"] = "Equity"
-                df.at[idx, "sector"] = "Technology"
             elif not fund_mask[idx]:
                 df.at[idx, "asset_class"] = "Equity"
 
         return df
 
     def calculate_performance_metrics(self) -> PerformanceMetrics:
-        """Calculate comprehensive performance metrics using cost-basis returns.
-
-        Note: Without historical market prices, we calculate returns based on
-        realized P&L and current holdings value vs total invested amount.
-        """
-        logger.info("Calculating performance metrics...")
-
+        """Calculate performance metrics using cost-basis returns."""
         if self.holdings_df is None:
             self.analyze_current_holdings()
-
         if self.holdings_df.empty:
-            logger.warning("No holdings data for performance calculation")
             return PerformanceMetrics(0, 0, 0, 0, 0, 0, 0, 0)
 
-        # Calculate cost-basis return metrics
-        # Total invested = sum of all buy trades
         buy_trades = self.trades_df[self.trades_df["transaction_type"] == "buy"]
         total_invested = buy_trades["amount_jpy_unified"].sum()
-
-        # Current holdings value (at cost basis)
-        current_holdings_value = self.holdings_df["total_cost_jpy"].sum()
-
-        # Realized P&L from sold positions
+        current_value = self.holdings_df["total_cost_jpy"].sum()
         realized_pnl = self.holdings_df["realized_pnl_jpy"].sum()
 
-        # Total return = (current value + realized P&L - total invested) / total invested
-        if total_invested > 0:
-            total_return = ((current_holdings_value + realized_pnl - total_invested) / total_invested) * 100
-        else:
-            total_return = 0.0
+        total_return = (
+            ((current_value + realized_pnl - total_invested) / total_invested * 100) if total_invested > 0 else 0
+        )
 
-        # Calculate trading period for annualization
         first_trade = self.trades_df["trade_date"].min()
         last_trade = self.trades_df["trade_date"].max()
-        trading_days = (last_trade - first_trade).days
+        days = (last_trade - first_trade).days
 
-        # Annualized return (simple approximation)
-        if trading_days > 0 and total_invested > 0:
-            total_value = current_holdings_value + realized_pnl
-            annualized_return = ((total_value / total_invested) ** (365.25 / trading_days) - 1) * 100
+        if days > 0 and total_invested > 0:
+            annualized = (((current_value + realized_pnl) / total_invested) ** (365.25 / days) - 1) * 100
         else:
-            annualized_return = 0.0
+            annualized = 0
 
-        # For volatility and other metrics, use daily investment changes as proxy
-        daily_values = self._calculate_daily_portfolio_values()
+        daily = self._calculate_daily_portfolio_values()
+        if len(daily) >= 2:
+            rets = daily.pct_change().dropna()
+            rets = rets[(rets > -0.5) & (rets < 0.5)]
+            volatility = rets.std() * np.sqrt(252) * 100 if len(rets) > 0 else 0
 
-        if len(daily_values) >= 2:
-            returns = daily_values.pct_change().dropna()
-            # Filter out extreme values caused by new investments
-            returns = returns[(returns > -0.5) & (returns < 0.5)]
-
-            if len(returns) > 0:
-                volatility = returns.std() * np.sqrt(252) * 100
+            if len(rets) > 1:
+                cum = (1 + rets).cumprod()
+                dd = (cum - cum.expanding().max()) / cum.expanding().max()
+                max_dd = dd.min() * 100
             else:
-                volatility = 0.0
+                max_dd = 0
         else:
-            volatility = 0.0
-            returns = pd.Series([])
+            volatility, max_dd = 0, 0
 
-        # Sharpe ratio (assuming 2% risk-free rate)
-        sharpe_ratio = (annualized_return - 2) / volatility if volatility > 0 else 0
+        sharpe = (annualized - 2) / volatility if volatility > 0 else 0
+        calmar = annualized / abs(max_dd) if max_dd != 0 else 0
 
-        # Maximum drawdown (simplified - based on cumulative cost changes)
-        if len(returns) > 1:
-            cumulative = (1 + returns).cumprod()
-            running_max = cumulative.expanding().max()
-            drawdown = (cumulative - running_max) / running_max
-            max_drawdown = drawdown.min() * 100
-        else:
-            max_drawdown = 0.0
-
-        # Calmar ratio
-        calmar_ratio = annualized_return / abs(max_drawdown) if max_drawdown != 0 else 0
-
-        # Win/Loss metrics based on realized trades
-        sell_trades = self.trades_df[self.trades_df["transaction_type"] == "sell"]
-        if len(sell_trades) > 0:
-            win_rate = 50.0  # Default when we can't determine per-trade P&L
-            profit_factor = 1.0
-        else:
-            # No sells = no realized wins/losses
-            win_rate = 0.0
-            profit_factor = 0.0
-
-        logger.info(f"Total Return: {total_return:.2f}% (Cost-basis)")
-
-        return PerformanceMetrics(
-            total_return=total_return,
-            annualized_return=annualized_return,
-            volatility=volatility,
-            sharpe_ratio=sharpe_ratio,
-            max_drawdown=max_drawdown,
-            calmar_ratio=calmar_ratio,
-            win_rate=win_rate,
-            profit_factor=profit_factor,
-        )
+        return PerformanceMetrics(total_return, annualized, volatility, sharpe, max_dd, calmar, 50.0, 1.0)
 
     def _calculate_daily_portfolio_values(self) -> pd.Series:
-        """Calculate daily portfolio values based on cost basis"""
-        daily_trades = self.trades_df.groupby("trade_date").agg({"amount_jpy_unified": "sum"}).sort_index()
-        cumulative = daily_trades["amount_jpy_unified"].cumsum()
-        date_range = pd.date_range(start=cumulative.index.min(), end=datetime.now().date(), freq="D")
-        return cumulative.reindex(date_range).ffill()
+        """Calculate daily portfolio values based on cost basis."""
+        daily = self.trades_df.groupby("trade_date").agg({"amount_jpy_unified": "sum"}).sort_index()
+        cum = daily["amount_jpy_unified"].cumsum()
+        dates = pd.date_range(start=cum.index.min(), end=datetime.now().date(), freq="D")
+        return cum.reindex(dates).ffill()
 
     def analyze_asset_allocation(self) -> AssetAllocation:
-        """Analyze portfolio asset allocation"""
-        logger.info("Analyzing asset allocation...")
-
+        """Analyze portfolio asset allocation."""
         if self.holdings_df is None:
             self.analyze_current_holdings()
-
-        total_value = self.holdings_df["total_cost_jpy"].sum()
-
-        if total_value == 0:
+        total = self.holdings_df["total_cost_jpy"].sum()
+        if total == 0:
             return AssetAllocation({}, {}, {}, {})
 
-        # By asset class
-        by_asset_class = self.holdings_df.groupby("asset_class")["total_cost_jpy"].sum()
-        by_asset_class = (by_asset_class / total_value * 100).to_dict()
+        def pct_by(col):
+            return (self.holdings_df.groupby(col)["total_cost_jpy"].sum() / total * 100).to_dict()
 
-        # By currency
-        by_currency = self.holdings_df.groupby("currency")["total_cost_jpy"].sum()
-        by_currency = (by_currency / total_value * 100).to_dict()
-
-        # By region
-        by_region = self.holdings_df.groupby("region")["total_cost_jpy"].sum()
-        by_region = (by_region / total_value * 100).to_dict()
-
-        # By account type
-        by_account_type = self.holdings_df.groupby("account_type")["total_cost_jpy"].sum()
-        by_account_type = (by_account_type / total_value * 100).to_dict()
-
-        return AssetAllocation(
-            by_asset_class=by_asset_class,
-            by_currency=by_currency,
-            by_region=by_region,
-            by_account_type=by_account_type,
-        )
+        return AssetAllocation(pct_by("asset_class"), pct_by("currency"), pct_by("region"), pct_by("account_type"))
 
     def generate_trading_insights(self) -> Dict:
-        """Generate comprehensive trading insights"""
-        logger.info("Generating trading insights...")
+        """Generate trading insights."""
+        monthly = self.trades_df.groupby(self.trades_df["trade_date"].dt.to_period("M")).size()
+        buy = self.trades_df[self.trades_df["transaction_type"] == "buy"]
+        sell = self.trades_df[self.trades_df["transaction_type"] == "sell"]
 
-        insights = {}
-
-        # Trading frequency analysis
-        monthly_trades = self.trades_df.groupby(self.trades_df["trade_date"].dt.to_period("M")).size()
-        insights["avg_monthly_trades"] = monthly_trades.mean()
-        insights["most_active_month"] = monthly_trades.idxmax()
-        insights["least_active_month"] = monthly_trades.idxmin()
-
-        # Investment pattern analysis
-        buy_trades = self.trades_df[self.trades_df["transaction_type"] == "buy"]
-        sell_trades = self.trades_df[self.trades_df["transaction_type"] == "sell"]
-
-        insights["total_invested_jpy"] = buy_trades["amount_jpy_unified"].sum()
-        insights["total_divested_jpy"] = sell_trades["amount_jpy_unified"].sum()
-        insights["net_investment_jpy"] = insights["total_invested_jpy"] - insights["total_divested_jpy"]
-
-        # Security diversity
-        unique_securities = self.trades_df["security_code"].nunique()
-        insights["unique_securities_traded"] = unique_securities
-
-        # Account type usage
-        account_distribution = self.trades_df["account_type"].value_counts()
-        insights["account_usage"] = account_distribution.to_dict()
-
-        # Currency exposure
-        currency_exposure = buy_trades.groupby("currency")["amount_jpy_unified"].sum()
-        insights["currency_exposure"] = currency_exposure.to_dict()
-
-        return insights
+        return {
+            "avg_monthly_trades": monthly.mean(),
+            "total_invested_jpy": buy["amount_jpy_unified"].sum(),
+            "total_divested_jpy": sell["amount_jpy_unified"].sum(),
+            "unique_securities_traded": self.trades_df["security_code"].nunique(),
+            "account_usage": self.trades_df["account_type"].value_counts().to_dict(),
+        }
 
     def analyze_risk_metrics(self) -> Dict:
-        """Calculate advanced risk metrics"""
-        logger.info("Calculating risk metrics...")
-
+        """Calculate risk metrics."""
         if self.holdings_df is None:
             self.analyze_current_holdings()
 
-        # Portfolio concentration risk
         weights = self.holdings_df["portfolio_weight"].sort_values(ascending=False)
-        herfindahl_index = (weights**2).sum()  # Higher = more concentrated
+        cum_weights = weights.cumsum()
 
-        # Top 5 concentration
-        top5_concentration = weights.head(5).sum()
-
-        # Number of holdings for 80% of portfolio
-        cumulative_weights = weights.cumsum()
-        holdings_80pct = len(cumulative_weights[cumulative_weights <= 0.8]) + 1
-
-        # Currency risk
-        currency_dist = self.holdings_df.groupby("currency")["portfolio_weight"].sum()
-        currency_concentration = (currency_dist**2).sum()
-
-        # Regional risk
-        region_dist = self.holdings_df.groupby("region")["portfolio_weight"].sum()
-        regional_concentration = (region_dist**2).sum()
-
-        # Asset class risk
-        asset_dist = self.holdings_df.groupby("asset_class")["portfolio_weight"].sum()
-        asset_concentration = (asset_dist**2).sum()
-
-        # Holding period risk (too short = high turnover risk)
-        avg_holding_period = self.holdings_df["holding_period_days"].mean()
-        short_term_holdings = len(self.holdings_df[self.holdings_df["holding_period_days"] < 365])
-
-        risk_metrics = {
+        return {
             "concentration_risk": {
-                "herfindahl_index": herfindahl_index,
-                "top5_concentration_pct": top5_concentration * 100,
-                "holdings_for_80pct": holdings_80pct,
-                "total_holdings": len(self.holdings_df),
+                "herfindahl_index": (weights**2).sum(),
+                "top5_concentration_pct": weights.head(5).sum() * 100,
+                "holdings_for_80pct": len(cum_weights[cum_weights <= 0.8]) + 1,
             },
             "diversification_risk": {
-                "currency_concentration": currency_concentration,
-                "regional_concentration": regional_concentration,
-                "asset_class_concentration": asset_concentration,
-            },
-            "liquidity_risk": {
-                "avg_holding_period_days": avg_holding_period,
-                "short_term_holdings_count": short_term_holdings,
-                "short_term_holdings_pct": short_term_holdings / len(self.holdings_df) * 100,
+                "currency_concentration": (self.holdings_df.groupby("currency")["portfolio_weight"].sum() ** 2).sum(),
+                "regional_concentration": (self.holdings_df.groupby("region")["portfolio_weight"].sum() ** 2).sum(),
             },
         }
-
-        return risk_metrics
 
     def analyze_trading_behavior(self) -> Dict:
-        """Analyze trading behavior patterns"""
-        logger.info("Analyzing trading behavior...")
-
-        behavior = {}
-
-        # Dollar cost averaging detection
-        fund_trades = self.trades_df[self.trades_df["is_investment_fund"]]
-        if not fund_trades.empty:
-            # Group by security and check for regular purchases
-            regular_investments = []
-            for security in fund_trades["security_code"].unique():
-                security_trades = fund_trades[fund_trades["security_code"] == security]
-                buy_trades = security_trades[security_trades["transaction_type"] == "buy"]
-
-                if len(buy_trades) >= 3:
-                    # Check for regular amounts
-                    amounts = buy_trades["amount_jpy_unified"].round(-3)  # Round to nearest 1000
-                    most_common_amount = amounts.mode()
-                    if len(most_common_amount) > 0:
-                        regular_count = sum(amounts == most_common_amount.iloc[0])
-                        if regular_count >= len(buy_trades) * 0.7:  # 70% of trades are regular
-                            regular_investments.append(
-                                {
-                                    "security": security,
-                                    "regular_amount": most_common_amount.iloc[0],
-                                    "frequency": regular_count,
-                                    "total_trades": len(buy_trades),
-                                }
-                            )
-
-            behavior["dollar_cost_averaging"] = regular_investments
-
-        # Account type usage patterns
-        account_patterns = {}
-        for account in self.trades_df["account_type"].unique():
-            if pd.notna(account):
-                account_trades = self.trades_df[self.trades_df["account_type"] == account]
-                account_patterns[account] = {
-                    "total_trades": len(account_trades),
-                    "total_amount_jpy": account_trades["amount_jpy_unified"].sum(),
-                    "asset_types": account_trades.groupby("is_investment_fund").size().to_dict(),
-                    "avg_trade_size_jpy": account_trades["amount_jpy_unified"].mean(),
-                }
-
-        behavior["account_usage_patterns"] = account_patterns
-
-        # Trading timing patterns
-        behavior["trading_timing"] = {
-            "by_day_of_week": self.trades_df.groupby(self.trades_df["trade_date"].dt.dayofweek).size().to_dict(),
-            "by_month": self.trades_df.groupby(self.trades_df["trade_date"].dt.month).size().to_dict(),
-            "by_year": self.trades_df.groupby(self.trades_df["trade_date"].dt.year).size().to_dict(),
+        """Analyze trading behavior patterns."""
+        return {
+            "trading_timing": {
+                "by_day_of_week": self.trades_df.groupby(self.trades_df["trade_date"].dt.dayofweek).size().to_dict(),
+                "by_year": self.trades_df.groupby(self.trades_df["trade_date"].dt.year).size().to_dict(),
+            },
+            "investment_preference": {
+                "fund_trade_ratio": len(self.trades_df[self.trades_df["is_investment_fund"]]) / len(self.trades_df),
+            },
         }
-
-        # Investment fund vs direct stock preference
-        fund_ratio = len(self.trades_df[self.trades_df["is_investment_fund"]]) / len(self.trades_df)
-        behavior["investment_preference"] = {
-            "fund_trade_ratio": fund_ratio,
-            "direct_trade_ratio": 1 - fund_ratio,
-            "prefers_funds": fund_ratio > 0.5,
-        }
-
-        return behavior
 
     def generate_investment_recommendations(self) -> Dict:
-        """Generate investment recommendations based on portfolio analysis"""
-        logger.info("Generating investment recommendations...")
-
+        """Generate investment recommendations."""
         if self.holdings_df is None:
             self.analyze_current_holdings()
 
         recommendations = []
-
-        # Concentration risk recommendations
         weights = self.holdings_df["portfolio_weight"].sort_values(ascending=False)
-        if weights.iloc[0] > 0.3:  # Single holding > 30%
+
+        if weights.iloc[0] > 0.3:
             recommendations.append(
                 {
                     "type": "Risk Management",
                     "priority": "High",
-                    "recommendation": (
-                        f"Consider reducing position in "
-                        f"{self.holdings_df.loc[weights.index[0], 'symbol']} "
-                        f"({weights.iloc[0] * 100:.1f}% of portfolio)"
-                    ),
-                    "reason": "High concentration risk",
+                    "recommendation": f"Consider reducing position in {self.holdings_df.loc[weights.index[0], 'symbol']}",
                 }
             )
 
-        # Diversification recommendations
-        region_dist = self.holdings_df.groupby("region")["portfolio_weight"].sum()
-        if region_dist.max() > 0.7:  # Single region > 70%
-            dominant_region = region_dist.idxmax()
-            recommendations.append(
-                {
-                    "type": "Diversification",
-                    "priority": "Medium",
-                    "recommendation": f"Consider adding international exposure beyond {dominant_region}",
-                    "reason": f"{dominant_region} represents {region_dist.max() * 100:.1f}% of portfolio",
-                }
-            )
-
-        # Asset class recommendations
-        asset_dist = self.holdings_df.groupby("asset_class")["portfolio_weight"].sum()
-        if "Bond" not in asset_dist or asset_dist.get("Bond", 0) < 0.1:
-            recommendations.append(
-                {
-                    "type": "Asset Allocation",
-                    "priority": "Medium",
-                    "recommendation": "Consider adding bond allocation for stability",
-                    "reason": "Portfolio has minimal fixed income exposure",
-                }
-            )
-
-        # Account optimization
-        account_dist = self.holdings_df.groupby("account_type")["portfolio_weight"].sum()
-        if "NISA" in account_dist or "つみたてNISA" in account_dist:
-            nisa_allocation = account_dist.get("NISA", 0) + account_dist.get("つみたてNISA", 0)
-            if nisa_allocation < 0.3:
-                recommendations.append(
-                    {
-                        "type": "Tax Optimization",
-                        "priority": "Medium",
-                        "recommendation": "Consider maximizing NISA allocation for tax efficiency",
-                        "reason": f"Current NISA usage: {nisa_allocation * 100:.1f}% of portfolio",
-                    }
-                )
-
-        # Investment fund efficiency
-        fund_holdings = self.holdings_df[self.holdings_df["is_fund"]]
-        if not fund_holdings.empty and len(fund_holdings) > 5:
-            recommendations.append(
-                {
-                    "type": "Cost Efficiency",
-                    "priority": "Low",
-                    "recommendation": "Review fund overlap and consider consolidating similar funds",
-                    "reason": f"Portfolio contains {len(fund_holdings)} investment funds",
-                }
-            )
-
+        score = min(len(self.holdings_df) * 3, 25) + (25 if weights.max() <= 0.15 else 10)
         return {
             "recommendations": recommendations,
-            "portfolio_score": self._calculate_portfolio_score(),
-            "analysis_date": datetime.now().isoformat(),
+            "portfolio_score": {"overall_score": score, "grade": "A" if score >= 80 else "B" if score >= 60 else "C"},
         }
-
-    def _calculate_portfolio_score(self) -> Dict:
-        """Calculate overall portfolio health score"""
-        if self.holdings_df is None:
-            return {"overall_score": 0, "components": {}}
-
-        scores = {}
-
-        # Diversification score (0-25 points)
-        n_holdings = len(self.holdings_df)
-        if n_holdings >= 10:
-            diversification_score = 25
-        elif n_holdings >= 5:
-            diversification_score = 15 + (n_holdings - 5) * 2
-        else:
-            diversification_score = n_holdings * 3
-        scores["diversification"] = min(diversification_score, 25)
-
-        # Concentration score (0-25 points) - lower concentration = higher score
-        weights = self.holdings_df["portfolio_weight"]
-        max_weight = weights.max()
-        if max_weight <= 0.15:  # No single holding > 15%
-            concentration_score = 25
-        elif max_weight <= 0.25:  # No single holding > 25%
-            concentration_score = 20
-        elif max_weight <= 0.4:  # No single holding > 40%
-            concentration_score = 10
-        else:
-            concentration_score = 5
-        scores["concentration"] = concentration_score
-
-        # Regional diversification (0-25 points)
-        n_regions = self.holdings_df["region"].nunique()
-        regional_score = min(n_regions * 5, 25)
-        scores["regional_diversification"] = regional_score
-
-        # Asset class diversification (0-25 points)
-        n_asset_classes = self.holdings_df["asset_class"].nunique()
-        asset_score = min(n_asset_classes * 8, 25)
-        scores["asset_diversification"] = asset_score
-
-        overall_score = sum(scores.values())
-
-        return {
-            "overall_score": overall_score,
-            "max_score": 100,
-            "grade": self._score_to_grade(overall_score),
-            "components": scores,
-        }
-
-    def _score_to_grade(self, score: float) -> str:
-        """Convert numeric score to letter grade"""
-        if score >= 90:
-            return "A+"
-        elif score >= 85:
-            return "A"
-        elif score >= 80:
-            return "A-"
-        elif score >= 75:
-            return "B+"
-        elif score >= 70:
-            return "B"
-        elif score >= 65:
-            return "B-"
-        elif score >= 60:
-            return "C+"
-        elif score >= 55:
-            return "C"
-        elif score >= 50:
-            return "C-"
-        else:
-            return "D"
 
     def generate_comprehensive_report(self, output_dir: str = None) -> Dict:
-        """Generate comprehensive analysis report"""
-        logger.info("Generating comprehensive report...")
-
-        output_dir = Path(output_dir) if output_dir else Path("data/output/analysis_reports")
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-        # Run all analyses
-        holdings = self.analyze_current_holdings()
-        performance = self.calculate_performance_metrics()
-        allocation = self.analyze_asset_allocation()
-        insights = self.generate_trading_insights()
-        risk_metrics = self.analyze_risk_metrics()
-        trading_behavior = self.analyze_trading_behavior()
-        recommendations = self.generate_investment_recommendations()
-
-        # Compile comprehensive report
-        report = {
-            "analysis_date": datetime.now().isoformat(),
-            "data_source": str(self.unified_csv_path),
-            "portfolio_summary": {
-                "total_holdings": len(holdings),
-                "total_portfolio_value_jpy": holdings["total_cost_jpy"].sum() if not holdings.empty else 0,
-                "total_realized_pnl_jpy": holdings["realized_pnl_jpy"].sum() if not holdings.empty else 0,
-            },
-            "performance_metrics": {
-                "total_return_pct": performance.total_return,
-                "annualized_return_pct": performance.annualized_return,
-                "volatility_pct": performance.volatility,
-                "sharpe_ratio": performance.sharpe_ratio,
-                "max_drawdown_pct": performance.max_drawdown,
-                "calmar_ratio": performance.calmar_ratio,
-                "win_rate_pct": performance.win_rate,
-                "profit_factor": performance.profit_factor,
-            },
-            "asset_allocation": {
-                "by_asset_class": allocation.by_asset_class,
-                "by_currency": allocation.by_currency,
-                "by_region": allocation.by_region,
-                "by_account_type": allocation.by_account_type,
-            },
-            "risk_analysis": risk_metrics,
-            "trading_behavior": trading_behavior,
-            "investment_recommendations": recommendations,
-            "trading_insights": insights,
-            "top_holdings": holdings.nlargest(10, "total_cost_jpy")[
-                [
-                    "symbol",
-                    "security_name",
-                    "total_cost_jpy",
-                    "portfolio_weight",
-                    "asset_class",
-                    "region",
-                ]
-            ].to_dict("records")
-            if not holdings.empty
-            else [],
-        }
-
-        # Save report
-        report_file = output_dir / "comprehensive_analysis.json"
-
-        import json
-
-        with open(report_file, "w", encoding="utf-8") as f:
-            json.dump(report, f, indent=2, ensure_ascii=False, default=str)
-
-        logger.info(f"Comprehensive report saved to: {report_file}")
-
-        return report
+        """Generate comprehensive analysis report."""
+        return self.report_generator.generate_comprehensive_report(output_dir)
 
     def create_advanced_visualizations(self, output_dir: str = None):
-        """Create advanced visualization suite"""
-        logger.info("Creating advanced visualizations...")
-        output_dir = Path(output_dir) if output_dir else Path("data/output/advanced_charts")
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-        if self.holdings_df is None:
-            self.analyze_current_holdings()
-
-        plt.style.use("seaborn-v0_8-whitegrid")
-        viz_cfg = Config.get("visualization", {})
-        dpi = viz_cfg.get("dpi", 300)
-
-        # 1. Portfolio Dashboard (6-panel)
-        if not self.holdings_df.empty:
-            fig, axes = plt.subplots(2, 3, figsize=(20, 12))
-            fig.suptitle("Portfolio Dashboard", fontsize=16, fontweight="bold")
-            top = self.holdings_df.nlargest(10, "total_cost_jpy")
-            axes[0, 0].barh(top["symbol"].astype(str), top["total_cost_jpy"])
-            axes[0, 0].set_title("Top Holdings")
-            for col, ax, title in [("asset_class", axes[0, 1], "Asset Class"), ("region", axes[0, 2], "Region")]:
-                data = self.holdings_df.groupby(col)["total_cost_jpy"].sum()
-                ax.pie(data.values, labels=data.index, autopct="%1.1f%%")
-                ax.set_title(title)
-            acct = self.holdings_df.groupby("account_type")["total_cost_jpy"].sum()
-            axes[1, 0].bar(acct.index, acct.values)
-            axes[1, 0].tick_params(axis="x", rotation=45)
-            axes[1, 0].set_title("By Account")
-            axes[1, 1].hist(self.holdings_df["holding_period_days"], bins=20, alpha=0.7)
-            axes[1, 1].set_title("Holding Period")
-            wts = self.holdings_df["portfolio_weight"].sort_values(ascending=False)
-            axes[1, 2].plot(range(1, len(wts) + 1), wts.cumsum())
-            axes[1, 2].set_title("Concentration")
-            axes[1, 2].grid(True, alpha=0.3)
-            plt.tight_layout()
-            plt.savefig(output_dir / "portfolio_dashboard.png", dpi=dpi, bbox_inches="tight")
-            plt.close()
-
-        # 2. Asset Allocation (4-panel)
-        if not self.holdings_df.empty:
-            fig, axes = plt.subplots(2, 2, figsize=(16, 12))
-            fig.suptitle("Asset Allocation", fontsize=16, fontweight="bold")
-            for i, (col, ax, title) in enumerate(
-                [("asset_class", axes[0, 0], "Asset Class"), ("region", axes[0, 1], "Region")]
-            ):
-                data = self.holdings_df.groupby(col)["total_cost_jpy"].sum().sort_values()
-                ax.barh(data.index, data.values)
-                ax.set_title(title)
-            curr = self.holdings_df.groupby("currency")["total_cost_jpy"].sum()
-            axes[1, 0].pie(curr.values, labels=curr.index, autopct="%1.1f%%")
-            axes[1, 0].set_title("Currency")
-            fund = self.holdings_df.groupby("is_fund")["total_cost_jpy"].sum()
-            axes[1, 1].pie(fund.values, labels=["Direct" if not x else "Funds" for x in fund.index], autopct="%1.1f%%")
-            axes[1, 1].set_title("Vehicle")
-            plt.tight_layout()
-            plt.savefig(output_dir / "asset_allocation.png", dpi=dpi, bbox_inches="tight")
-            plt.close()
-
-        # 3. Trading Timeline (3-panel)
-        fig, axes = plt.subplots(3, 1, figsize=(16, 12))
-        fig.suptitle("Trading Timeline", fontsize=16, fontweight="bold")
-        monthly = self.trades_df.groupby(self.trades_df["trade_date"].dt.to_period("M"))
-        vol = monthly["amount_jpy_unified"].sum()
-        axes[0].plot(vol.index.to_timestamp(), vol.values, marker="o")
-        axes[0].set_title("Monthly Volume")
-        axes[0].grid(True, alpha=0.3)
-        cnt = monthly.size()
-        axes[1].bar(cnt.index.to_timestamp(), cnt.values, width=20)
-        axes[1].set_title("Trade Count")
-        axes[1].grid(True, alpha=0.3)
-        cum = self.trades_df.set_index("trade_date")["amount_jpy_unified"].cumsum()
-        axes[2].plot(cum.index, cum.values)
-        axes[2].set_title("Cumulative")
-        axes[2].grid(True, alpha=0.3)
-        plt.tight_layout()
-        plt.savefig(output_dir / "trading_timeline.png", dpi=dpi, bbox_inches="tight")
-        plt.close()
-
-        # 4. Performance (4-panel)
-        daily = self._calculate_daily_portfolio_values()
-        rets = daily.pct_change().dropna()
-        fig, axes = plt.subplots(2, 2, figsize=(16, 12))
-        fig.suptitle("Performance", fontsize=16, fontweight="bold")
-        axes[0, 0].plot(daily.index, daily.values)
-        axes[0, 0].set_title("Portfolio Value")
-        axes[0, 0].grid(True, alpha=0.3)
-        axes[0, 1].hist(rets * 100, bins=50, alpha=0.7)
-        axes[0, 1].set_title("Returns Distribution")
-        axes[0, 1].grid(True, alpha=0.3)
-        cumret = (1 + rets).cumprod()
-        dd = (cumret - cumret.expanding().max()) / cumret.expanding().max()
-        axes[1, 0].fill_between(dd.index, dd * 100, 0, alpha=0.3, color="red")
-        axes[1, 0].set_title("Drawdown")
-        axes[1, 0].grid(True, alpha=0.3)
-        vol = rets.rolling(30).std() * np.sqrt(252) * 100
-        axes[1, 1].plot(vol.index, vol.values)
-        axes[1, 1].set_title("30D Volatility")
-        axes[1, 1].grid(True, alpha=0.3)
-        plt.tight_layout()
-        plt.savefig(output_dir / "performance_analytics.png", dpi=dpi, bbox_inches="tight")
-        plt.close()
-
-        logger.info(f"Visualizations saved to: {output_dir}")
+        """Create advanced visualization suite."""
+        return self.report_generator.create_advanced_visualizations(output_dir)
 
 
 def main():
-    """Example usage"""
-    # Find the latest unified CSV
-    unified_csv_dir = Path("data/output/unified_csv")
-    if not unified_csv_dir.exists():
-        print("No unified CSV directory found. Run main.py --unified-csv first.")
+    """Example usage."""
+    csv_dir = Path("data/output/unified_csv")
+    if not csv_dir.exists():
+        print("No unified CSV directory found.")
         return
 
-    csv_files = list(unified_csv_dir.glob("trades_unified_*.csv"))
+    csv_files = list(csv_dir.glob("trades_unified_*.csv"))
     if not csv_files:
         print("No unified CSV files found.")
         return
 
-    latest_csv = max(csv_files, key=lambda x: x.stat().st_mtime)
+    latest = max(csv_files, key=lambda x: x.stat().st_mtime)
+    print(f"Analyzing: {latest}")
 
-    # Find corresponding fund mapping file
-    fund_mapping_file = None
-    timestamp = latest_csv.stem.split("_")[-2:]  # Extract timestamp
-    if len(timestamp) == 2:
-        timestamp_str = "_".join(timestamp)
-        fund_files = list(unified_csv_dir.glob(f"fund_ticker_mapping_{timestamp_str}.csv"))
-        if fund_files:
-            fund_mapping_file = fund_files[0]
-
-    print(f"Analyzing: {latest_csv}")
-    if fund_mapping_file:
-        print(f"Using fund mapping: {fund_mapping_file}")
-
-    # Create analyzer
-    analyzer = UnifiedCSVAnalyzer(str(latest_csv), str(fund_mapping_file) if fund_mapping_file else None)
-
-    # Generate comprehensive analysis
+    analyzer = UnifiedCSVAnalyzer(str(latest))
     report = analyzer.generate_comprehensive_report()
-
-    # Create visualizations
     analyzer.create_advanced_visualizations()
 
-    # Print summary
-    print("\n=== Analysis Complete ===")
-    print(f"Total Holdings: {report['portfolio_summary']['total_holdings']}")
+    print(f"\nTotal Holdings: {report['portfolio_summary']['total_holdings']}")
     print(f"Portfolio Value: ¥{report['portfolio_summary']['total_portfolio_value_jpy']:,.0f}")
-    print(f"Total Return: {report['performance_metrics']['total_return_pct']:.2f}%")
-    print(f"Annualized Return: {report['performance_metrics']['annualized_return_pct']:.2f}%")
-    print(f"Volatility: {report['performance_metrics']['volatility_pct']:.2f}%")
-    print(f"Sharpe Ratio: {report['performance_metrics']['sharpe_ratio']:.2f}")
-    print(f"Max Drawdown: {report['performance_metrics']['max_drawdown_pct']:.2f}%")
 
 
 if __name__ == "__main__":

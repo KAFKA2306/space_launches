@@ -35,6 +35,7 @@
             <select name="sort" hx-get="/api/holdings" hx-target="#holdings-table" hx-trigger="change"
                 hx-include="[name='q']">
                 <option value="value">Sort: Value</option>
+                <option value="percent">Sort: Return %</option>
                 <option value="pnl">Sort: P&L</option>
                 <option value="name">Sort: Name</option>
             </select>

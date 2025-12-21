@@ -46,12 +46,34 @@ class StockDataManager:
             return code
 
     def extract_security_codes(self, trades_df: pd.DataFrame) -> Set[str]:
-        """Extract unique security codes from trade data."""
-        codes = trades_df["security_code"].apply(self.process_security_code)
-        codes = codes.dropna().unique()
+        """Extract unique security codes from trade data, including mapped fund tickers."""
+        codes = set()
+        
+        # Extract from security_code column
+        if "security_code" in trades_df.columns:
+            security_codes = trades_df["security_code"].apply(self.process_security_code)
+            codes.update(security_codes.dropna().unique())
+        
+        # Also extract from ticker column (mapped funds)
+        if "ticker" in trades_df.columns:
+            ticker_codes = trades_df["ticker"].dropna().unique()
+            for ticker in ticker_codes:
+                processed = self.process_security_code(ticker)
+                if processed:
+                    codes.add(processed)
+        
+        # Add common ETFs that might be mapped from fund names
+        # These are commonly held ETFs that should always be downloaded
+        common_etfs = [
+            "VTI", "VOO", "VWO", "VEA", "VIG", "VYM", "VXUS",  # Vanguard
+            "SPY", "QQQ", "IWM", "EFA", "EEM", "AGG", "BND",   # iShares/SPDR
+            "ACWI", "ICLN", "SOXX", "NOBL", "GLD", "GLDM",     # Other ETFs
+            "USDJPY=X", "EURJPY=X",                             # Forex
+        ]
+        codes.update(common_etfs)
 
-        logger.info(f"Extracted {len(codes)} unique security codes")
-        return set(codes)
+        logger.info(f"Extracted {len(codes)} unique security codes (including mapped tickers and common ETFs)")
+        return codes
 
     def update_stock_prices_alternative(
         self,
@@ -178,57 +200,51 @@ class StockDataManager:
 
         # Load existing data or determine start date
         existing_data = pd.DataFrame()
+        new_symbols = set()
+        incremental_start_date = self.config.MARKET_START_DATE
+        
         if prices_file_path.exists():
             try:
                 existing_data = self.load_stock_prices(prices_file_path)
                 if not existing_data.empty:
                     last_date = existing_data.index.max()
-                    start_date = (last_date + timedelta(days=1)).strftime("%Y-%m-%d")
-                    logger.info(f"Found existing price data up to {last_date}. Fetching from {start_date}")
+                    incremental_start_date = (last_date + timedelta(days=1)).strftime("%Y-%m-%d")
+                    
+                    # Find NEW symbols that need full historical data
+                    existing_symbols = set(existing_data.columns)
+                    new_symbols = security_codes - existing_symbols
+                    existing_to_update = security_codes & existing_symbols
+                    
+                    if new_symbols:
+                        logger.info(f"Found {len(new_symbols)} NEW symbols to download full history for")
+                        logger.info(f"New symbols: {list(new_symbols)[:10]}{'...' if len(new_symbols) > 10 else ''}")
+                    
+                    logger.info(f"Found existing price data up to {last_date}. Fetching incremental from {incremental_start_date}")
                 else:
-                    start_date = self.config.MARKET_START_DATE
+                    incremental_start_date = self.config.MARKET_START_DATE
                     logger.info("Existing price file is empty. Starting fresh download")
             except Exception as e:
                 logger.warning(f"Error reading existing price data: {e}. Starting fresh")
-                start_date = self.config.MARKET_START_DATE
+                incremental_start_date = self.config.MARKET_START_DATE
         else:
-            start_date = self.config.MARKET_START_DATE
             logger.info("No existing price data found. Starting fresh download")
 
-        # Check if we need to download anything
-        if start_date > end_date:
-            logger.info("Stock price data is already up to date")
-            return existing_data
-
         logger.info(f"Updating stock prices for {len(security_codes)} securities")
-        logger.info(f"Date range: {start_date} to {end_date}")
         logger.info(f"Using batches of {batch_size} with {delay_seconds}s delays")
 
-        codes_list = list(security_codes)
         new_price_data = pd.DataFrame()
         successful_downloads = 0
 
-        # Process in smaller batches to avoid rate limiting
-        for i in range(0, len(codes_list), batch_size):
-            batch = codes_list[i : i + batch_size]
-            batch_num = (i // batch_size) + 1
-            total_batches = (len(codes_list) + batch_size - 1) // batch_size
-
-            logger.info(f"Processing batch {batch_num}/{total_batches}: {len(batch)} securities")
-
-            # Add delay between batches
-            if i > 0:
-                logger.info(f"Waiting {delay_seconds}s before next batch...")
-                time.sleep(delay_seconds)
-
-            success = False
+        def download_batch(batch, start, end, batch_label):
+            """Helper to download a batch of symbols."""
+            nonlocal successful_downloads
+            
             for attempt in range(retry_count):
                 try:
-                    logger.info(f"Downloading batch (attempt {attempt + 1}/{retry_count})")
-
-                    # Download batch
+                    logger.info(f"Downloading {batch_label} (attempt {attempt + 1}/{retry_count})")
+                    
                     if len(batch) == 1:
-                        data = yf.download(batch[0], start=start_date, end=end_date, progress=False)
+                        data = yf.download(batch[0], start=start, end=end, progress=False)
                         if not data.empty:
                             batch_data = pd.DataFrame(
                                 {batch[0]: data["Adj Close"] if "Adj Close" in data.columns else data["Close"]}
@@ -238,8 +254,8 @@ class StockDataManager:
                     else:
                         data = yf.download(
                             batch,
-                            start=start_date,
-                            end=end_date,
+                            start=start,
+                            end=end,
                             group_by="column",
                             progress=False,
                             ignore_tz=True,
@@ -248,7 +264,6 @@ class StockDataManager:
                         if data.empty:
                             batch_data = pd.DataFrame()
                         else:
-                            # Extract adjusted close prices
                             if "Adj Close" in data.columns:
                                 batch_data = data["Adj Close"].copy()
                             elif "Close" in data.columns:
@@ -257,28 +272,15 @@ class StockDataManager:
                                 batch_data = data
 
                     if not batch_data.empty:
-                        # Clean column names
                         if hasattr(batch_data, "columns"):
                             batch_data.columns = [col.rstrip(".T") for col in batch_data.columns]
-
-                        # Remove columns with all NaN values
                         batch_data = batch_data.dropna(axis=1, how="all")
-
-                        # Merge with new data
-                        if new_price_data.empty:
-                            new_price_data = batch_data
-                        else:
-                            new_price_data = pd.concat([new_price_data, batch_data], axis=1)
-
                         successful_downloads += len(batch_data.columns) if hasattr(batch_data, "columns") else 1
-                        logger.info(
-                            f"✅ Downloaded {len(batch_data.columns) if hasattr(batch_data, 'columns') else 1} securities"
-                        )
+                        logger.info(f"✅ Downloaded {len(batch_data.columns) if hasattr(batch_data, 'columns') else 1} securities")
+                        return batch_data
                     else:
                         logger.warning("No new data returned for batch")
-
-                    success = True
-                    break
+                        return pd.DataFrame()
 
                 except Exception as e:
                     if "rate limit" in str(e).lower() or "429" in str(e):
@@ -288,9 +290,58 @@ class StockDataManager:
                     else:
                         logger.error(f"Error downloading batch: {e}")
                         break
+            
+            logger.error(f"❌ Failed to download {batch_label} after {retry_count} attempts")
+            return pd.DataFrame()
 
-            if not success:
-                logger.error(f"❌ Failed to download batch {batch_num} after {retry_count} attempts")
+        # Download full history for NEW symbols
+        if new_symbols:
+            new_symbols_list = list(new_symbols)
+            historical_start = self.config.MARKET_START_DATE
+            logger.info(f"Downloading full history for {len(new_symbols)} NEW symbols from {historical_start}")
+            
+            for i in range(0, len(new_symbols_list), batch_size):
+                batch = new_symbols_list[i : i + batch_size]
+                batch_num = (i // batch_size) + 1
+                total_batches = (len(new_symbols_list) + batch_size - 1) // batch_size
+
+                if i > 0:
+                    logger.info(f"Waiting {delay_seconds}s before next batch...")
+                    time.sleep(delay_seconds)
+
+                batch_data = download_batch(batch, historical_start, end_date, f"NEW batch {batch_num}/{total_batches}")
+                if not batch_data.empty:
+                    if new_price_data.empty:
+                        new_price_data = batch_data
+                    else:
+                        new_price_data = pd.concat([new_price_data, batch_data], axis=1)
+
+        # Download incremental updates for EXISTING symbols (if date range is valid)
+        if incremental_start_date <= end_date:
+            existing_symbols = security_codes - new_symbols
+            if existing_symbols:
+                existing_list = list(existing_symbols)
+                logger.info(f"Downloading incremental updates for {len(existing_symbols)} existing symbols from {incremental_start_date}")
+                
+                for i in range(0, len(existing_list), batch_size):
+                    batch = existing_list[i : i + batch_size]
+                    batch_num = (i // batch_size) + 1
+                    total_batches = (len(existing_list) + batch_size - 1) // batch_size
+
+                    if new_price_data.empty and i == 0:
+                        pass  # First batch, no delay needed
+                    else:
+                        logger.info(f"Waiting {delay_seconds}s before next batch...")
+                        time.sleep(delay_seconds)
+
+                    batch_data = download_batch(batch, incremental_start_date, end_date, f"INCREMENTAL batch {batch_num}/{total_batches}")
+                    if not batch_data.empty:
+                        if new_price_data.empty:
+                            new_price_data = batch_data
+                        else:
+                            new_price_data = pd.concat([new_price_data, batch_data], axis=1)
+        else:
+            logger.info("Stock price data is already up to date for existing symbols")
 
         # Merge existing and new data
         if existing_data.empty and new_price_data.empty:

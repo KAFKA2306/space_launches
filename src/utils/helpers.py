@@ -38,7 +38,7 @@ def clean_numeric(value):
     import unicodedata
 
     value_str = str(value)
-    
+
     # Normalize unicode characters (handles full-width numbers/punctuation)
     value_str = unicodedata.normalize("NFKC", value_str)
 
