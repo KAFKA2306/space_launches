@@ -8,6 +8,7 @@ import pandas as pd
 from src.config import Config
 
 from ..utils.helpers import clean_numeric, read_csv_safe, standardize_date
+import re
 
 
 class DataLoader:
@@ -190,8 +191,36 @@ class DataLoader:
 
         if "security_name" in df.columns:
             # Improved regex to handle 1-5 chars, optional dot (e.g. BRK.B)
-            df["security_code"] = df["security_name"].str.extract(self.config.TICKER_REGEX)
+            # Use findall and filtering to avoid picking up "ADR", "Inc", etc.
+            
+            def extract_ticker(name):
+                if not isinstance(name, str):
+                    return ""
+                # Find all potential matches
+                matches = re.findall(self.config.TICKER_REGEX, name)
+                if not matches:
+                    return ""
+                    
+                # Filter out common non-ticker words often found in names
+                # Note: valid tickers can be 1-5 chars. "A" is valid (Agilent), "V" (Visa)
+                # But "Inc" (3), "ADR" (3) are noise.
+                blocklist = {
+                    "ADR", "ADS", "INC", "CORP", "CO", "LTD", "PLC", 
+                    "KB", "NV", "SA", "SE", "AG", "ETF", "REIT", 
+                    "FUND", "INDEX", "CLASS", "SERIES"
+                }
+                
+                # Filter candidates - also avoid "A" if it appears to be "Class A" (hard to tell without context, but valid tickers usually at end)
+                candidates = [m for m in matches if m.upper() not in blocklist]
+                
+                if not candidates:
+                    return ""
+                
+                # SBI Foreign names usually end with the ticker or have it near the end
+                # e.g. "Name ADR Ticker"
+                return candidates[-1]
 
+            df["security_code"] = df["security_name"].apply(extract_ticker)
         else:
             df["security_code"] = ""
 

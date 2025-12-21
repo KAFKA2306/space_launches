@@ -36,7 +36,9 @@ class StockDataManager:
         code = str(code).strip().upper()
 
         # Handle Japanese stocks
-        if code.isdigit():
+        # Handle Japanese stocks
+        # Pure digits (old format) or 3 digits + 1 letter (new format since 2024)
+        if code.isdigit() or (len(code) == 4 and code[:3].isdigit() and code[3].isalpha()):
             return f"{code}.T"
         elif code.endswith(".JP"):
             return f"{code[:-3]}.T"
