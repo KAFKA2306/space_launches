@@ -232,7 +232,10 @@ class UnifiedCSVAnalyzer:
     def _apply_market_prices(self):
         """Apply latest market prices to holdings."""
         try:
-            price_file = Config.MARKET_DATA_DIR / "stock_prices.csv"
+            # Try charts.csv first (primary source), then fall back to stock_prices.csv
+            price_file = Config.MARKET_DATA_DIR / "charts.csv"
+            if not price_file.exists():
+                price_file = Config.MARKET_DATA_DIR / "stock_prices.csv"
             price_data = self.stock_manager.load_stock_prices(price_file)
             latest_prices = self.stock_manager.get_latest_prices(price_data)
         except Exception as e:

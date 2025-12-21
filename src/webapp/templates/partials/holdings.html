@@ -33,7 +33,7 @@
       <td style="max-width: 300px">{{ h.security_name or '-' }}</td>
       <td class="amount">{{ "{:,.0f}".format(qty) }}</td>
       <td class="amount">
-        {% if avg_cost > 0 %}¥{{ "{:,.0f}".format(avg_cost) }}{% else %}-{%
+        {% if avg_cost > 0 %}¥{{ "{:,.2f}".format(avg_cost) }}{% else %}-{%
         endif %}
       </td>
       <td class="amount">
