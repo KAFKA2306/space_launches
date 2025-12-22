@@ -17,7 +17,7 @@ def get_analyzer():
     """Get analyzer instance with caching."""
     global _analyzer_cache
     csv_path = Config.UNIFIED_DATA_DIR / "trades_unified.csv"
-    fund_mapping = Config.UNIFIED_DATA_DIR / "fund_ticker_mapping.csv"
+    fund_mapping = Config.BASE_DIR / "resources" / "fund_dictionary.json"
 
     if not csv_path.exists():
         return None

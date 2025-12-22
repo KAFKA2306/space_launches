@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "created_at": "2025-12-21T18:00:52.721326",
+    "created_at": "2025-12-21T21:07:31.754308",
     "total_funds": 96,
     "sources": [
       "historical_trades",
@@ -11,6 +11,120 @@
     "unmapped_funds": 3
   },
   "funds": {
+    "グローバル5.5倍バランスファンド(1年決算型)(ゴーゴー・バランス)": {
+      "ticker": "AOA",
+      "aliases": [
+        "グローバル5.5倍バランスファンド(1年決算型)(ゴーゴー・バランス)",
+        "グローバル5.5倍バランスファンド",
+        "グローバル5.5倍バランスファンド(1年決算型)(ゴーゴー バランス)"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "バンガード S&P 500 ETF VOO / NYSE ARCA": {
+      "ticker": "VOO",
+      "aliases": [
+        "バンガード S&P 500 ETF VOO / NYSE ARCA",
+        "バンガード SP500 ETF VOO / NYSE ARCA",
+        "バンガード ＳＰ５００ ETF VOO / NYSE ARCA",
+        "バンガード エス・アンド・ピー500 ETF VOO / NYSE ARCA",
+        "バンガードS&P500ETFVOO/NYSEARCA"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "ＭＡＸＩＳ　ＨｕａＡｎ中国株式（上海１８０Ａ株）上場投信": {
+      "ticker": "1309.T",
+      "aliases": [
+        "ＭＡＸＩＳ　ＨｕａＡｎ中国株式（上海１８０Ａ株）上場投信",
+        "ＭＡＸＩＳ ＨｕａＡｎ中国株式 上場投信",
+        "ＭＡＸＩＳ　ＨｕａＡｎ中国株式(上海１８０Ａ株)上場投信",
+        "ＭＡＸＩＳ　ＨｕａＡｎ中国株式上場投信",
+        "ＭＡＸＩＳ ＨｕａＡｎ中国株式（上海１８０Ａ株）上場投信",
+        "ＭＡＸＩＳＨｕａＡｎ中国株式（上海１８０Ａ株）上場投信"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "ＳＢＩ・ｉシェアーズ・ゴールドファンド（為替ヘッジなし）": {
+      "ticker": "IAU",
+      "aliases": [
+        "ＳＢＩ・ｉシェアーズ・ゴールドファンド（為替ヘッジなし）",
+        "ＳＢＩ ｉシェアーズ ゴールドファンド",
+        "SBI ｉシェアーズ・ゴールドファンド（為替ヘッジなし）",
+        "エスビーアイｉシェアーズ・ゴールドファンド（為替ヘッジなし）",
+        "ＳＢＩ・ｉシェアーズ・ゴールドファンド(為替ヘッジなし)",
+        "ＳＢＩ・ｉシェアーズ・ゴールドファンド",
+        "ＳＢＩ ｉシェアーズ ゴールドファンド（為替ヘッジなし）"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "＜購入・換金手数料なし＞ニッセイＪリートインデックスファンド": {
+      "ticker": "1343.T",
+      "aliases": [
+        "＜購入・換金手数料なし＞ニッセイＪリートインデックスファンド",
+        "ニッセイＪリートインデックスファンド",
+        "＜購入・換金手数料なし＞Nissay Ｊリートインデックスファンド",
+        "＜購入・換金手数料なし＞日本生命Ｊリートインデックスファンド",
+        "＜購入 換金手数料なし＞ニッセイＪリートインデックスファンド"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "＜購入・換金手数料なし＞ニッセイ新興国株式インデックスファンド": {
+      "ticker": "VWO",
+      "aliases": [
+        "＜購入・換金手数料なし＞ニッセイ新興国株式インデックスファンド",
+        "ニッセイ新興国株式インデックスファンド",
+        "＜購入・換金手数料なし＞Nissay 新興国株式インデックスファンド",
+        "＜購入・換金手数料なし＞日本生命新興国株式インデックスファンド",
+        "＜購入・換金手数料なし＞ニッセイemerging marketインデックスファンド",
+        "＜購入・換金手数料なし＞ニッセイemerging equityインデックスファンド",
+        "＜購入・換金手数料なし＞ニッセイemerging株式インデックスファンド",
+        "＜購入・換金手数料なし＞ニッセイemerging market株式インデックスファンド",
+        "＜購入 換金手数料なし＞ニッセイ新興国株式インデックスファンド"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "オーロラ イノベーション A AUR / NASDAQ": {
+      "ticker": "AUR",
+      "aliases": [
+        "オーロラ イノベーション A AUR / NASDAQ",
+        "オーロラ イノベーション A AUR / ナスダック",
+        "オーロラ イノベーション A AUR / ＮＡＳＤＡＱ",
+        "オーロライノベーションAAUR/NASDAQ"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "auAMレバレッジNASDAQ100為替ヘッジ無し": {
+      "ticker": null,
+      "aliases": [
+        "auAMレバレッジNASDAQ100為替ヘッジ無し",
+        "auAMレバレッジナスダック100為替ヘッジ無し",
+        "auAMレバレッジＮＡＳＤＡＱ100為替ヘッジ無し"
+      ],
+      "source": "historical_only",
+      "confidence": "unmapped",
+      "note": "Requires manual ticker assignment"
+    },
+    "ＳＢＩ・ｉシェアーズ・全世界債券インデックス・ファンド": {
+      "ticker": "BNDW",
+      "aliases": [
+        "ＳＢＩ・ｉシェアーズ・全世界債券インデックス・ファンド",
+        "ＳＢＩ ｉシェアーズ 全世界債券インデックス ファンド",
+        "SBI ｉシェアーズ・全世界債券インデックス・ファンド",
+        "エスビーアイｉシェアーズ・全世界債券インデックス・ファンド",
+        "ＳＢＩ・ｉシェアーズ・world債券インデックス・ファンド",
+        "ＳＢＩ・ｉシェアーズ・global債券インデックス・ファンド",
+        "ＳＢＩ・ｉシェアーズ・オール・カントリー債券インデックス・ファンド",
+        "ＳＢＩ・ｉシェアーズ・all country債券インデックス・ファンド"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
     "eMAXIS Slim 全世界株式(オール・カントリー)": {
       "ticker": "ACWI",
       "aliases": [
@@ -31,102 +145,21 @@
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "ＮＥＸＴ　ＦＵＮＤＳ　日経平均高配当株５０指数連動型上場投信": {
-      "ticker": "1489.T",
+    "アリスタ ネットワークス ANET / New York Stock Exchange": {
+      "ticker": "ANET",
       "aliases": [
-        "ＮＥＸＴ　ＦＵＮＤＳ　日経平均高配当株５０指数連動型上場投信",
-        "ＮＥＸＴ ＦＵＮＤＳ 日経平均高配当株５０指数連動型上場投信",
-        "ＮＥＸＴＦＵＮＤＳ日経平均高配当株５０指数連動型上場投信"
+        "アリスタ ネットワークス ANET / New York Stock Exchange",
+        "アリスタネットワークスANET/NewYorkStockExchange"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "Tracers NASDAQ100ゴールドプラス": {
-      "ticker": "QQQ",
+    "ｉＦｒｅｅＮＥＸＴ　ＦＡＮＧ＋インデックス": {
+      "ticker": "FNGS",
       "aliases": [
-        "Tracers NASDAQ100ゴールドプラス",
-        "トレーサーズNASDAQ100ゴールドプラス",
-        "tracers NASDAQ100ゴールドプラス",
-        "Tracers ナスダック100ゴールドプラス",
-        "Tracers ＮＡＳＤＡＱ100ゴールドプラス",
-        "TracersNASDAQ100ゴールドプラス"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "バンガード トータルストックマーケットETF VTI / NYSE ARCA": {
-      "ticker": "VTI",
-      "aliases": [
-        "バンガード トータルストックマーケットETF VTI / NYSE ARCA",
-        "バンガードトータルストックマーケットETFVTI/NYSEARCA"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "ＳＢＩ・ｉシェアーズ・ゴールドファンド（為替ヘッジなし）": {
-      "ticker": "IAU",
-      "aliases": [
-        "ＳＢＩ・ｉシェアーズ・ゴールドファンド（為替ヘッジなし）",
-        "ＳＢＩ ｉシェアーズ ゴールドファンド",
-        "SBI ｉシェアーズ・ゴールドファンド（為替ヘッジなし）",
-        "エスビーアイｉシェアーズ・ゴールドファンド（為替ヘッジなし）",
-        "ＳＢＩ・ｉシェアーズ・ゴールドファンド(為替ヘッジなし)",
-        "ＳＢＩ・ｉシェアーズ・ゴールドファンド",
-        "ＳＢＩ ｉシェアーズ ゴールドファンド（為替ヘッジなし）"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "Direxion 20年超米国債ベア3倍 ETF TMV / NYSE ARCA": {
-      "ticker": "TMV",
-      "aliases": [
-        "Direxion 20年超米国債ベア3倍 ETF TMV / NYSE ARCA",
-        "Direxion 20年超US債ベア3倍 ETF TMV / NYSE ARCA",
-        "Direxion 20年超USA債ベア3倍 ETF TMV / NYSE ARCA",
-        "Direxion 20年超america債ベア3倍 ETF TMV / NYSE ARCA",
-        "Direxion 20年超アメリカ債ベア3倍 ETF TMV / NYSE ARCA",
-        "Direxion20年超米国債ベア3倍ETFTMV/NYSEARCA"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "バンガード S&P 500 ETF VOO / NYSE ARCA": {
-      "ticker": "VOO",
-      "aliases": [
-        "バンガード S&P 500 ETF VOO / NYSE ARCA",
-        "バンガード SP500 ETF VOO / NYSE ARCA",
-        "バンガード ＳＰ５００ ETF VOO / NYSE ARCA",
-        "バンガード エス・アンド・ピー500 ETF VOO / NYSE ARCA",
-        "バンガードS&P500ETFVOO/NYSEARCA"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "サムサラ A IOT / New York Stock Exchange": {
-      "ticker": "IOT",
-      "aliases": [
-        "サムサラ A IOT / New York Stock Exchange",
-        "サムサラAIOT/NewYorkStockExchange"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "BALANCE CASHBACK": {
-      "ticker": null,
-      "aliases": [
-        "BALANCE CASHBACK",
-        "BALANCECASHBACK"
-      ],
-      "source": "historical_only",
-      "confidence": "unmapped",
-      "note": "Requires manual ticker assignment"
-    },
-    "グローバル5.5倍バランスファンド(1年決算型)(ゴーゴー・バランス)": {
-      "ticker": "AOA",
-      "aliases": [
-        "グローバル5.5倍バランスファンド(1年決算型)(ゴーゴー・バランス)",
-        "グローバル5.5倍バランスファンド",
-        "グローバル5.5倍バランスファンド(1年決算型)(ゴーゴー バランス)"
+        "ｉＦｒｅｅＮＥＸＴ　ＦＡＮＧ＋インデックス",
+        "ｉＦｒｅｅＮＥＸＴ ＦＡＮＧ＋インデックス",
+        "ｉＦｒｅｅＮＥＸＴＦＡＮＧ＋インデックス"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
@@ -147,309 +180,6 @@
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "楽天・全米株式インデックス・ファンド(楽天・VTI)": {
-      "ticker": "VTI",
-      "aliases": [
-        "楽天・全米株式インデックス・ファンド(楽天・VTI)",
-        "楽天 全米株式インデックス ファンド",
-        "Rakuten 全米株式インデックス・ファンド(Rakuten VTI)",
-        "らくてん全米株式インデックス・ファンド(らくてんVTI)",
-        "楽天・全米株式インデックス・ファンド",
-        "楽天 全米株式インデックス ファンド(楽天 VTI)"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "Tracers 日経平均高配当株50インデックス(奇数月分配型)": {
-      "ticker": "1489.T",
-      "aliases": [
-        "Tracers 日経平均高配当株50インデックス(奇数月分配型)",
-        "Tracers 日経平均高配当株50インデックス",
-        "トレーサーズ日経平均高配当株50インデックス(奇数月分配型)",
-        "tracers 日経平均高配当株50インデックス(奇数月分配型)",
-        "Tracers日経平均高配当株50インデックス(奇数月分配型)"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "香港ハンセン指数ファンド": {
-      "ticker": "2800.HK",
-      "aliases": [
-        "香港ハンセン指数ファンド"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "Ｔｒａｃｅｒｓ　日経平均高配当株５０インデックス奇数月分配型": {
-      "ticker": "1489.T",
-      "aliases": [
-        "Ｔｒａｃｅｒｓ　日経平均高配当株５０インデックス奇数月分配型",
-        "Ｔｒａｃｅｒｓ 日経平均高配当株５０インデックス奇数月分配型",
-        "Ｔｒａｃｅｒｓ日経平均高配当株５０インデックス奇数月分配型"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "アリスタ ネットワークス ANET / New York Stock Exchange": {
-      "ticker": "ANET",
-      "aliases": [
-        "アリスタ ネットワークス ANET / New York Stock Exchange",
-        "アリスタネットワークスANET/NewYorkStockExchange"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "バンガード 米国ヘルスケア セクター ETF VHT / NYSE ARCA": {
-      "ticker": "VHT",
-      "aliases": [
-        "バンガード 米国ヘルスケア セクター ETF VHT / NYSE ARCA",
-        "バンガード USヘルスケア セクター ETF VHT / NYSE ARCA",
-        "バンガード USAヘルスケア セクター ETF VHT / NYSE ARCA",
-        "バンガード americaヘルスケア セクター ETF VHT / NYSE ARCA",
-        "バンガード アメリカヘルスケア セクター ETF VHT / NYSE ARCA",
-        "バンガード米国ヘルスケアセクターETFVHT/NYSEARCA"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "ノーザン・トラスト・米ドル・リクイディティ・ファンド(楽天・米ドルMMF)": {
-      "ticker": "USDJPY=X",
-      "aliases": [
-        "ノーザン・トラスト・米ドル・リクイディティ・ファンド(楽天・米ドルMMF)",
-        "ノーザン トラスト 米ドル リクイディティ ファンド",
-        "ノーザン・トラスト・米ドル・リクイディティ・ファンド(Rakuten 米ドルMMF)",
-        "ノーザン・トラスト・米ドル・リクイディティ・ファンド(らくてん米ドルMMF)",
-        "ノーザン・トラスト・米ドル・リクイディティ・ファンド",
-        "ノーザン トラスト 米ドル リクイディティ ファンド(楽天 米ドルMMF)"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "オーロラ イノベーション A AUR / NASDAQ": {
-      "ticker": "AUR",
-      "aliases": [
-        "オーロラ イノベーション A AUR / NASDAQ",
-        "オーロラ イノベーション A AUR / ナスダック",
-        "オーロラ イノベーション A AUR / ＮＡＳＤＡＱ",
-        "オーロライノベーションAAUR/NASDAQ"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "ＭＡＸＩＳ　ＨｕａＡｎ中国株式（上海１８０Ａ株）上場投信": {
-      "ticker": "1309.T",
-      "aliases": [
-        "ＭＡＸＩＳ　ＨｕａＡｎ中国株式（上海１８０Ａ株）上場投信",
-        "ＭＡＸＩＳ ＨｕａＡｎ中国株式 上場投信",
-        "ＭＡＸＩＳ　ＨｕａＡｎ中国株式(上海１８０Ａ株)上場投信",
-        "ＭＡＸＩＳ　ＨｕａＡｎ中国株式上場投信",
-        "ＭＡＸＩＳ ＨｕａＡｎ中国株式（上海１８０Ａ株）上場投信",
-        "ＭＡＸＩＳＨｕａＡｎ中国株式（上海１８０Ａ株）上場投信"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "eMAXIS Slim 先進国債券インデックス": {
-      "ticker": "BNDX",
-      "aliases": [
-        "eMAXIS Slim 先進国債券インデックス",
-        "イーマクシスSlim 先進国債券インデックス",
-        "emaxis Slim 先進国債券インデックス",
-        "eMAXIS Slim developed債券インデックス",
-        "eMAXIS Slim developed market債券インデックス",
-        "eMAXISSlim先進国債券インデックス"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "iFreeNEXT FANG+インデックス": {
-      "ticker": "FNGS",
-      "aliases": [
-        "iFreeNEXT FANG+インデックス",
-        "アイフリーNEXT FANG+インデックス",
-        "ifree NEXT FANG+インデックス",
-        "iFreeNEXTFANG+インデックス"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "ＮＥＸＴ　ＦＵＮＤＳ　ＪＰＸプライム１５０指数連動型上場投信": {
-      "ticker": "2017.T",
-      "aliases": [
-        "ＮＥＸＴ　ＦＵＮＤＳ　ＪＰＸプライム１５０指数連動型上場投信",
-        "ＮＥＸＴ ＦＵＮＤＳ ＪＰＸプライム１５０指数連動型上場投信",
-        "ＮＥＸＴＦＵＮＤＳＪＰＸプライム１５０指数連動型上場投信"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "ＳＢＩ欧州高配当株式（分配）ファンド（年４回決算型）": {
-      "ticker": "VGK",
-      "aliases": [
-        "ＳＢＩ欧州高配当株式（分配）ファンド（年４回決算型）",
-        "ＳＢＩ欧州高配当株式 ファンド",
-        "SBI 欧州高配当株式（分配）ファンド（年４回決算型）",
-        "エスビーアイ欧州高配当株式（分配）ファンド（年４回決算型）",
-        "ＳＢＩeurope高配当株式（分配）ファンド（年４回決算型）",
-        "ＳＢＩeuropean高配当株式（分配）ファンド（年４回決算型）",
-        "ＳＢＩヨーロッパ高配当株式（分配）ファンド（年４回決算型）",
-        "ＳＢＩ欧州高配当株式(分配)ファンド(年４回決算型)",
-        "ＳＢＩ欧州高配当株式ファンド"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "SMT ゴールドインデックス・オープン(為替ヘッジなし)": {
-      "ticker": "GLD",
-      "aliases": [
-        "SMT ゴールドインデックス・オープン(為替ヘッジなし)",
-        "SMT ゴールドインデックス オープン",
-        "SMT ゴールドインデックス・オープン",
-        "SMT ゴールドインデックス オープン(為替ヘッジなし)",
-        "SMTゴールドインデックス・オープン(為替ヘッジなし)"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "ＲＯＢＯＰＲＯファンド": {
-      "ticker": "ACWI",
-      "aliases": [
-        "ＲＯＢＯＰＲＯファンド"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "楽天・全米株式インデックス・ファンド（楽天・バンガード・ファンド（全米株式））": {
-      "ticker": "VTI",
-      "aliases": [
-        "楽天・全米株式インデックス・ファンド（楽天・バンガード・ファンド（全米株式））",
-        "楽天 全米株式インデックス ファンド ）",
-        "Rakuten 全米株式インデックス・ファンド（Rakuten バンガード・ファンド（全米株式））",
-        "らくてん全米株式インデックス・ファンド（らくてんバンガード・ファンド（全米株式））",
-        "楽天・全米株式インデックス・ファンド(楽天・バンガード・ファンド（全米株式)）",
-        "楽天・全米株式インデックス・ファンド）",
-        "楽天 全米株式インデックス ファンド（楽天 バンガード ファンド（全米株式））"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "NASDAQ100 3倍ブル": {
-      "ticker": null,
-      "aliases": [
-        "NASDAQ100 3倍ブル",
-        "ナスダック100 3倍ブル",
-        "ＮＡＳＤＡＱ100 3倍ブル",
-        "NASDAQ1003倍ブル"
-      ],
-      "source": "historical_only",
-      "confidence": "unmapped",
-      "note": "Requires manual ticker assignment"
-    },
-    "NZAM・ベータ 日本REIT": {
-      "ticker": "1343.T",
-      "aliases": [
-        "NZAM・ベータ 日本REIT",
-        "NZAM ベータ 日本REIT",
-        "NZAM・ベータ japanREIT",
-        "NZAM・ベータ japaneseREIT",
-        "NZAM・ベータ にほんREIT",
-        "NZAM・ベータ日本REIT"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "auAMレバレッジNASDAQ100為替ヘッジ無し": {
-      "ticker": null,
-      "aliases": [
-        "auAMレバレッジNASDAQ100為替ヘッジ無し",
-        "auAMレバレッジナスダック100為替ヘッジ無し",
-        "auAMレバレッジＮＡＳＤＡＱ100為替ヘッジ無し"
-      ],
-      "source": "historical_only",
-      "confidence": "unmapped",
-      "note": "Requires manual ticker assignment"
-    },
-    "ｅＭＡＸＩＳ　Ｓｌｉｍ　米国株式（Ｓ＆Ｐ５００）": {
-      "ticker": "VOO",
-      "aliases": [
-        "ｅＭＡＸＩＳ　Ｓｌｉｍ　米国株式（Ｓ＆Ｐ５００）",
-        "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式",
-        "ｅＭＡＸＩＳ　Ｓｌｉｍ　US equity（Ｓ＆Ｐ５００）",
-        "ｅＭＡＸＩＳ　Ｓｌｉｍ　american stock（Ｓ＆Ｐ５００）",
-        "ｅＭＡＸＩＳ　Ｓｌｉｍ　US株式（Ｓ＆Ｐ５００）",
-        "ｅＭＡＸＩＳ　Ｓｌｉｍ　USA株式（Ｓ＆Ｐ５００）",
-        "ｅＭＡＸＩＳ　Ｓｌｉｍ　america株式（Ｓ＆Ｐ５００）",
-        "ｅＭＡＸＩＳ　Ｓｌｉｍ　アメリカ株式（Ｓ＆Ｐ５００）",
-        "ｅＭＡＸＩＳ　Ｓｌｉｍ　米国株式(Ｓ＆Ｐ５００)",
-        "ｅＭＡＸＩＳ　Ｓｌｉｍ　米国株式",
-        "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）",
-        "ｅＭＡＸＩＳＳｌｉｍ米国株式（Ｓ＆Ｐ５００）"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "モザイク MOS / New York Stock Exchange": {
-      "ticker": "MOS",
-      "aliases": [
-        "モザイク MOS / New York Stock Exchange",
-        "モザイクMOS/NewYorkStockExchange"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "Tracers S&P500ゴールドプラス": {
-      "ticker": "GLD",
-      "aliases": [
-        "Tracers S&P500ゴールドプラス",
-        "トレーサーズS&P500ゴールドプラス",
-        "tracers S&P500ゴールドプラス",
-        "Tracers SP500ゴールドプラス",
-        "Tracers ＳＰ５００ゴールドプラス",
-        "Tracers エス・アンド・ピー500ゴールドプラス",
-        "TracersS&P500ゴールドプラス"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "GS米ドルファンド": {
-      "ticker": "USDJPY=X",
-      "aliases": [
-        "GS米ドルファンド"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "ＳＢＩ・全世界株式インデックス・ファンド(雪だるま（全世界株式）)": {
-      "ticker": "ACWI",
-      "aliases": [
-        "ＳＢＩ・全世界株式インデックス・ファンド(雪だるま（全世界株式）)",
-        "ＳＢＩ 全世界株式インデックス ファンド )",
-        "SBI 全世界株式インデックス・ファンド(雪だるま（全世界株式）)",
-        "エスビーアイ全世界株式インデックス・ファンド(雪だるま（全世界株式）)",
-        "ＳＢＩ・world equityインデックス・ファンド(雪だるま（world equity）)",
-        "ＳＢＩ・global stockインデックス・ファンド(雪だるま（global stock）)",
-        "ＳＢＩ・オール・カントリーインデックス・ファンド(雪だるま（オール・カントリー）)",
-        "ＳＢＩ・world株式インデックス・ファンド(雪だるま（world株式）)",
-        "ＳＢＩ・global株式インデックス・ファンド(雪だるま（global株式）)",
-        "ＳＢＩ・オール・カントリー株式インデックス・ファンド(雪だるま（オール・カントリー株式）)",
-        "ＳＢＩ・all country株式インデックス・ファンド(雪だるま（all country株式）)",
-        "ＳＢＩ・全世界株式インデックス・ファンド(雪だるま（全世界株式))",
-        "ＳＢＩ・全世界株式インデックス・ファンド)",
-        "ＳＢＩ 全世界株式インデックス ファンド(雪だるま（全世界株式）)"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "ＳＢＩホールディングス": {
-      "ticker": "8473.T",
-      "aliases": [
-        "ＳＢＩホールディングス",
-        "SBI ホールディングス",
-        "エスビーアイホールディングス"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
     "ＳＢＩ・Ｊ−ＲＥＩＴ（分配）ファンド（年４回決算型）": {
       "ticker": "1343.T",
       "aliases": [
@@ -464,152 +194,62 @@
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "ＮＥＸＴ　ＦＵＮＤＳ　東証銀行業株価指数連動型上場投信": {
-      "ticker": "1615.T",
-      "aliases": [
-        "ＮＥＸＴ　ＦＵＮＤＳ　東証銀行業株価指数連動型上場投信",
-        "ＮＥＸＴ ＦＵＮＤＳ 東証銀行業株価指数連動型上場投信",
-        "ＮＥＸＴＦＵＮＤＳ東証銀行業株価指数連動型上場投信"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "iFreeレバレッジ NASDAQ100": {
-      "ticker": "QLD",
-      "aliases": [
-        "iFreeレバレッジ NASDAQ100",
-        "アイフリーレバレッジ NASDAQ100",
-        "ifree レバレッジ NASDAQ100",
-        "iFreeレバレッジ ナスダック100",
-        "iFreeレバレッジ ＮＡＳＤＡＱ100",
-        "iFreeレバレッジNASDAQ100"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "SMT MIRAIndex エコ": {
-      "ticker": "ICLN",
-      "aliases": [
-        "SMT MIRAIndex エコ",
-        "SMTMIRAIndexエコ"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "ＳＢＩ岡三・ＵＳドル・マネー・マーケット・ファンド（米ドル） X6587000": {
-      "ticker": "USDJPY=X",
-      "aliases": [
-        "ＳＢＩ岡三・ＵＳドル・マネー・マーケット・ファンド（米ドル） X6587000",
-        "ＳＢＩ岡三 ＵＳドル マネー マーケット ファンド X6587000",
-        "SBI 岡三・ＵＳドル・マネー・マーケット・ファンド（米ドル） X6587000",
-        "エスビーアイ岡三・ＵＳドル・マネー・マーケット・ファンド（米ドル） X6587000",
-        "ＳＢＩ岡三・ＵＳドル・マネー・マーケット・ファンド(米ドル) X6587000",
-        "ＳＢＩ岡三・ＵＳドル・マネー・マーケット・ファンド X6587000",
-        "ＳＢＩ岡三 ＵＳドル マネー マーケット ファンド（米ドル） X6587000",
-        "ＳＢＩ岡三・ＵＳドル・マネー・マーケット・ファンド（米ドル）X6587000"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "ａｕＡＭ　Ｎｉｆｔｙ５０インド株ファンド": {
+    "auAM Nifty50インド株ファンド": {
       "ticker": "INDY",
       "aliases": [
-        "ａｕＡＭ　Ｎｉｆｔｙ５０インド株ファンド",
-        "ａｕＡＭ Ｎｉｆｔｙ５０インド株ファンド",
-        "ａｕＡＭＮｉｆｔｙ５０インド株ファンド"
+        "auAM Nifty50インド株ファンド",
+        "auAMNifty50インド株ファンド"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "マイクロソフト MSFT / NASDAQ": {
-      "ticker": "MSFT.US",
+    "バンガード 超長期米国債 ETF EDV / NYSE ARCA": {
+      "ticker": "EDV",
       "aliases": [
-        "マイクロソフト MSFT / NASDAQ",
-        "マイクロソフト MSFT / ナスダック",
-        "マイクロソフト MSFT / ＮＡＳＤＡＱ",
-        "マイクロソフトMSFT/NASDAQ"
+        "バンガード 超長期米国債 ETF EDV / NYSE ARCA",
+        "バンガード 超長期US債 ETF EDV / NYSE ARCA",
+        "バンガード 超長期USA債 ETF EDV / NYSE ARCA",
+        "バンガード 超長期america債 ETF EDV / NYSE ARCA",
+        "バンガード 超長期アメリカ債 ETF EDV / NYSE ARCA",
+        "バンガード超長期米国債ETFEDV/NYSEARCA"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "インベスコ QQQ トラストシリーズ1 ETF QQQ / NASDAQ": {
+    "ストラテジー Inc A MSTR / NASDAQ": {
+      "ticker": "MSTR",
+      "aliases": [
+        "ストラテジー Inc A MSTR / NASDAQ",
+        "ストラテジー Inc A MSTR / ナスダック",
+        "ストラテジー Inc A MSTR / ＮＡＳＤＡＱ",
+        "ストラテジーIncAMSTR/NASDAQ"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "モザイク MOS / New York Stock Exchange": {
+      "ticker": "MOS",
+      "aliases": [
+        "モザイク MOS / New York Stock Exchange",
+        "モザイクMOS/NewYorkStockExchange"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "ｉＦｒｅｅＮＥＸＴ　ＮＡＳＤＡＱ１００インデックス": {
       "ticker": "QQQ",
       "aliases": [
-        "インベスコ QQQ トラストシリーズ1 ETF QQQ / NASDAQ",
-        "インベスコ QQQ トラストシリーズ1 ETF QQQ / ナスダック",
-        "インベスコ QQQ トラストシリーズ1 ETF QQQ / ＮＡＳＤＡＱ",
-        "インベスコQQQトラストシリーズ1ETFQQQ/NASDAQ"
+        "ｉＦｒｅｅＮＥＸＴ　ＮＡＳＤＡＱ１００インデックス",
+        "ｉＦｒｅｅＮＥＸＴ ＮＡＳＤＡＱ１００インデックス",
+        "ｉＦｒｅｅＮＥＸＴＮＡＳＤＡＱ１００インデックス"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "ＳＢＩ−Ｍａｎ　リキッド・トレンド・ファンド": {
-      "ticker": "DBMF",
+    "GS米ドルファンド": {
+      "ticker": "USDJPY=X",
       "aliases": [
-        "ＳＢＩ−Ｍａｎ　リキッド・トレンド・ファンド",
-        "ＳＢＩ−Ｍａｎ リキッド トレンド ファンド",
-        "SBI −Ｍａｎ　リキッド・トレンド・ファンド",
-        "エスビーアイ−Ｍａｎ　リキッド・トレンド・ファンド",
-        "ＳＢＩ−Ｍａｎ　リキッド トレンド ファンド",
-        "ＳＢＩ−Ｍａｎ リキッド・トレンド・ファンド",
-        "ＳＢＩ−Ｍａｎリキッド・トレンド・ファンド"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "Direxion デイリー20年超米国債ブル3倍 ETF TMF / NYSE ARCA": {
-      "ticker": "TMF",
-      "aliases": [
-        "Direxion デイリー20年超米国債ブル3倍 ETF TMF / NYSE ARCA",
-        "Direxion デイリー20年超US債ブル3倍 ETF TMF / NYSE ARCA",
-        "Direxion デイリー20年超USA債ブル3倍 ETF TMF / NYSE ARCA",
-        "Direxion デイリー20年超america債ブル3倍 ETF TMF / NYSE ARCA",
-        "Direxion デイリー20年超アメリカ債ブル3倍 ETF TMF / NYSE ARCA",
-        "Direxionデイリー20年超米国債ブル3倍ETFTMF/NYSEARCA"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "iFreeNEXT NASDAQ100インデックス": {
-      "ticker": "QQQ",
-      "aliases": [
-        "iFreeNEXT NASDAQ100インデックス",
-        "アイフリーNEXT NASDAQ100インデックス",
-        "ifree NEXT NASDAQ100インデックス",
-        "iFreeNEXT ナスダック100インデックス",
-        "iFreeNEXT ＮＡＳＤＡＱ100インデックス",
-        "iFreeNEXTNASDAQ100インデックス"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "Ｔｒａｃｅｒｓ　ＮＡＳＤＡＱ１００ゴールドプラス": {
-      "ticker": "QQQ",
-      "aliases": [
-        "Ｔｒａｃｅｒｓ　ＮＡＳＤＡＱ１００ゴールドプラス",
-        "Ｔｒａｃｅｒｓ ＮＡＳＤＡＱ１００ゴールドプラス",
-        "ＴｒａｃｅｒｓＮＡＳＤＡＱ１００ゴールドプラス"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "ＳＢＩサウジアラビア株式インデックス・ファンド": {
-      "ticker": "KSA",
-      "aliases": [
-        "ＳＢＩサウジアラビア株式インデックス・ファンド",
-        "ＳＢＩサウジアラビア株式インデックス ファンド",
-        "SBI サウジアラビア株式インデックス・ファンド",
-        "エスビーアイサウジアラビア株式インデックス・ファンド"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "ｅＭＡＸＩＳ　ＮＡＳＤＡＱ１００インデックス": {
-      "ticker": "QQQ",
-      "aliases": [
-        "ｅＭＡＸＩＳ　ＮＡＳＤＡＱ１００インデックス",
-        "ｅＭＡＸＩＳ ＮＡＳＤＡＱ１００インデックス",
-        "ｅＭＡＸＩＳＮＡＳＤＡＱ１００インデックス"
+        "GS米ドルファンド"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
@@ -635,114 +275,79 @@
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "eMAXIS Slim 国内リートインデックス": {
-      "ticker": "1343.T",
+    "ＳＢＩサウジアラビア株式インデックス・ファンド": {
+      "ticker": "KSA",
       "aliases": [
-        "eMAXIS Slim 国内リートインデックス",
-        "イーマクシスSlim 国内リートインデックス",
-        "emaxis Slim 国内リートインデックス",
-        "eMAXISSlim国内リートインデックス"
+        "ＳＢＩサウジアラビア株式インデックス・ファンド",
+        "ＳＢＩサウジアラビア株式インデックス ファンド",
+        "SBI サウジアラビア株式インデックス・ファンド",
+        "エスビーアイサウジアラビア株式インデックス・ファンド"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "アドバンスト マイクロ デバイシズ AMD / NASDAQ": {
-      "ticker": "AMD",
+    "ネビウス グループ A NBIS / NASDAQ": {
+      "ticker": "NBIS",
       "aliases": [
-        "アドバンスト マイクロ デバイシズ AMD / NASDAQ",
-        "アドバンスト マイクロ デバイシズ AMD / ナスダック",
-        "アドバンスト マイクロ デバイシズ AMD / ＮＡＳＤＡＱ",
-        "アドバンストマイクロデバイシズAMD/NASDAQ"
+        "ネビウス グループ A NBIS / NASDAQ",
+        "ネビウス グループ A NBIS / ナスダック",
+        "ネビウス グループ A NBIS / ＮＡＳＤＡＱ",
+        "ネビウスグループANBIS/NASDAQ"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "ストラテジー Inc A MSTR / NASDAQ": {
-      "ticker": "MSTR",
+    "楽天・SOXインデックス・ファンド(楽天・SOX)": {
+      "ticker": "SOXX",
       "aliases": [
-        "ストラテジー Inc A MSTR / NASDAQ",
-        "ストラテジー Inc A MSTR / ナスダック",
-        "ストラテジー Inc A MSTR / ＮＡＳＤＡＱ",
-        "ストラテジーIncAMSTR/NASDAQ"
+        "楽天・SOXインデックス・ファンド(楽天・SOX)",
+        "楽天 SOXインデックス ファンド",
+        "Rakuten SOXインデックス・ファンド(Rakuten SOX)",
+        "らくてんSOXインデックス・ファンド(らくてんSOX)",
+        "楽天・SOXインデックス・ファンド",
+        "楽天 SOXインデックス ファンド(楽天 SOX)"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "ブラックロック・スーパー・マネー・マーケット・ファンド（米ドル） X0934000": {
-      "ticker": "USDJPY=X",
+    "BALANCE CASHBACK": {
+      "ticker": null,
       "aliases": [
-        "ブラックロック・スーパー・マネー・マーケット・ファンド（米ドル） X0934000",
-        "ブラックロック スーパー マネー マーケット ファンド X0934000",
-        "ブラックロック・スーパー・マネー・マーケット・ファンド(米ドル) X0934000",
-        "ブラックロック・スーパー・マネー・マーケット・ファンド X0934000",
-        "ブラックロック スーパー マネー マーケット ファンド（米ドル） X0934000",
-        "ブラックロック・スーパー・マネー・マーケット・ファンド（米ドル）X0934000"
+        "BALANCE CASHBACK",
+        "BALANCECASHBACK"
+      ],
+      "source": "historical_only",
+      "confidence": "unmapped",
+      "note": "Requires manual ticker assignment"
+    },
+    "楽天・米国レバレッジバランス・ファンド(USA360)": {
+      "ticker": "AOA",
+      "aliases": [
+        "楽天・米国レバレッジバランス・ファンド(USA360)",
+        "楽天 米国レバレッジバランス ファンド",
+        "Rakuten 米国レバレッジバランス・ファンド(USA360)",
+        "らくてん米国レバレッジバランス・ファンド(USA360)",
+        "楽天・USレバレッジバランス・ファンド(USA360)",
+        "楽天・USAレバレッジバランス・ファンド(USA360)",
+        "楽天・americaレバレッジバランス・ファンド(USA360)",
+        "楽天・アメリカレバレッジバランス・ファンド(USA360)",
+        "楽天・米国レバレッジバランス・ファンド",
+        "楽天 米国レバレッジバランス ファンド(USA360)"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "Direxionデイリー半導体株ブル3倍ETF SOXL / NYSE ARCA": {
-      "ticker": "SOXL",
+    "eMAXIS Slim 新興国株式インデックス": {
+      "ticker": "VWO",
       "aliases": [
-        "Direxionデイリー半導体株ブル3倍ETF SOXL / NYSE ARCA",
-        "Direxionデイリー半導体株ブル3倍ETFSOXL/NYSEARCA"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "ＮＥＸＴ　ＦＵＮＤＳ　東証ＲＥＩＴ指数連動型上場投信": {
-      "ticker": "1343.T",
-      "aliases": [
-        "ＮＥＸＴ　ＦＵＮＤＳ　東証ＲＥＩＴ指数連動型上場投信",
-        "ＮＥＸＴ ＦＵＮＤＳ 東証ＲＥＩＴ指数連動型上場投信",
-        "ＮＥＸＴＦＵＮＤＳ東証ＲＥＩＴ指数連動型上場投信"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "Tracers S&P500トップ10インデックス(米国株式)": {
-      "ticker": "OEF",
-      "aliases": [
-        "Tracers S&P500トップ10インデックス(米国株式)",
-        "Tracers S&P500トップ10インデックス",
-        "トレーサーズS&P500トップ10インデックス(米国株式)",
-        "tracers S&P500トップ10インデックス(米国株式)",
-        "Tracers SP500トップ10インデックス(米国株式)",
-        "Tracers ＳＰ５００トップ10インデックス(米国株式)",
-        "Tracers エス・アンド・ピー500トップ10インデックス(米国株式)",
-        "Tracers S&P500トップ10インデックス(US equity)",
-        "Tracers S&P500トップ10インデックス(american stock)",
-        "Tracers S&P500トップ10インデックス(US株式)",
-        "Tracers S&P500トップ10インデックス(USA株式)",
-        "Tracers S&P500トップ10インデックス(america株式)",
-        "Tracers S&P500トップ10インデックス(アメリカ株式)",
-        "TracersS&P500トップ10インデックス(米国株式)"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "楽天・米国高配当株式インデックス・ファンド(楽天・バンガード・ファンド(米国高配当株式))": {
-      "ticker": "VYM",
-      "aliases": [
-        "楽天・米国高配当株式インデックス・ファンド(楽天・バンガード・ファンド(米国高配当株式))",
-        "楽天 米国高配当株式インデックス ファンド )",
-        "Rakuten 米国高配当株式インデックス・ファンド(Rakuten バンガード・ファンド(米国高配当株式))",
-        "らくてん米国高配当株式インデックス・ファンド(らくてんバンガード・ファンド(米国高配当株式))",
-        "楽天・US高配当株式インデックス・ファンド(楽天・バンガード・ファンド(US高配当株式))",
-        "楽天・USA高配当株式インデックス・ファンド(楽天・バンガード・ファンド(USA高配当株式))",
-        "楽天・america高配当株式インデックス・ファンド(楽天・バンガード・ファンド(america高配当株式))",
-        "楽天・アメリカ高配当株式インデックス・ファンド(楽天・バンガード・ファンド(アメリカ高配当株式))",
-        "楽天・米国高配当株式インデックス・ファンド)",
-        "楽天 米国高配当株式インデックス ファンド(楽天 バンガード ファンド(米国高配当株式))"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "Direxionデイリーヘルスケア株ブル3倍ETF CURE / NYSE ARCA": {
-      "ticker": "CURE",
-      "aliases": [
-        "Direxionデイリーヘルスケア株ブル3倍ETF CURE / NYSE ARCA",
-        "Direxionデイリーヘルスケア株ブル3倍ETFCURE/NYSEARCA"
+        "eMAXIS Slim 新興国株式インデックス",
+        "イーマクシスSlim 新興国株式インデックス",
+        "emaxis Slim 新興国株式インデックス",
+        "eMAXIS Slim emerging marketインデックス",
+        "eMAXIS Slim emerging equityインデックス",
+        "eMAXIS Slim emerging株式インデックス",
+        "eMAXIS Slim emerging market株式インデックス",
+        "eMAXISSlim新興国株式インデックス"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
@@ -765,48 +370,156 @@
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "ｉＦｒｅｅＮＥＸＴ　ＮＡＳＤＡＱ１００インデックス": {
-      "ticker": "QQQ",
+    "Direxionデイリー半導体株ブル3倍ETF SOXL / NYSE ARCA": {
+      "ticker": "SOXL",
       "aliases": [
-        "ｉＦｒｅｅＮＥＸＴ　ＮＡＳＤＡＱ１００インデックス",
-        "ｉＦｒｅｅＮＥＸＴ ＮＡＳＤＡＱ１００インデックス",
-        "ｉＦｒｅｅＮＥＸＴＮＡＳＤＡＱ１００インデックス"
+        "Direxionデイリー半導体株ブル3倍ETF SOXL / NYSE ARCA",
+        "Direxionデイリー半導体株ブル3倍ETFSOXL/NYSEARCA"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "楽天銀行": {
-      "ticker": "5838.T",
+    "ゴールド・ファンド(為替ヘッジなし)": {
+      "ticker": "GLD",
       "aliases": [
-        "楽天銀行",
-        "Rakuten 銀行",
-        "らくてん銀行"
+        "ゴールド・ファンド(為替ヘッジなし)",
+        "ゴールド ファンド",
+        "ゴールド・ファンド",
+        "ゴールド ファンド(為替ヘッジなし)"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "ＳＢＩ・ｉシェアーズ・全世界債券インデックス・ファンド": {
-      "ticker": "BNDW",
+    "マイクロソフト MSFT / NASDAQ": {
+      "ticker": "MSFT.US",
       "aliases": [
-        "ＳＢＩ・ｉシェアーズ・全世界債券インデックス・ファンド",
-        "ＳＢＩ ｉシェアーズ 全世界債券インデックス ファンド",
-        "SBI ｉシェアーズ・全世界債券インデックス・ファンド",
-        "エスビーアイｉシェアーズ・全世界債券インデックス・ファンド",
-        "ＳＢＩ・ｉシェアーズ・world債券インデックス・ファンド",
-        "ＳＢＩ・ｉシェアーズ・global債券インデックス・ファンド",
-        "ＳＢＩ・ｉシェアーズ・オール・カントリー債券インデックス・ファンド",
-        "ＳＢＩ・ｉシェアーズ・all country債券インデックス・ファンド"
+        "マイクロソフト MSFT / NASDAQ",
+        "マイクロソフト MSFT / ナスダック",
+        "マイクロソフト MSFT / ＮＡＳＤＡＱ",
+        "マイクロソフトMSFT/NASDAQ"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "iFree JPXプライム150": {
+    "Tracers グローバル2倍株(地球コンプリート)": {
+      "ticker": "ACWI",
+      "aliases": [
+        "Tracers グローバル2倍株(地球コンプリート)",
+        "Tracers グローバル2倍株",
+        "トレーサーズグローバル2倍株(地球コンプリート)",
+        "tracers グローバル2倍株(地球コンプリート)",
+        "Tracersグローバル2倍株(地球コンプリート)"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "ノーザン・トラスト・米ドル・リクイディティ・ファンド(楽天・米ドルMMF)": {
+      "ticker": "USDJPY=X",
+      "aliases": [
+        "ノーザン・トラスト・米ドル・リクイディティ・ファンド(楽天・米ドルMMF)",
+        "ノーザン トラスト 米ドル リクイディティ ファンド",
+        "ノーザン・トラスト・米ドル・リクイディティ・ファンド(Rakuten 米ドルMMF)",
+        "ノーザン・トラスト・米ドル・リクイディティ・ファンド(らくてん米ドルMMF)",
+        "ノーザン・トラスト・米ドル・リクイディティ・ファンド",
+        "ノーザン トラスト 米ドル リクイディティ ファンド(楽天 米ドルMMF)"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "ＳＢＩ欧州高配当株式（分配）ファンド（年４回決算型）": {
+      "ticker": "VGK",
+      "aliases": [
+        "ＳＢＩ欧州高配当株式（分配）ファンド（年４回決算型）",
+        "ＳＢＩ欧州高配当株式 ファンド",
+        "SBI 欧州高配当株式（分配）ファンド（年４回決算型）",
+        "エスビーアイ欧州高配当株式（分配）ファンド（年４回決算型）",
+        "ＳＢＩeurope高配当株式（分配）ファンド（年４回決算型）",
+        "ＳＢＩeuropean高配当株式（分配）ファンド（年４回決算型）",
+        "ＳＢＩヨーロッパ高配当株式（分配）ファンド（年４回決算型）",
+        "ＳＢＩ欧州高配当株式(分配)ファンド(年４回決算型)",
+        "ＳＢＩ欧州高配当株式ファンド"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "SMT MIRAIndex エコ": {
+      "ticker": "ICLN",
+      "aliases": [
+        "SMT MIRAIndex エコ",
+        "SMTMIRAIndexエコ"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "eMAXIS Slim 国内リートインデックス": {
+      "ticker": "1343.T",
+      "aliases": [
+        "eMAXIS Slim 国内リートインデックス",
+        "イーマクシスSlim 国内リートインデックス",
+        "emaxis Slim 国内リートインデックス",
+        "eMAXISSlim国内リートインデックス"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "ＲＯＢＯＰＲＯファンド": {
+      "ticker": "ACWI",
+      "aliases": [
+        "ＲＯＢＯＰＲＯファンド"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "上場インデックスファンド中国Ａ株パンダＥＦｕｎｄＣＳＩ３００": {
+      "ticker": "1322.T",
+      "aliases": [
+        "上場インデックスファンド中国Ａ株パンダＥＦｕｎｄＣＳＩ３００"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "ａｕＡＭ　Ｎｉｆｔｙ５０インド株ファンド": {
+      "ticker": "INDY",
+      "aliases": [
+        "ａｕＡＭ　Ｎｉｆｔｙ５０インド株ファンド",
+        "ａｕＡＭ Ｎｉｆｔｙ５０インド株ファンド",
+        "ａｕＡＭＮｉｆｔｙ５０インド株ファンド"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "＜購入・換金手数料なし＞ニッセイ 外国株式インデックスファンド": {
+      "ticker": "VEA",
+      "aliases": [
+        "＜購入・換金手数料なし＞ニッセイ 外国株式インデックスファンド",
+        "ニッセイ 外国株式インデックスファンド",
+        "＜購入・換金手数料なし＞Nissay 外国株式インデックスファンド",
+        "＜購入・換金手数料なし＞日本生命外国株式インデックスファンド",
+        "＜購入 換金手数料なし＞ニッセイ 外国株式インデックスファンド",
+        "＜購入・換金手数料なし＞ニッセイ外国株式インデックスファンド"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "ＮＥＸＴ　ＦＵＮＤＳ　ＪＰＸプライム１５０指数連動型上場投信": {
       "ticker": "2017.T",
       "aliases": [
-        "iFree JPXプライム150",
-        "アイフリーJPXプライム150",
-        "ifree JPXプライム150",
-        "iFreeJPXプライム150"
+        "ＮＥＸＴ　ＦＵＮＤＳ　ＪＰＸプライム１５０指数連動型上場投信",
+        "ＮＥＸＴ ＦＵＮＤＳ ＪＰＸプライム１５０指数連動型上場投信",
+        "ＮＥＸＴＦＵＮＤＳＪＰＸプライム１５０指数連動型上場投信"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "eMAXIS Slim 先進国債券インデックス": {
+      "ticker": "BNDX",
+      "aliases": [
+        "eMAXIS Slim 先進国債券インデックス",
+        "イーマクシスSlim 先進国債券インデックス",
+        "emaxis Slim 先進国債券インデックス",
+        "eMAXIS Slim developed債券インデックス",
+        "eMAXIS Slim developed market債券インデックス",
+        "eMAXISSlim先進国債券インデックス"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
@@ -832,113 +545,98 @@
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "Direxionデイリー中ネット指数株ブル2倍ETF CWEB / NYSE ARCA": {
-      "ticker": "CWEB",
+    "楽天・全米株式インデックス・ファンド（楽天・バンガード・ファンド（全米株式））": {
+      "ticker": "VTI",
       "aliases": [
-        "Direxionデイリー中ネット指数株ブル2倍ETF CWEB / NYSE ARCA",
-        "Direxionデイリー中ネット指数株ブル2倍ETFCWEB/NYSEARCA"
+        "楽天・全米株式インデックス・ファンド（楽天・バンガード・ファンド（全米株式））",
+        "楽天 全米株式インデックス ファンド ）",
+        "Rakuten 全米株式インデックス・ファンド（Rakuten バンガード・ファンド（全米株式））",
+        "らくてん全米株式インデックス・ファンド（らくてんバンガード・ファンド（全米株式））",
+        "楽天・全米株式インデックス・ファンド(楽天・バンガード・ファンド（全米株式)）",
+        "楽天・全米株式インデックス・ファンド）",
+        "楽天 全米株式インデックス ファンド（楽天 バンガード ファンド（全米株式））"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "上場インデックスファンド中国Ａ株パンダＥＦｕｎｄＣＳＩ３００": {
-      "ticker": "1322.T",
+    "Direxion デイリー20年超米国債ブル3倍 ETF TMF / NYSE ARCA": {
+      "ticker": "TMF",
       "aliases": [
-        "上場インデックスファンド中国Ａ株パンダＥＦｕｎｄＣＳＩ３００"
+        "Direxion デイリー20年超米国債ブル3倍 ETF TMF / NYSE ARCA",
+        "Direxion デイリー20年超US債ブル3倍 ETF TMF / NYSE ARCA",
+        "Direxion デイリー20年超USA債ブル3倍 ETF TMF / NYSE ARCA",
+        "Direxion デイリー20年超america債ブル3倍 ETF TMF / NYSE ARCA",
+        "Direxion デイリー20年超アメリカ債ブル3倍 ETF TMF / NYSE ARCA",
+        "Direxionデイリー20年超米国債ブル3倍ETFTMF/NYSEARCA"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "eMAXIS Slim 新興国株式インデックス": {
-      "ticker": "VWO",
+    "iFreeレバレッジ NASDAQ100": {
+      "ticker": "QLD",
       "aliases": [
-        "eMAXIS Slim 新興国株式インデックス",
-        "イーマクシスSlim 新興国株式インデックス",
-        "emaxis Slim 新興国株式インデックス",
-        "eMAXIS Slim emerging marketインデックス",
-        "eMAXIS Slim emerging equityインデックス",
-        "eMAXIS Slim emerging株式インデックス",
-        "eMAXIS Slim emerging market株式インデックス",
-        "eMAXISSlim新興国株式インデックス"
+        "iFreeレバレッジ NASDAQ100",
+        "アイフリーレバレッジ NASDAQ100",
+        "ifree レバレッジ NASDAQ100",
+        "iFreeレバレッジ ナスダック100",
+        "iFreeレバレッジ ＮＡＳＤＡＱ100",
+        "iFreeレバレッジNASDAQ100"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "バンガード 超長期米国債 ETF EDV / NYSE ARCA": {
-      "ticker": "EDV",
+    "iFree JPXプライム150": {
+      "ticker": "2017.T",
       "aliases": [
-        "バンガード 超長期米国債 ETF EDV / NYSE ARCA",
-        "バンガード 超長期US債 ETF EDV / NYSE ARCA",
-        "バンガード 超長期USA債 ETF EDV / NYSE ARCA",
-        "バンガード 超長期america債 ETF EDV / NYSE ARCA",
-        "バンガード 超長期アメリカ債 ETF EDV / NYSE ARCA",
-        "バンガード超長期米国債ETFEDV/NYSEARCA"
+        "iFree JPXプライム150",
+        "アイフリーJPXプライム150",
+        "ifree JPXプライム150",
+        "iFreeJPXプライム150"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "SBI・iシェアーズ・全世界債券インデックス・ファンド(サクっと全世界債券)": {
-      "ticker": "BNDW",
+    "ＮＥＸＴ　ＦＵＮＤＳ　東証銀行業株価指数連動型上場投信": {
+      "ticker": "1615.T",
       "aliases": [
-        "SBI・iシェアーズ・全世界債券インデックス・ファンド(サクっと全世界債券)",
-        "SBI iシェアーズ 全世界債券インデックス ファンド",
-        "SBI・iシェアーズ・world債券インデックス・ファンド(サクっとworld債券)",
-        "SBI・iシェアーズ・global債券インデックス・ファンド(サクっとglobal債券)",
-        "SBI・iシェアーズ・オール・カントリー債券インデックス・ファンド(サクっとオール・カントリー債券)",
-        "SBI・iシェアーズ・all country債券インデックス・ファンド(サクっとall country債券)",
-        "SBI・iシェアーズ・全世界債券インデックス・ファンド",
-        "SBI iシェアーズ 全世界債券インデックス ファンド(サクっと全世界債券)"
+        "ＮＥＸＴ　ＦＵＮＤＳ　東証銀行業株価指数連動型上場投信",
+        "ＮＥＸＴ ＦＵＮＤＳ 東証銀行業株価指数連動型上場投信",
+        "ＮＥＸＴＦＵＮＤＳ東証銀行業株価指数連動型上場投信"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "阿里巴巴集団（アリババ グループ）ADR BABA / New York Stock Exchange": {
-      "ticker": "BABA",
+    "ＳＢＩホールディングス": {
+      "ticker": "8473.T",
       "aliases": [
-        "阿里巴巴集団（アリババ グループ）ADR BABA / New York Stock Exchange",
-        "阿里巴巴集団 ADR BABA / New York Stock Exchange",
-        "阿里巴巴集団(アリババ グループ)ADR BABA / New York Stock Exchange",
-        "阿里巴巴集団ADR BABA / New York Stock Exchange",
-        "阿里巴巴集団（アリババグループ）ADRBABA/NewYorkStockExchange"
+        "ＳＢＩホールディングス",
+        "SBI ホールディングス",
+        "エスビーアイホールディングス"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "＜購入・換金手数料なし＞ニッセイ新興国株式インデックスファンド": {
-      "ticker": "VWO",
+    "Tracers S&P500ゴールドプラス": {
+      "ticker": "GLD",
       "aliases": [
-        "＜購入・換金手数料なし＞ニッセイ新興国株式インデックスファンド",
-        "ニッセイ新興国株式インデックスファンド",
-        "＜購入・換金手数料なし＞Nissay 新興国株式インデックスファンド",
-        "＜購入・換金手数料なし＞日本生命新興国株式インデックスファンド",
-        "＜購入・換金手数料なし＞ニッセイemerging marketインデックスファンド",
-        "＜購入・換金手数料なし＞ニッセイemerging equityインデックスファンド",
-        "＜購入・換金手数料なし＞ニッセイemerging株式インデックスファンド",
-        "＜購入・換金手数料なし＞ニッセイemerging market株式インデックスファンド",
-        "＜購入 換金手数料なし＞ニッセイ新興国株式インデックスファンド"
+        "Tracers S&P500ゴールドプラス",
+        "トレーサーズS&P500ゴールドプラス",
+        "tracers S&P500ゴールドプラス",
+        "Tracers SP500ゴールドプラス",
+        "Tracers ＳＰ５００ゴールドプラス",
+        "Tracers エス・アンド・ピー500ゴールドプラス",
+        "TracersS&P500ゴールドプラス"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "プロシェア ウルトラプロ QQQ ETF TQQQ / NASDAQ": {
-      "ticker": "TQQQ",
+    "ＳＢＩ・Ｖ・全米株式インデックス・ファンド": {
+      "ticker": "VTI",
       "aliases": [
-        "プロシェア ウルトラプロ QQQ ETF TQQQ / NASDAQ",
-        "プロシェア ウルトラプロ QQQ ETF TQQQ / ナスダック",
-        "プロシェア ウルトラプロ QQQ ETF TQQQ / ＮＡＳＤＡＱ",
-        "プロシェアウルトラプロQQQETFTQQQ/NASDAQ"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "＜購入・換金手数料なし＞ニッセイＪリートインデックスファンド": {
-      "ticker": "1343.T",
-      "aliases": [
-        "＜購入・換金手数料なし＞ニッセイＪリートインデックスファンド",
-        "ニッセイＪリートインデックスファンド",
-        "＜購入・換金手数料なし＞Nissay Ｊリートインデックスファンド",
-        "＜購入・換金手数料なし＞日本生命Ｊリートインデックスファンド",
-        "＜購入 換金手数料なし＞ニッセイＪリートインデックスファンド"
+        "ＳＢＩ・Ｖ・全米株式インデックス・ファンド",
+        "ＳＢＩ Ｖ 全米株式インデックス ファンド",
+        "SBI Ｖ・全米株式インデックス・ファンド",
+        "エスビーアイＶ・全米株式インデックス・ファンド"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
@@ -950,6 +648,52 @@
         "マイクロン テクノロジー MU / ナスダック",
         "マイクロン テクノロジー MU / ＮＡＳＤＡＱ",
         "マイクロンテクノロジーMU/NASDAQ"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "ＮＥＸＴ　ＦＵＮＤＳ　日経平均高配当株５０指数連動型上場投信": {
+      "ticker": "1489.T",
+      "aliases": [
+        "ＮＥＸＴ　ＦＵＮＤＳ　日経平均高配当株５０指数連動型上場投信",
+        "ＮＥＸＴ ＦＵＮＤＳ 日経平均高配当株５０指数連動型上場投信",
+        "ＮＥＸＴＦＵＮＤＳ日経平均高配当株５０指数連動型上場投信"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "iFreeNEXT NASDAQ100インデックス": {
+      "ticker": "QQQ",
+      "aliases": [
+        "iFreeNEXT NASDAQ100インデックス",
+        "アイフリーNEXT NASDAQ100インデックス",
+        "ifree NEXT NASDAQ100インデックス",
+        "iFreeNEXT ナスダック100インデックス",
+        "iFreeNEXT ＮＡＳＤＡＱ100インデックス",
+        "iFreeNEXTNASDAQ100インデックス"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "ｅＭＡＸＩＳ　Ｓｌｉｍ　先進国債券インデックス": {
+      "ticker": "BNDX",
+      "aliases": [
+        "ｅＭＡＸＩＳ　Ｓｌｉｍ　先進国債券インデックス",
+        "ｅＭＡＸＩＳ Ｓｌｉｍ 先進国債券インデックス",
+        "ｅＭＡＸＩＳ　Ｓｌｉｍ　developed債券インデックス",
+        "ｅＭＡＸＩＳ　Ｓｌｉｍ　developed market債券インデックス",
+        "ｅＭＡＸＩＳＳｌｉｍ先進国債券インデックス"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "エヌビディア NVDA / NASDAQ": {
+      "ticker": "NVDA",
+      "aliases": [
+        "エヌビディア NVDA / NASDAQ",
+        "エヌビディア NVDA / ナスダック",
+        "エヌビディア NVDA / ＮＡＳＤＡＱ",
+        "エヌビディアNVDA/NASDAQ"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
@@ -967,44 +711,177 @@
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "ＳＢＩ・ｉシェアーズ・ＴＯＰＩＸインデックス・ファンド": {
-      "ticker": "1475.T",
+    "ＮＥＸＴ　ＦＵＮＤＳ　日経半導体株指数連動型上場投信": {
+      "ticker": "200A.T",
       "aliases": [
-        "ＳＢＩ・ｉシェアーズ・ＴＯＰＩＸインデックス・ファンド",
-        "ＳＢＩ ｉシェアーズ ＴＯＰＩＸインデックス ファンド",
-        "SBI ｉシェアーズ・ＴＯＰＩＸインデックス・ファンド",
-        "エスビーアイｉシェアーズ・ＴＯＰＩＸインデックス・ファンド"
+        "ＮＥＸＴ　ＦＵＮＤＳ　日経半導体株指数連動型上場投信",
+        "ＮＥＸＴ ＦＵＮＤＳ 日経半導体株指数連動型上場投信",
+        "ＮＥＸＴＦＵＮＤＳ日経半導体株指数連動型上場投信"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "auAM Nifty50インド株ファンド": {
-      "ticker": "INDY",
+    "ｅＭＡＸＩＳ　Ｓｌｉｍ　米国株式（Ｓ＆Ｐ５００）": {
+      "ticker": "VOO",
       "aliases": [
-        "auAM Nifty50インド株ファンド",
-        "auAMNifty50インド株ファンド"
+        "ｅＭＡＸＩＳ　Ｓｌｉｍ　米国株式（Ｓ＆Ｐ５００）",
+        "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式",
+        "ｅＭＡＸＩＳ　Ｓｌｉｍ　US equity（Ｓ＆Ｐ５００）",
+        "ｅＭＡＸＩＳ　Ｓｌｉｍ　american stock（Ｓ＆Ｐ５００）",
+        "ｅＭＡＸＩＳ　Ｓｌｉｍ　US株式（Ｓ＆Ｐ５００）",
+        "ｅＭＡＸＩＳ　Ｓｌｉｍ　USA株式（Ｓ＆Ｐ５００）",
+        "ｅＭＡＸＩＳ　Ｓｌｉｍ　america株式（Ｓ＆Ｐ５００）",
+        "ｅＭＡＸＩＳ　Ｓｌｉｍ　アメリカ株式（Ｓ＆Ｐ５００）",
+        "ｅＭＡＸＩＳ　Ｓｌｉｍ　米国株式(Ｓ＆Ｐ５００)",
+        "ｅＭＡＸＩＳ　Ｓｌｉｍ　米国株式",
+        "ｅＭＡＸＩＳ Ｓｌｉｍ 米国株式（Ｓ＆Ｐ５００）",
+        "ｅＭＡＸＩＳＳｌｉｍ米国株式（Ｓ＆Ｐ５００）"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "ｉＦｒｅｅＮＥＸＴ　ＦＡＮＧ＋インデックス": {
-      "ticker": "FNGS",
+    "DirexionデイリーFTSE中国株ブル3倍ETF YINN / NYSE ARCA": {
+      "ticker": "YINN",
       "aliases": [
-        "ｉＦｒｅｅＮＥＸＴ　ＦＡＮＧ＋インデックス",
-        "ｉＦｒｅｅＮＥＸＴ ＦＡＮＧ＋インデックス",
-        "ｉＦｒｅｅＮＥＸＴＦＡＮＧ＋インデックス"
+        "DirexionデイリーFTSE中国株ブル3倍ETF YINN / NYSE ARCA",
+        "DirexionデイリーFTSE中国株ブル3倍ETFYINN/NYSEARCA"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "ｅＭＡＸＩＳ　Ｓｌｉｍ　先進国債券インデックス": {
-      "ticker": "BNDX",
+    "Direxionデイリー中ネット指数株ブル2倍ETF CWEB / NYSE ARCA": {
+      "ticker": "CWEB",
       "aliases": [
-        "ｅＭＡＸＩＳ　Ｓｌｉｍ　先進国債券インデックス",
-        "ｅＭＡＸＩＳ Ｓｌｉｍ 先進国債券インデックス",
-        "ｅＭＡＸＩＳ　Ｓｌｉｍ　developed債券インデックス",
-        "ｅＭＡＸＩＳ　Ｓｌｉｍ　developed market債券インデックス",
-        "ｅＭＡＸＩＳＳｌｉｍ先進国債券インデックス"
+        "Direxionデイリー中ネット指数株ブル2倍ETF CWEB / NYSE ARCA",
+        "Direxionデイリー中ネット指数株ブル2倍ETFCWEB/NYSEARCA"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "プロシェア ウルトラプロ QQQ ETF TQQQ / NASDAQ": {
+      "ticker": "TQQQ",
+      "aliases": [
+        "プロシェア ウルトラプロ QQQ ETF TQQQ / NASDAQ",
+        "プロシェア ウルトラプロ QQQ ETF TQQQ / ナスダック",
+        "プロシェア ウルトラプロ QQQ ETF TQQQ / ＮＡＳＤＡＱ",
+        "プロシェアウルトラプロQQQETFTQQQ/NASDAQ"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "Direxion 20年超米国債ベア3倍 ETF TMV / NYSE ARCA": {
+      "ticker": "TMV",
+      "aliases": [
+        "Direxion 20年超米国債ベア3倍 ETF TMV / NYSE ARCA",
+        "Direxion 20年超US債ベア3倍 ETF TMV / NYSE ARCA",
+        "Direxion 20年超USA債ベア3倍 ETF TMV / NYSE ARCA",
+        "Direxion 20年超america債ベア3倍 ETF TMV / NYSE ARCA",
+        "Direxion 20年超アメリカ債ベア3倍 ETF TMV / NYSE ARCA",
+        "Direxion20年超米国債ベア3倍ETFTMV/NYSEARCA"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "ＳＢＩ・全世界株式インデックス・ファンド(雪だるま（全世界株式）)": {
+      "ticker": "ACWI",
+      "aliases": [
+        "ＳＢＩ・全世界株式インデックス・ファンド(雪だるま（全世界株式）)",
+        "ＳＢＩ 全世界株式インデックス ファンド )",
+        "SBI 全世界株式インデックス・ファンド(雪だるま（全世界株式）)",
+        "エスビーアイ全世界株式インデックス・ファンド(雪だるま（全世界株式）)",
+        "ＳＢＩ・world equityインデックス・ファンド(雪だるま（world equity）)",
+        "ＳＢＩ・global stockインデックス・ファンド(雪だるま（global stock）)",
+        "ＳＢＩ・オール・カントリーインデックス・ファンド(雪だるま（オール・カントリー）)",
+        "ＳＢＩ・world株式インデックス・ファンド(雪だるま（world株式）)",
+        "ＳＢＩ・global株式インデックス・ファンド(雪だるま（global株式）)",
+        "ＳＢＩ・オール・カントリー株式インデックス・ファンド(雪だるま（オール・カントリー株式）)",
+        "ＳＢＩ・all country株式インデックス・ファンド(雪だるま（all country株式）)",
+        "ＳＢＩ・全世界株式インデックス・ファンド(雪だるま（全世界株式))",
+        "ＳＢＩ・全世界株式インデックス・ファンド)",
+        "ＳＢＩ 全世界株式インデックス ファンド(雪だるま（全世界株式）)"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "Tracers NASDAQ100ゴールドプラス": {
+      "ticker": "QQQ",
+      "aliases": [
+        "Tracers NASDAQ100ゴールドプラス",
+        "トレーサーズNASDAQ100ゴールドプラス",
+        "tracers NASDAQ100ゴールドプラス",
+        "Tracers ナスダック100ゴールドプラス",
+        "Tracers ＮＡＳＤＡＱ100ゴールドプラス",
+        "TracersNASDAQ100ゴールドプラス"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "ブラックロック・スーパー・マネー・マーケット・ファンド（米ドル） X0934000": {
+      "ticker": "USDJPY=X",
+      "aliases": [
+        "ブラックロック・スーパー・マネー・マーケット・ファンド（米ドル） X0934000",
+        "ブラックロック スーパー マネー マーケット ファンド X0934000",
+        "ブラックロック・スーパー・マネー・マーケット・ファンド(米ドル) X0934000",
+        "ブラックロック・スーパー・マネー・マーケット・ファンド X0934000",
+        "ブラックロック スーパー マネー マーケット ファンド（米ドル） X0934000",
+        "ブラックロック・スーパー・マネー・マーケット・ファンド（米ドル）X0934000"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "Ｔｒａｃｅｒｓ　日経平均高配当株５０インデックス奇数月分配型": {
+      "ticker": "1489.T",
+      "aliases": [
+        "Ｔｒａｃｅｒｓ　日経平均高配当株５０インデックス奇数月分配型",
+        "Ｔｒａｃｅｒｓ 日経平均高配当株５０インデックス奇数月分配型",
+        "Ｔｒａｃｅｒｓ日経平均高配当株５０インデックス奇数月分配型"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "Tracers S&P500トップ10インデックス(米国株式)": {
+      "ticker": "OEF",
+      "aliases": [
+        "Tracers S&P500トップ10インデックス(米国株式)",
+        "Tracers S&P500トップ10インデックス",
+        "トレーサーズS&P500トップ10インデックス(米国株式)",
+        "tracers S&P500トップ10インデックス(米国株式)",
+        "Tracers SP500トップ10インデックス(米国株式)",
+        "Tracers ＳＰ５００トップ10インデックス(米国株式)",
+        "Tracers エス・アンド・ピー500トップ10インデックス(米国株式)",
+        "Tracers S&P500トップ10インデックス(US equity)",
+        "Tracers S&P500トップ10インデックス(american stock)",
+        "Tracers S&P500トップ10インデックス(US株式)",
+        "Tracers S&P500トップ10インデックス(USA株式)",
+        "Tracers S&P500トップ10インデックス(america株式)",
+        "Tracers S&P500トップ10インデックス(アメリカ株式)",
+        "TracersS&P500トップ10インデックス(米国株式)"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "ＳＢＩ−Ｍａｎ　リキッド・トレンド・ファンド": {
+      "ticker": "DBMF",
+      "aliases": [
+        "ＳＢＩ−Ｍａｎ　リキッド・トレンド・ファンド",
+        "ＳＢＩ−Ｍａｎ リキッド トレンド ファンド",
+        "SBI −Ｍａｎ　リキッド・トレンド・ファンド",
+        "エスビーアイ−Ｍａｎ　リキッド・トレンド・ファンド",
+        "ＳＢＩ−Ｍａｎ　リキッド トレンド ファンド",
+        "ＳＢＩ−Ｍａｎ リキッド・トレンド・ファンド",
+        "ＳＢＩ−Ｍａｎリキッド・トレンド・ファンド"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "SMT ゴールドインデックス・オープン(為替ヘッジなし)": {
+      "ticker": "GLD",
+      "aliases": [
+        "SMT ゴールドインデックス・オープン(為替ヘッジなし)",
+        "SMT ゴールドインデックス オープン",
+        "SMT ゴールドインデックス・オープン",
+        "SMT ゴールドインデックス オープン(為替ヘッジなし)",
+        "SMTゴールドインデックス・オープン(為替ヘッジなし)"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
@@ -1021,64 +898,56 @@
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "ネビウス グループ A NBIS / NASDAQ": {
-      "ticker": "NBIS",
+    "インベスコ QQQ トラストシリーズ1 ETF QQQ / NASDAQ": {
+      "ticker": "QQQ",
       "aliases": [
-        "ネビウス グループ A NBIS / NASDAQ",
-        "ネビウス グループ A NBIS / ナスダック",
-        "ネビウス グループ A NBIS / ＮＡＳＤＡＱ",
-        "ネビウスグループANBIS/NASDAQ"
+        "インベスコ QQQ トラストシリーズ1 ETF QQQ / NASDAQ",
+        "インベスコ QQQ トラストシリーズ1 ETF QQQ / ナスダック",
+        "インベスコ QQQ トラストシリーズ1 ETF QQQ / ＮＡＳＤＡＱ",
+        "インベスコQQQトラストシリーズ1ETFQQQ/NASDAQ"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "マラ ホールディングス MARA / NASDAQ": {
-      "ticker": "MARA",
+    "ｅＭＡＸＩＳ　ＮＡＳＤＡＱ１００インデックス": {
+      "ticker": "QQQ",
       "aliases": [
-        "マラ ホールディングス MARA / NASDAQ",
-        "マラ ホールディングス MARA / ナスダック",
-        "マラ ホールディングス MARA / ＮＡＳＤＡＱ",
-        "マラホールディングスMARA/NASDAQ"
+        "ｅＭＡＸＩＳ　ＮＡＳＤＡＱ１００インデックス",
+        "ｅＭＡＸＩＳ ＮＡＳＤＡＱ１００インデックス",
+        "ｅＭＡＸＩＳＮＡＳＤＡＱ１００インデックス"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "SPDRゴールド ミニシェアーズ トラスト GLDM / NYSE ARCA": {
-      "ticker": "GLDM",
+    "NZAM・ベータ 日本REIT": {
+      "ticker": "1343.T",
       "aliases": [
-        "SPDRゴールド ミニシェアーズ トラスト GLDM / NYSE ARCA",
-        "SPDRゴールドミニシェアーズトラストGLDM/NYSEARCA"
+        "NZAM・ベータ 日本REIT",
+        "NZAM ベータ 日本REIT",
+        "NZAM・ベータ japanREIT",
+        "NZAM・ベータ japaneseREIT",
+        "NZAM・ベータ にほんREIT",
+        "NZAM・ベータ日本REIT"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "DirexionデイリーFTSE中国株ブル3倍ETF YINN / NYSE ARCA": {
-      "ticker": "YINN",
+    "香港ハンセン指数ファンド": {
+      "ticker": "2800.HK",
       "aliases": [
-        "DirexionデイリーFTSE中国株ブル3倍ETF YINN / NYSE ARCA",
-        "DirexionデイリーFTSE中国株ブル3倍ETFYINN/NYSEARCA"
+        "香港ハンセン指数ファンド"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "ＳＢＩ・Ｖ・全米株式インデックス・ファンド": {
-      "ticker": "VTI",
+    "Tracers 日経平均高配当株50インデックス(奇数月分配型)": {
+      "ticker": "1489.T",
       "aliases": [
-        "ＳＢＩ・Ｖ・全米株式インデックス・ファンド",
-        "ＳＢＩ Ｖ 全米株式インデックス ファンド",
-        "SBI Ｖ・全米株式インデックス・ファンド",
-        "エスビーアイＶ・全米株式インデックス・ファンド"
-      ],
-      "source": "DIC_mapping",
-      "confidence": "high"
-    },
-    "ハイペリオン DeFi HYPD / NASDAQ": {
-      "ticker": "HYPD",
-      "aliases": [
-        "ハイペリオン DeFi HYPD / NASDAQ",
-        "ハイペリオン DeFi HYPD / ナスダック",
-        "ハイペリオン DeFi HYPD / ＮＡＳＤＡＱ",
-        "ハイペリオンDeFiHYPD/NASDAQ"
+        "Tracers 日経平均高配当株50インデックス(奇数月分配型)",
+        "Tracers 日経平均高配当株50インデックス",
+        "トレーサーズ日経平均高配当株50インデックス(奇数月分配型)",
+        "tracers 日経平均高配当株50インデックス(奇数月分配型)",
+        "Tracers日経平均高配当株50インデックス(奇数月分配型)"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
@@ -1099,89 +968,220 @@
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "楽天・SOXインデックス・ファンド(楽天・SOX)": {
-      "ticker": "SOXX",
+    "SPDRゴールド ミニシェアーズ トラスト GLDM / NYSE ARCA": {
+      "ticker": "GLDM",
       "aliases": [
-        "楽天・SOXインデックス・ファンド(楽天・SOX)",
-        "楽天 SOXインデックス ファンド",
-        "Rakuten SOXインデックス・ファンド(Rakuten SOX)",
-        "らくてんSOXインデックス・ファンド(らくてんSOX)",
-        "楽天・SOXインデックス・ファンド",
-        "楽天 SOXインデックス ファンド(楽天 SOX)"
+        "SPDRゴールド ミニシェアーズ トラスト GLDM / NYSE ARCA",
+        "SPDRゴールドミニシェアーズトラストGLDM/NYSEARCA"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "楽天・米国レバレッジバランス・ファンド(USA360)": {
-      "ticker": "AOA",
+    "Ｔｒａｃｅｒｓ　ＮＡＳＤＡＱ１００ゴールドプラス": {
+      "ticker": "QQQ",
       "aliases": [
-        "楽天・米国レバレッジバランス・ファンド(USA360)",
-        "楽天 米国レバレッジバランス ファンド",
-        "Rakuten 米国レバレッジバランス・ファンド(USA360)",
-        "らくてん米国レバレッジバランス・ファンド(USA360)",
-        "楽天・USレバレッジバランス・ファンド(USA360)",
-        "楽天・USAレバレッジバランス・ファンド(USA360)",
-        "楽天・americaレバレッジバランス・ファンド(USA360)",
-        "楽天・アメリカレバレッジバランス・ファンド(USA360)",
-        "楽天・米国レバレッジバランス・ファンド",
-        "楽天 米国レバレッジバランス ファンド(USA360)"
+        "Ｔｒａｃｅｒｓ　ＮＡＳＤＡＱ１００ゴールドプラス",
+        "Ｔｒａｃｅｒｓ ＮＡＳＤＡＱ１００ゴールドプラス",
+        "ＴｒａｃｅｒｓＮＡＳＤＡＱ１００ゴールドプラス"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "エヌビディア NVDA / NASDAQ": {
-      "ticker": "NVDA",
+    "サムサラ A IOT / New York Stock Exchange": {
+      "ticker": "IOT",
       "aliases": [
-        "エヌビディア NVDA / NASDAQ",
-        "エヌビディア NVDA / ナスダック",
-        "エヌビディア NVDA / ＮＡＳＤＡＱ",
-        "エヌビディアNVDA/NASDAQ"
+        "サムサラ A IOT / New York Stock Exchange",
+        "サムサラAIOT/NewYorkStockExchange"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "ＮＥＸＴ　ＦＵＮＤＳ　日経半導体株指数連動型上場投信": {
-      "ticker": "200A.T",
+    "ＳＢＩ・ｉシェアーズ・ＴＯＰＩＸインデックス・ファンド": {
+      "ticker": "1475.T",
       "aliases": [
-        "ＮＥＸＴ　ＦＵＮＤＳ　日経半導体株指数連動型上場投信",
-        "ＮＥＸＴ ＦＵＮＤＳ 日経半導体株指数連動型上場投信",
-        "ＮＥＸＴＦＵＮＤＳ日経半導体株指数連動型上場投信"
+        "ＳＢＩ・ｉシェアーズ・ＴＯＰＩＸインデックス・ファンド",
+        "ＳＢＩ ｉシェアーズ ＴＯＰＩＸインデックス ファンド",
+        "SBI ｉシェアーズ・ＴＯＰＩＸインデックス・ファンド",
+        "エスビーアイｉシェアーズ・ＴＯＰＩＸインデックス・ファンド"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "Tracers グローバル2倍株(地球コンプリート)": {
-      "ticker": "ACWI",
+    "Direxionデイリーヘルスケア株ブル3倍ETF CURE / NYSE ARCA": {
+      "ticker": "CURE",
       "aliases": [
-        "Tracers グローバル2倍株(地球コンプリート)",
-        "Tracers グローバル2倍株",
-        "トレーサーズグローバル2倍株(地球コンプリート)",
-        "tracers グローバル2倍株(地球コンプリート)",
-        "Tracersグローバル2倍株(地球コンプリート)"
+        "Direxionデイリーヘルスケア株ブル3倍ETF CURE / NYSE ARCA",
+        "Direxionデイリーヘルスケア株ブル3倍ETFCURE/NYSEARCA"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "＜購入・換金手数料なし＞ニッセイ 外国株式インデックスファンド": {
-      "ticker": "VEA",
+    "ＳＢＩ岡三・ＵＳドル・マネー・マーケット・ファンド（米ドル） X6587000": {
+      "ticker": "USDJPY=X",
       "aliases": [
-        "＜購入・換金手数料なし＞ニッセイ 外国株式インデックスファンド",
-        "ニッセイ 外国株式インデックスファンド",
-        "＜購入・換金手数料なし＞Nissay 外国株式インデックスファンド",
-        "＜購入・換金手数料なし＞日本生命外国株式インデックスファンド",
-        "＜購入 換金手数料なし＞ニッセイ 外国株式インデックスファンド",
-        "＜購入・換金手数料なし＞ニッセイ外国株式インデックスファンド"
+        "ＳＢＩ岡三・ＵＳドル・マネー・マーケット・ファンド（米ドル） X6587000",
+        "ＳＢＩ岡三 ＵＳドル マネー マーケット ファンド X6587000",
+        "SBI 岡三・ＵＳドル・マネー・マーケット・ファンド（米ドル） X6587000",
+        "エスビーアイ岡三・ＵＳドル・マネー・マーケット・ファンド（米ドル） X6587000",
+        "ＳＢＩ岡三・ＵＳドル・マネー・マーケット・ファンド(米ドル) X6587000",
+        "ＳＢＩ岡三・ＵＳドル・マネー・マーケット・ファンド X6587000",
+        "ＳＢＩ岡三 ＵＳドル マネー マーケット ファンド（米ドル） X6587000",
+        "ＳＢＩ岡三・ＵＳドル・マネー・マーケット・ファンド（米ドル）X6587000"
       ],
       "source": "DIC_mapping",
       "confidence": "high"
     },
-    "ゴールド・ファンド(為替ヘッジなし)": {
-      "ticker": "GLD",
+    "SBI・iシェアーズ・全世界債券インデックス・ファンド(サクっと全世界債券)": {
+      "ticker": "BNDW",
       "aliases": [
-        "ゴールド・ファンド(為替ヘッジなし)",
-        "ゴールド ファンド",
-        "ゴールド・ファンド",
-        "ゴールド ファンド(為替ヘッジなし)"
+        "SBI・iシェアーズ・全世界債券インデックス・ファンド(サクっと全世界債券)",
+        "SBI iシェアーズ 全世界債券インデックス ファンド",
+        "SBI・iシェアーズ・world債券インデックス・ファンド(サクっとworld債券)",
+        "SBI・iシェアーズ・global債券インデックス・ファンド(サクっとglobal債券)",
+        "SBI・iシェアーズ・オール・カントリー債券インデックス・ファンド(サクっとオール・カントリー債券)",
+        "SBI・iシェアーズ・all country債券インデックス・ファンド(サクっとall country債券)",
+        "SBI・iシェアーズ・全世界債券インデックス・ファンド",
+        "SBI iシェアーズ 全世界債券インデックス ファンド(サクっと全世界債券)"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "楽天・米国高配当株式インデックス・ファンド(楽天・バンガード・ファンド(米国高配当株式))": {
+      "ticker": "VYM",
+      "aliases": [
+        "楽天・米国高配当株式インデックス・ファンド(楽天・バンガード・ファンド(米国高配当株式))",
+        "楽天 米国高配当株式インデックス ファンド )",
+        "Rakuten 米国高配当株式インデックス・ファンド(Rakuten バンガード・ファンド(米国高配当株式))",
+        "らくてん米国高配当株式インデックス・ファンド(らくてんバンガード・ファンド(米国高配当株式))",
+        "楽天・US高配当株式インデックス・ファンド(楽天・バンガード・ファンド(US高配当株式))",
+        "楽天・USA高配当株式インデックス・ファンド(楽天・バンガード・ファンド(USA高配当株式))",
+        "楽天・america高配当株式インデックス・ファンド(楽天・バンガード・ファンド(america高配当株式))",
+        "楽天・アメリカ高配当株式インデックス・ファンド(楽天・バンガード・ファンド(アメリカ高配当株式))",
+        "楽天・米国高配当株式インデックス・ファンド)",
+        "楽天 米国高配当株式インデックス ファンド(楽天 バンガード ファンド(米国高配当株式))"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "マラ ホールディングス MARA / NASDAQ": {
+      "ticker": "MARA",
+      "aliases": [
+        "マラ ホールディングス MARA / NASDAQ",
+        "マラ ホールディングス MARA / ナスダック",
+        "マラ ホールディングス MARA / ＮＡＳＤＡＱ",
+        "マラホールディングスMARA/NASDAQ"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "楽天銀行": {
+      "ticker": "5838.T",
+      "aliases": [
+        "楽天銀行",
+        "Rakuten 銀行",
+        "らくてん銀行"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "ハイペリオン DeFi HYPD / NASDAQ": {
+      "ticker": "HYPD",
+      "aliases": [
+        "ハイペリオン DeFi HYPD / NASDAQ",
+        "ハイペリオン DeFi HYPD / ナスダック",
+        "ハイペリオン DeFi HYPD / ＮＡＳＤＡＱ",
+        "ハイペリオンDeFiHYPD/NASDAQ"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "バンガード トータルストックマーケットETF VTI / NYSE ARCA": {
+      "ticker": "VTI",
+      "aliases": [
+        "バンガード トータルストックマーケットETF VTI / NYSE ARCA",
+        "バンガードトータルストックマーケットETFVTI/NYSEARCA"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "バンガード 米国ヘルスケア セクター ETF VHT / NYSE ARCA": {
+      "ticker": "VHT",
+      "aliases": [
+        "バンガード 米国ヘルスケア セクター ETF VHT / NYSE ARCA",
+        "バンガード USヘルスケア セクター ETF VHT / NYSE ARCA",
+        "バンガード USAヘルスケア セクター ETF VHT / NYSE ARCA",
+        "バンガード americaヘルスケア セクター ETF VHT / NYSE ARCA",
+        "バンガード アメリカヘルスケア セクター ETF VHT / NYSE ARCA",
+        "バンガード米国ヘルスケアセクターETFVHT/NYSEARCA"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "アドバンスト マイクロ デバイシズ AMD / NASDAQ": {
+      "ticker": "AMD",
+      "aliases": [
+        "アドバンスト マイクロ デバイシズ AMD / NASDAQ",
+        "アドバンスト マイクロ デバイシズ AMD / ナスダック",
+        "アドバンスト マイクロ デバイシズ AMD / ＮＡＳＤＡＱ",
+        "アドバンストマイクロデバイシズAMD/NASDAQ"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "楽天・全米株式インデックス・ファンド(楽天・VTI)": {
+      "ticker": "VTI",
+      "aliases": [
+        "楽天・全米株式インデックス・ファンド(楽天・VTI)",
+        "楽天 全米株式インデックス ファンド",
+        "Rakuten 全米株式インデックス・ファンド(Rakuten VTI)",
+        "らくてん全米株式インデックス・ファンド(らくてんVTI)",
+        "楽天・全米株式インデックス・ファンド",
+        "楽天 全米株式インデックス ファンド(楽天 VTI)"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "ＮＥＸＴ　ＦＵＮＤＳ　東証ＲＥＩＴ指数連動型上場投信": {
+      "ticker": "1343.T",
+      "aliases": [
+        "ＮＥＸＴ　ＦＵＮＤＳ　東証ＲＥＩＴ指数連動型上場投信",
+        "ＮＥＸＴ ＦＵＮＤＳ 東証ＲＥＩＴ指数連動型上場投信",
+        "ＮＥＸＴＦＵＮＤＳ東証ＲＥＩＴ指数連動型上場投信"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "阿里巴巴集団（アリババ グループ）ADR BABA / New York Stock Exchange": {
+      "ticker": "BABA",
+      "aliases": [
+        "阿里巴巴集団（アリババ グループ）ADR BABA / New York Stock Exchange",
+        "阿里巴巴集団 ADR BABA / New York Stock Exchange",
+        "阿里巴巴集団(アリババ グループ)ADR BABA / New York Stock Exchange",
+        "阿里巴巴集団ADR BABA / New York Stock Exchange",
+        "阿里巴巴集団（アリババグループ）ADRBABA/NewYorkStockExchange"
+      ],
+      "source": "DIC_mapping",
+      "confidence": "high"
+    },
+    "NASDAQ100 3倍ブル": {
+      "ticker": null,
+      "aliases": [
+        "NASDAQ100 3倍ブル",
+        "ナスダック100 3倍ブル",
+        "ＮＡＳＤＡＱ100 3倍ブル",
+        "NASDAQ1003倍ブル"
+      ],
+      "source": "historical_only",
+      "confidence": "unmapped",
+      "note": "Requires manual ticker assignment"
+    },
+    "iFreeNEXT FANG+インデックス": {
+      "ticker": "FNGS",
+      "aliases": [
+        "iFreeNEXT FANG+インデックス",
+        "アイフリーNEXT FANG+インデックス",
+        "ifree NEXT FANG+インデックス",
+        "iFreeNEXTFANG+インデックス"
       ],
       "source": "DIC_mapping",
       "confidence": "high"

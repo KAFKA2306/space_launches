@@ -9,7 +9,9 @@ import warnings
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
+import json
 
+import unicodedata
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -69,11 +71,54 @@ class UnifiedCSVAnalyzer:
 
         return df.sort_values("trade_date").reset_index(drop=True)
 
-    def _load_fund_mapping(self) -> pd.DataFrame:
+    def _load_fund_mapping(self) -> Dict:
         """Load fund mapping data if available."""
         if self.fund_mapping_path.exists():
-            return pd.read_csv(self.fund_mapping_path)
-        return None
+            if self.fund_mapping_path.suffix == ".json":
+                try:
+                    with open(self.fund_mapping_path, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                        funds = data.get("funds", data)
+                        
+                        # Load manual overrides from securitycode2.csv
+                        csv_path = self.fund_mapping_path.parent / "securitycode2.csv"
+                        if csv_path.exists():
+                            try:
+                                df = pd.read_csv(csv_path, header=None)
+                                # Col 0 = Name, Col 1 = Ticker.
+                                # Update funds dict. Structure in JSON is {Name: {ticker: Ticker...}} or {Name: Ticker}?
+                                # JSON structure from Builder is {Name: {ticker: ..., aliases: ...}}.
+                                # Analyzer expects {Name: {ticker: ...}} OR {Name: Ticker}?
+                                # Analyzer usage: mapping.get("ticker") (Line 318).
+                                # So Analyzer expects Dict.
+                                # If CSV provides "Name, Ticker", we must convert to Dict format.
+                                for _, row in df.iterrows():
+                                    name = str(row[0]).strip()
+                                    ticker = str(row[1]).strip()
+                                    if name in funds:
+                                        if isinstance(funds[name], dict):
+                                            funds[name]["ticker"] = ticker
+                                        else:
+                                            funds[name] = {"ticker": ticker} # formatting
+                                    else:
+                                        funds[name] = {"ticker": ticker}
+                            except Exception as e:
+                                logger.warning(f"Failed to load manual CSV overrides: {e}")
+
+                        # Normalize keys to match trade normalization
+                        return {unicodedata.normalize('NFKC', k).strip(): v for k, v in funds.items()}
+                except Exception as e:
+                    logger.error(f"Failed to load fund mapping JSON: {e}")
+                    return {}
+            # Fallback for CSV
+            try:
+                df = pd.read_csv(self.fund_mapping_path)
+                # Assume Col 0 = Name, Col 1 = Ticker
+                return dict(zip(df.iloc[:, 0], df.iloc[:, 1]))
+            except Exception as e:
+                logger.error(f"Failed to load fund mapping CSV: {e}")
+                return {}
+        return {}
 
     def _force_scalar(self, val):
         """Recursively reduce pandas/numpy objects to scalar."""
@@ -111,8 +156,22 @@ class UnifiedCSVAnalyzer:
         for _, trade in self.trades_df.iterrows():
             # Use security_name as the unique key to prevent merging different funds
             # that happen to be mapped to the same reference ticker (e.g., 1343.T)
-            security_name = trade["security_name"] or "Unknown"
+            raw_val = trade["security_name"]
+            raw_name = str(raw_val) if pd.notna(raw_val) else "Unknown"
+            
+            # Normalize to merge full-width/half-width variants (e.g. Tracers vs Ｔｒａｃｅｒｓ)
+            security_name = unicodedata.normalize('NFKC', raw_name).strip()
+            
             ticker = trade["security_code"] or trade["original_security_code"] or ""
+            
+            # Fallback: Resolve missing ticker from fund mapping
+            if (not ticker or pd.isna(ticker)) and self.fund_mapping:
+                mapping = self.fund_mapping.get(security_name)
+                if mapping:
+                    if isinstance(mapping, dict):
+                        ticker = mapping.get("ticker", "")
+                    else:
+                        ticker = str(mapping)
 
             if security_name not in holdings:
                 holdings[security_name] = {
@@ -332,24 +391,43 @@ class UnifiedCSVAnalyzer:
                     if variant:
                         price = self._force_scalar(latest_prices.get(variant))
                         if pd.notna(price):
+                            price_ticker = variant
                             break
 
                 if pd.notna(price):
+                    # Fix for MMFs mapped to FX rates (e.g. USDJPY=X)
+                    # If mapped to a currency pair, the 'Price' is the rate (e.g. 157).
+                    # But if we hold 'USD MMF', the price of 1 unit is 1.0 USD.
+                    # The FX conversion step later will apply the 157 rate.
+                    # So we must reset price to 1.0 if the ticker looks like an FX pair
+                    # AND we are going to apply FX conversion.
+                    if str(ticker).endswith("=X"):
+                        price = 1.0
+                    
                     self.holdings_df.at[idx, "current_price"] = price
                     self.holdings_df.at[idx, "price_type"] = "market_price"
 
                     # Calculate current value
                     qty_for_calc = quantity
                     # For Japanese investment funds with 10k unit rule (when using direct price)
-                    if is_fund and quantity > 1000:
+                    # Standard JPY funds trade in 10k units/price.
+                    is_jpy_fund = currency in ["JPY", "円"] and is_fund
+                    if is_jpy_fund:
                         qty_for_calc = quantity / 10000
 
-                    if currency in ["JPY", "円"] or str(symbol).endswith((".JP", ".T")) or str(symbol).isdigit():
-                        current_value = qty_for_calc * price
+                    if currency in ["HKD", "HKドル"]:
+                        current_value = qty_for_calc * price * 20.0
                     elif currency in ["USD", "ＵＳドル", "米国ドル"]:
                         current_value = qty_for_calc * price * usdjpy
-                    elif currency in ["HKD", "HKドル"]:
-                        current_value = qty_for_calc * price * 20.0
+                    elif currency in ["JPY", "円"] or str(symbol).endswith((".JP", ".T")) or str(symbol).isdigit():
+                        # Heuristic: If JPY currency but ticker is pure Alpha (e.g. 'ACWI', 'VT'),
+                        # it's likely a JPY fund mapped to a US ETF. Apply USDJPY conversion.
+                        # Standard JP tickers are numeric (7203, 1306).
+                        is_alpha_ticker = isinstance(price_ticker, str) and price_ticker.isalpha()
+                        if is_alpha_ticker:
+                            current_value = qty_for_calc * price * usdjpy
+                        else:
+                            current_value = qty_for_calc * price
                     else:
                         current_value = cost
 
