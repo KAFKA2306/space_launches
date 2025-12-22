@@ -119,6 +119,13 @@ async def refresh_market_data(request: Request):
     return response
 
 
+@app.get("/api/kpis", response_class=HTMLResponse)
+async def get_kpis(request: Request):
+    """Get KPIs partial."""
+    kpis = services.calculate_kpis()
+    return templates.TemplateResponse("partials/kpis.html", {"request": request, "kpis": kpis})
+
+
 # NOTE: /api/realtime-prices removed per design spec.
 # Web display is offline-only. Real-time data fetch violates reproducibility.
 # Use 'task fetch:m' explicitly to update resources with latest market data.

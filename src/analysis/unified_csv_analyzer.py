@@ -4,14 +4,14 @@ Unified CSV Analyzer for Japanese Trading History
 Provides portfolio analytics from unified CSV files
 """
 
+import json
 import logging
+import unicodedata
 import warnings
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
-import json
 
-import unicodedata
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -79,7 +79,7 @@ class UnifiedCSVAnalyzer:
                     with open(self.fund_mapping_path, "r", encoding="utf-8") as f:
                         data = json.load(f)
                         funds = data.get("funds", data)
-                        
+
                         # Load manual overrides from securitycode2.csv
                         csv_path = self.fund_mapping_path.parent / "securitycode2.csv"
                         if csv_path.exists():
@@ -99,14 +99,14 @@ class UnifiedCSVAnalyzer:
                                         if isinstance(funds[name], dict):
                                             funds[name]["ticker"] = ticker
                                         else:
-                                            funds[name] = {"ticker": ticker} # formatting
+                                            funds[name] = {"ticker": ticker}  # formatting
                                     else:
                                         funds[name] = {"ticker": ticker}
                             except Exception as e:
                                 logger.warning(f"Failed to load manual CSV overrides: {e}")
 
                         # Normalize keys to match trade normalization
-                        return {unicodedata.normalize('NFKC', k).strip(): v for k, v in funds.items()}
+                        return {unicodedata.normalize("NFKC", k).strip(): v for k, v in funds.items()}
                 except Exception as e:
                     logger.error(f"Failed to load fund mapping JSON: {e}")
                     return {}
@@ -158,12 +158,12 @@ class UnifiedCSVAnalyzer:
             # that happen to be mapped to the same reference ticker (e.g., 1343.T)
             raw_val = trade["security_name"]
             raw_name = str(raw_val) if pd.notna(raw_val) else "Unknown"
-            
+
             # Normalize to merge full-width/half-width variants (e.g. Tracers vs Ｔｒａｃｅｒｓ)
-            security_name = unicodedata.normalize('NFKC', raw_name).strip()
-            
+            security_name = unicodedata.normalize("NFKC", raw_name).strip()
+
             ticker = trade["security_code"] or trade["original_security_code"] or ""
-            
+
             # Fallback: Resolve missing ticker from fund mapping
             if (not ticker or pd.isna(ticker)) and self.fund_mapping:
                 mapping = self.fund_mapping.get(security_name)
@@ -367,11 +367,11 @@ class UnifiedCSVAnalyzer:
 
                 # Direct price lookup for ETFs/stocks (or fallback for funds)
                 price = None
-                
+
                 # Build symbol variants based on currency to avoid cross-exchange mismatches
                 # Example: 2837 in HKD should use 2837.HK, not 2837.T (different securities!)
                 symbol_variants = [ticker, symbol]
-                
+
                 if currency in ["HKD", "HKドル"]:
                     # HKD securities: prefer .HK suffix
                     if ticker and str(ticker).isdigit():
@@ -403,7 +403,7 @@ class UnifiedCSVAnalyzer:
                     # AND we are going to apply FX conversion.
                     if str(ticker).endswith("=X"):
                         price = 1.0
-                    
+
                     self.holdings_df.at[idx, "current_price"] = price
                     self.holdings_df.at[idx, "price_type"] = "market_price"
 

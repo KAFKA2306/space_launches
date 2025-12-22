@@ -1,0 +1,70 @@
+{% if kpis.available %}
+<div class="stats-grid">
+  {% if kpis.performance %}
+  <div class="stat">
+    <div class="stat-value">{{ kpis.performance.sharpe }}</div>
+    <div class="stat-label">Sharpe Ratio</div>
+  </div>
+  <div class="stat">
+    <div
+      class="stat-value {% if kpis.performance.max_drawdown < 0 %}negative{% endif %}"
+    >
+      {{ kpis.performance.max_drawdown }}%
+    </div>
+    <div class="stat-label">Max Drawdown</div>
+  </div>
+  <div class="stat">
+    <div
+      class="stat-value {% if kpis.performance.total_return >= 0 %}positive{% else %}negative{% endif %}"
+    >
+      {{ kpis.performance.total_return }}%
+    </div>
+    <div class="stat-label">Total Return</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value">{{ kpis.performance.months }}</div>
+    <div class="stat-label">Months</div>
+  </div>
+  {% endif %}
+</div>
+
+{% if kpis.ff5 %}
+<div class="card-title" style="margin-top: 1.5rem">FF5 Factor Loadings</div>
+<table class="table" style="width: 100%">
+  <thead>
+    <tr>
+      <th>Factor</th>
+      <th>β (%)</th>
+      <th>t-stat</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for name in ['alpha', 'mkt', 'smb', 'hml', 'rmw', 'cma'] %} {% if
+    kpis.ff5[name] %}
+    <tr>
+      <td><strong>{{ name|upper }}</strong></td>
+      <td
+        class="{% if kpis.ff5[name].coef >= 0 %}positive{% else %}negative{% endif %}"
+      >
+        {{ kpis.ff5[name].coef }}
+      </td>
+      <td>{{ kpis.ff5[name].t }}</td>
+    </tr>
+    {% endif %} {% endfor %}
+  </tbody>
+</table>
+{% if kpis.ff5.r2 %}
+<div class="stat" style="margin-top: 1rem">
+  <div class="stat-value">{{ kpis.ff5.r2 }}%</div>
+  <div class="stat-label">R² (Explained Variance)</div>
+</div>
+{% endif %} {% endif %} {% else %}
+<p style="color: var(--text-secondary); text-align: center; padding: 2rem">
+  No KPI data. Run:<br />
+  <code>uv run python src/analysis/ff5/calc_portfolio_returns.py</code><br />
+  <code
+    >task analyze:ff5 -- --strategy-csv
+    data/processed/portfolio_monthly_returns.csv</code
+  >
+</p>
+{% endif %}

@@ -28,6 +28,7 @@ block content %}
   <div class="tabs">
     <button class="tab active" onclick="showTab('holdings')">Holdings</button>
     <button class="tab" onclick="showTab('trades')">Trades</button>
+    <button class="tab" onclick="showTab('kpis')">📊 KPIs</button>
   </div>
 
   <!-- Holdings Tab -->
@@ -86,6 +87,18 @@ block content %}
       <div class="loading">Loading trades...</div>
     </div>
   </div>
+
+  <!-- KPIs Tab (hidden by default) -->
+  <div id="kpis-tab" class="card" style="display: none">
+    <div class="card-title">Performance KPIs</div>
+    <div
+      id="kpis-content"
+      hx-get="/api/kpis"
+      hx-trigger="revealed, dataRefreshed from:body"
+    >
+      <div class="loading">Loading KPIs...</div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -99,9 +112,14 @@ block content %}
       tab === "holdings" ? "block" : "none";
     document.getElementById("trades-tab").style.display =
       tab === "trades" ? "block" : "none";
+    document.getElementById("kpis-tab").style.display =
+      tab === "kpis" ? "block" : "none";
 
     if (tab === "trades") {
       htmx.trigger("#trades-table", "revealed");
+    }
+    if (tab === "kpis") {
+      htmx.trigger("#kpis-content", "revealed");
     }
   }
 </script>

@@ -146,3 +146,62 @@ async def fetch_realtime_prices(holdings: pd.DataFrame) -> dict:
     loop = asyncio.get_event_loop()
     prices = await loop.run_in_executor(None, fetch)
     return {"prices": prices, "symbols": valid_symbols}
+
+
+def calculate_kpis() -> dict:
+    """Calculate portfolio KPIs from monthly returns and FF5 results."""
+    from pathlib import Path
+
+    import numpy as np
+
+    kpis = {"performance": {}, "ff5": {}, "available": False}
+
+    # Load monthly returns
+    returns_path = Path("data/processed/portfolio_monthly_returns.csv")
+    if returns_path.exists():
+        try:
+            df = pd.read_csv(returns_path)
+            if "strategy_return" in df.columns and len(df) > 1:
+                r = df["strategy_return"].dropna()
+
+                # Sharpe: (mean_excess / std) * sqrt(12)
+                # Assuming ~0.3% monthly risk-free rate (~3.6% annual)
+                rf_monthly = 0.003
+                excess = r - rf_monthly
+                kpis["performance"]["sharpe"] = (
+                    round((excess.mean() / excess.std()) * np.sqrt(12), 2) if excess.std() > 0 else 0
+                )
+
+                # MaxDD: from wealth curve (1 + r).cumprod()
+                wealth = (1 + r).cumprod()
+                peak = wealth.cummax()
+                drawdown = (wealth - peak) / peak
+                kpis["performance"]["max_drawdown"] = round(drawdown.min() * 100, 2)
+
+                # Total return: compounded
+                kpis["performance"]["total_return"] = round((wealth.iloc[-1] - 1) * 100, 2)
+                kpis["performance"]["months"] = len(r)
+                kpis["available"] = True
+        except Exception as e:
+            logger.warning(f"Failed to load returns: {e}")
+
+    # Load FF5 results
+    ff5_path = Path("ff5_report.csv")
+    if ff5_path.exists():
+        try:
+            df = pd.read_csv(ff5_path)
+            factors = ["Alpha", "MKT", "SMB", "HML", "RMW", "CMA"]
+            for factor in factors:
+                row = df[df["Factor"] == factor]
+                if not row.empty:
+                    kpis["ff5"][factor.lower()] = {
+                        "coef": round(float(row["Coef"].iloc[0]) * 100, 2),
+                        "t": round(float(row["t"].iloc[0]), 2),
+                    }
+            if df["R2"].notna().any():
+                kpis["ff5"]["r2"] = round(float(df["R2"].iloc[0]) * 100, 2)
+            kpis["available"] = True
+        except Exception as e:
+            logger.warning(f"Failed to load FF5: {e}")
+
+    return kpis

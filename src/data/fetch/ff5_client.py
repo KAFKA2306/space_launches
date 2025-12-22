@@ -10,7 +10,9 @@ class FF5Client:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def download_ff5_factors(self, start_date: datetime, end_date: datetime, dataset_name: str = "F-F_Research_Data_5_Factors_2x3") -> Path:
+    def download_ff5_factors(
+        self, start_date: datetime, end_date: datetime, dataset_name: str = "F-F_Research_Data_5_Factors_2x3"
+    ) -> Path:
         print(f"Downloading FF5 data ({dataset_name})...")
         ds = web.DataReader(dataset_name, "famafrench", start=start_date, end=end_date)
         df = ds[0] / 100.0
@@ -28,7 +30,7 @@ class FF5Client:
         filename = "ff5_factors.csv"
         if "Japan" in dataset_name:
             filename = "ff5_factors_jp.csv"
-            
+
         out = self.output_dir / filename
         df.to_csv(out)
         return out
