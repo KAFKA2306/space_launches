@@ -126,6 +126,24 @@ async def get_kpis(request: Request):
     return templates.TemplateResponse("partials/kpis.html", {"request": request, "kpis": kpis})
 
 
+@app.get("/api/chart/{symbol}", response_class=HTMLResponse)
+async def get_chart(request: Request, symbol: str, days: int = 90):
+    """Get price chart partial for a symbol."""
+    import json
+
+    chart_data = services.get_chart_data(symbol, days)
+    return templates.TemplateResponse(
+        "partials/chart.html",
+        {
+            "request": request,
+            "symbol": symbol,
+            "chart_data": json.dumps(chart_data),
+            "has_data": len(chart_data) > 0,
+        },
+    )
+
+
 # NOTE: /api/realtime-prices removed per design spec.
+
 # Web display is offline-only. Real-time data fetch violates reproducibility.
 # Use 'task fetch:m' explicitly to update resources with latest market data.

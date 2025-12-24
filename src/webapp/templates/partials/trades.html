@@ -2,6 +2,7 @@
 <table>
   <thead>
     <tr>
+      <th></th>
       <th>Date</th>
       <th>Symbol</th>
       <th>Name</th>
@@ -14,24 +15,27 @@
   <tbody>
     {% for t in trades %} {% set qty = t.quantity if t.quantity else 0 %} {% set
     price = t.market_price if t.market_price else 0 %} {% set amount =
-    t.amount_jpy if t.amount_jpy else 0 %}
-    <tr>
+    t.amount_jpy if t.amount_jpy else 0 %} {% set row_id = loop.index %} {% set
+    has_symbol = t.security_code and t.security_code != 'None' %}
+    <tr {% if has_symbol %}style="cursor: pointer" onclick="toggleChart('{{ t.security_code }}', {{ row_id }})" {% endif
+      %}>
+      <td style="width: 24px; text-align: center">
+        {% if has_symbol %}
+        <span id="icon-{{ row_id }}" style="color: var(--text-secondary)">▶</span>
+        {% endif %}
+      </td>
       <td>{{ t.trade_date[:10] if t.trade_date else '-' }}</td>
       <td><strong>{{ t.security_code or '-' }}</strong></td>
-      <td
-        style="
+      <td style="
           max-width: 250px;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
-        "
-      >
+        ">
         {{ t.security_name or '-' }}
       </td>
       <td>
-        <span
-          style="color: {% if t.transaction_type == 'buy' %}var(--positive){% else %}var(--negative){% endif %};"
-        >
+        <span style="color: {% if t.transaction_type == 'buy' %}var(--positive){% else %}var(--negative){% endif %};">
           {{ (t.transaction_type or '') | upper }}
         </span>
       </td>
@@ -45,9 +49,48 @@
         {% if amount %}¥{{ "{:,.0f}".format(amount) }}{% else %}-{% endif %}
       </td>
     </tr>
+    {% if has_symbol %}
+    <tr id="chart-row-{{ row_id }}" style="display: none">
+      <td colspan="8" style="padding: 0; border: none">
+        <div id="chart-container-{{ row_id }}"></div>
+      </td>
+    </tr>
+    {% endif %}
     {% endfor %}
   </tbody>
 </table>
+
+<script>
+  function toggleChart(symbol, rowId) {
+    const chartRow = document.getElementById("chart-row-" + rowId);
+    const container = document.getElementById("chart-container-" + rowId);
+    const icon = document.getElementById("icon-" + rowId);
+
+    if (chartRow.style.display === "none") {
+      chartRow.style.display = "table-row";
+      icon.textContent = "▼";
+
+      // Load chart if not already loaded
+      if (!container.hasAttribute("data-loaded")) {
+        container.innerHTML =
+          '<div style="padding: 1rem; text-align: center; color: var(--text-secondary);">Loading chart...</div>';
+        fetch("/api/chart/" + encodeURIComponent(symbol))
+          .then((response) => response.text())
+          .then((html) => {
+            container.innerHTML = html;
+            container.setAttribute("data-loaded", "true");
+          })
+          .catch((err) => {
+            container.innerHTML =
+              '<div style="padding: 1rem; text-align: center; color: var(--negative);">Failed to load chart</div>';
+          });
+      }
+    } else {
+      chartRow.style.display = "none";
+      icon.textContent = "▶";
+    }
+  }
+</script>
 
 {% else %}
 <p style="color: var(--text-secondary); text-align: center; padding: 2rem">

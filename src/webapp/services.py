@@ -205,3 +205,65 @@ def calculate_kpis() -> dict:
             logger.warning(f"Failed to load FF5: {e}")
 
     return kpis
+
+
+# Caching for chart data
+_chart_data_cache = {"data": None, "last_load": 0}
+
+
+def get_chart_data(symbol: str, days: int = 90) -> list[dict]:
+    """Get historical price data for a symbol from charts.csv.
+
+    Args:
+        symbol: Stock ticker (e.g., 'NVDA', '9984.T')
+        days: Number of days of history to return (default 90)
+
+    Returns:
+        List of {date, price} dictionaries, sorted by date ascending
+    """
+    global _chart_data_cache
+
+    charts_path = Config.BASE_DIR / "resources" / "charts.csv"
+    if not charts_path.exists():
+        return []
+
+    # Check cache
+    mtime = charts_path.stat().st_mtime
+    if _chart_data_cache["data"] is None or _chart_data_cache["last_load"] < mtime:
+        logger.info("Loading charts.csv for chart data")
+        try:
+            _chart_data_cache["data"] = pd.read_csv(charts_path)
+            _chart_data_cache["last_load"] = mtime
+        except Exception as e:
+            logger.warning(f"Failed to load charts.csv: {e}")
+            return []
+
+    df = _chart_data_cache["data"]
+
+    # Check if symbol exists in columns, try .T suffix for Japanese stocks
+    lookup_symbol = symbol
+    if symbol not in df.columns:
+        # Try with .T suffix for numeric Japanese tickers
+        if symbol.isdigit() and f"{symbol}.T" in df.columns:
+            lookup_symbol = f"{symbol}.T"
+        else:
+            return []
+
+    # Extract date and price columns
+    chart_df = df[["Date", lookup_symbol]].copy()
+    chart_df = chart_df.dropna(subset=[lookup_symbol])
+
+    # Get last N days
+    if len(chart_df) > days:
+        chart_df = chart_df.tail(days)
+
+    # Convert to list of dicts
+    result = []
+    for _, row in chart_df.iterrows():
+        try:
+            price = float(row[lookup_symbol])
+            result.append({"date": str(row["Date"]), "price": round(price, 2)})
+        except (ValueError, TypeError):
+            continue
+
+    return result
