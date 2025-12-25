@@ -25,6 +25,7 @@
 # Allow docs
 !docs/
 !docs/**
+docs/tradenote/
 
 # Allow data READMEs and example data if truly needed, but default block data
 !data/

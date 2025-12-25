@@ -25,7 +25,17 @@
         {% endif %}
       </td>
       <td>{{ t.trade_date[:10] if t.trade_date else '-' }}</td>
-      <td><strong>{{ t.security_code or '-' }}</strong></td>
+      <td>
+        <strong>
+          {% if t.security_code and t.security_code != 'None' %}
+          <a href="/notes/{{ t.security_code }}" style="color: var(--accent); text-decoration: none; font-weight: 500;">
+            {{ t.security_code }}
+          </a>
+          {% else %}
+          -
+          {% endif %}
+        </strong>
+      </td>
       <td style="
           max-width: 250px;
           overflow: hidden;

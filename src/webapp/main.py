@@ -11,6 +11,9 @@ from fastapi.templating import Jinja2Templates
 
 from src.config import Config
 from src.webapp import services
+import markdown
+import glob
+import os
 
 app = FastAPI(title="TraHist", description="Trade History Analyzer")
 
@@ -146,4 +149,67 @@ async def get_chart(request: Request, symbol: str, days: int = 90):
 # NOTE: /api/realtime-prices removed per design spec.
 
 # Web display is offline-only. Real-time data fetch violates reproducibility.
-# Use 'task fetch:m' explicitly to update resources with latest market data.
+
+
+@app.get("/notes", response_class=HTMLResponse)
+async def list_notes(request: Request):
+    """List all trade notes."""
+    note_dir = Path("docs/tradenote")
+    notes = []
+    
+    # Check if dir exists
+    if note_dir.exists():
+        # Get all .md files
+        files = list(note_dir.glob("*.md"))
+        for f in files:
+            # Filename format: Code_Name.md or just Code.md
+            stem = f.stem # Code_Name
+            parts = stem.split('_', 1)
+            code = parts[0]
+            name = parts[1] if len(parts) > 1 else code
+            
+            notes.append({"code": code, "name": name})
+    
+    # Sort by code (numeric if possible, else string)
+    try:
+        notes.sort(key=lambda x: int(x['code']) if x['code'].isdigit() else x['code'])
+    except:
+         notes.sort(key=lambda x: x['code'])
+
+    return templates.TemplateResponse(
+        "notes_index.html",
+        {"request": request, "notes": notes}
+    )
+
+async def get_note(request: Request, symbol: str):
+    """Render markdown trade note for a symbol."""
+    note_dir = Path("docs/tradenote")
+    
+    # Matching logic: Symbol_*.md
+    # We need to find the file that starts with symbol_ or just symbol.md
+    # Because of sanitization, it might be slightly different, but usually code is safe.
+    # We'll use glob.
+    
+    # Try exact match first
+    candidates = list(note_dir.glob(f"{symbol}_*.md"))
+    
+    if not candidates:
+        return templates.TemplateResponse(
+            "note.html", 
+            {"request": request, "symbol": symbol, "content": "<p>No trade note found for this symbol.</p>"}
+        )
+    
+    # Pick the first match
+    note_path = candidates[0]
+    
+    try:
+        content_md = note_path.read_text(encoding="utf-8")
+        content_html = markdown.markdown(content_md, extensions=['tables'])
+    except Exception as e:
+        content_html = f"<p>Error reading note: {e}</p>"
+        
+    return templates.TemplateResponse(
+        "note.html",
+        {"request": request, "symbol": symbol, "content": content_html}
+    )
+

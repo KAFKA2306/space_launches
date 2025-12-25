@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Trade Notes Index{% endblock %}
+
+{% block content %}
+<div class="container">
+    <header>
+        <div class="header-left">
+            <a href="/" class="btn btn-secondary"
+                style="margin-right: 1rem; text-decoration: none; color: var(--text-secondary);">&larr; Dashboard</a>
+            <h1>Trade Notes</h1>
+        </div>
+        <div class="header-right">
+            <span style="color: var(--text-secondary);">{{ notes|length }} Notes</span>
+        </div>
+    </header>
+
+    <div class="card">
+        <div class="search-bar">
+            <input type="text" id="note-search" placeholder="Search notes..." onkeyup="filterNotes()">
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table id="notes-table">
+                <thead>
+                    <tr>
+                        <th style="width: 150px;">Code</th>
+                        <th>Name</th>
+                        <th style="width: 100px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for note in notes %}
+                    <tr>
+                        <td class="font-mono" style="font-weight: 500; color: var(--accent);">{{ note.code }}</td>
+                        <td>{{ note.name }}</td>
+                        <td>
+                            <a href="/notes/{{ note.code }}" class="btn btn-primary"
+                                style="padding: 0.25rem 0.5rem; font-size: 0.75rem; text-decoration: none;">Open</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterNotes() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("note-search");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("notes-table");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            // Search Code (0) and Name (1)
+            td0 = tr[i].getElementsByTagName("td")[0];
+            td1 = tr[i].getElementsByTagName("td")[1];
+
+            if (td0 || td1) {
+                txtValue0 = td0.textContent || td0.innerText;
+                txtValue1 = td1.textContent || td1.innerText;
+                if (txtValue0.toUpperCase().indexOf(filter) > -1 || txtValue1.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
+{% endblock %}
