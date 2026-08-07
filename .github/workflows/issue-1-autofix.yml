@@ -1,0 +1,72 @@
+name: Issue 1 branch repair
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.event.pull_request.head.ref == 'agent/non-destructive-ci'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout issue branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/non-destructive-ci
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Repair pandas assignment compatibility and lint debt
+        shell: python
+        run: |
+          from pathlib import Path
+
+          loaders = Path('src/data/loaders.py')
+          text = loaders.read_text(encoding='utf-8')
+          replacements = {
+              'df.loc[:, "trade_date"] = pd.to_datetime(df["trade_date"], errors="coerce")': 'df["trade_date"] = pd.to_datetime(df["trade_date"], errors="coerce")',
+              'df.loc[:, "trade_date"] = df["trade_date"].apply(standardize_date)': 'df["trade_date"] = df["trade_date"].apply(standardize_date)',
+              'df.loc[:, "settlement_date"] = df["settlement_date"].apply(standardize_date)': 'df["settlement_date"] = df["settlement_date"].apply(standardize_date)',
+              'df.loc[:, col] = df[col].apply(clean_numeric)': 'df[col] = df[col].apply(clean_numeric)',
+              'df.loc[:, "transaction_type"] = df["transaction_type"].apply(standardize_transaction_type)': 'df["transaction_type"] = df["transaction_type"].apply(standardize_transaction_type)',
+              'df.loc[:, "currency"] = df["currency"].apply(lambda x: str(x).strip().upper() if pd.notna(x) else "JPY")': 'df["currency"] = df["currency"].apply(lambda x: str(x).strip().upper() if pd.notna(x) else "JPY")',
+              'df.loc[:, "data_source"] = source_file': 'df["data_source"] = source_file',
+              'combined_df.loc[:, "trade_date"] = pd.to_datetime(combined_df["trade_date"], errors="coerce")': 'combined_df["trade_date"] = pd.to_datetime(combined_df["trade_date"], errors="coerce")',
+          }
+          for old, new in replacements.items():
+              text = text.replace(old, new)
+          loaders.write_text(text, encoding='utf-8')
+
+          main = Path('src/webapp/main.py')
+          text = main.read_text(encoding='utf-8')
+          text = text.replace('    except:\n         notes.sort', '    except (TypeError, ValueError):\n         notes.sort')
+          main.write_text(text, encoding='utf-8')
+
+      - name: Apply intentional formatting
+        run: |
+          uvx ruff check . --fix
+          uvx ruff format .
+          npx -y prettier@3.9.6 --write "src/webapp/templates/**/*.html"
+
+      - name: Commit repair if needed
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add scripts/create_trade_notes.py src/data/loaders.py src/webapp/main.py src/webapp/templates
+          git commit -m "repair quality baseline for non-destructive CI"
+          git push origin HEAD:agent/non-destructive-ci
