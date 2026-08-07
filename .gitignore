@@ -14,6 +14,10 @@
 !src/
 !src/**
 
+# Allow deterministic tests and anonymous fixtures
+!tests/
+!tests/**
+
 # Allow specific resource directories (but verify context)
 !resources/
 !resources/**
