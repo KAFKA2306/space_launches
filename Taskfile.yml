@@ -66,14 +66,14 @@ tasks:
     cmds:
       - uvx ruff check . --fix
       - uvx ruff format .
-      - npx -y prettier@3.6.2 --write "src/webapp/templates/**/*.html"
+      - npx -y prettier@3.9.6 --write "src/webapp/templates/**/*.html"
 
   lint:
     desc: "Check formatting and lint rules without modifying tracked files"
     cmds:
       - uvx ruff check .
       - uvx ruff format --check .
-      - npx -y prettier@3.6.2 --check "src/webapp/templates/**/*.html"
+      - npx -y prettier@3.9.6 --check "src/webapp/templates/**/*.html"
 
   test:
     desc: "Run automated tests without modifying tracked files"
