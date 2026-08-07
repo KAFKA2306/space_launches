@@ -80,9 +80,20 @@ tasks:
     cmds:
       - uv run pytest -q
 
+  fixtures:update:
+    desc: "Explicitly regenerate tracked expected offline-pipeline outputs"
+    cmds:
+      - uv run python tests/fixture_pipeline.py --update
+
+  fixtures:check:
+    desc: "Regenerate fixture pipeline in a temp directory and reject output drift"
+    cmds:
+      - uv run python tests/fixture_pipeline.py
+
   ci:
-    desc: "Non-destructive CI contract: lint, tests, then tracked-file diff audit"
+    desc: "Non-destructive CI contract: lint, tests, fixture replay, tracked-file diff audit"
     cmds:
       - task: lint
       - task: test
+      - task: fixtures:check
       - git diff --exit-code -- .
