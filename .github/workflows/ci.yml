@@ -29,38 +29,5 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Diagnose quality gates
-        shell: bash
-        run: |
-          set +e
-          uvx ruff check .
-          ruff_lint=$?
-          uvx ruff format --check .
-          ruff_format=$?
-          npx -y prettier@3.9.6 --check "src/webapp/templates/**/*.html"
-          prettier=$?
-          uv run pytest -q
-          tests=$?
-          set -e
-
-          for result in \
-            "Ruff lint:$ruff_lint" \
-            "Ruff format:$ruff_format" \
-            "Prettier:$prettier" \
-            "pytest:$tests"; do
-            name="${result%%:*}"
-            code="${result##*:}"
-            if [ "$code" -eq 0 ]; then
-              echo "::notice title=$name::passed"
-            else
-              echo "::error title=$name::failed with exit code $code"
-            fi
-          done
-
-          test "$ruff_lint" -eq 0
-          test "$ruff_format" -eq 0
-          test "$prettier" -eq 0
-          test "$tests" -eq 0
-
       - name: Run non-destructive CI contract
         run: task ci
