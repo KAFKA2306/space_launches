@@ -61,9 +61,28 @@ tasks:
       - find . -type d -name "__pycache__" -exec rm -rf {} +
       - find . -type f -name "*.pyc" -delete
 
-  test:
-    desc: "Run quality checks"
+  format:
+    desc: "Apply Ruff and Prettier formatting (modifies files)"
     cmds:
       - uvx ruff check . --fix
       - uvx ruff format .
-      - npx -y prettier --write "src/webapp/templates/**/*.html"
+      - npx -y prettier@3.9.6 --write "src/webapp/templates/**/*.html"
+
+  lint:
+    desc: "Check formatting and lint rules without modifying tracked files"
+    cmds:
+      - uvx ruff check .
+      - uvx ruff format --check .
+      - npx -y prettier@3.9.6 --check "src/webapp/templates/**/*.html"
+
+  test:
+    desc: "Run automated tests without modifying tracked files"
+    cmds:
+      - uv run pytest -q
+
+  ci:
+    desc: "Non-destructive CI contract: lint, tests, then tracked-file diff audit"
+    cmds:
+      - task: lint
+      - task: test
+      - git diff --exit-code -- .

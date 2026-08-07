@@ -31,27 +31,39 @@
     'none' %} {% set is_estimated = price_type == 'estimated_nav_index_linked'
     %}
 
-    <tr title="{{ h.security_name or '' }}{% if is_estimated %} (Estimated NAV - Index-linked){% endif %}">
+    <tr
+      title="{{ h.security_name or '' }}{% if is_estimated %} (Estimated NAV - Index-linked){% endif %}"
+    >
       <td>
         <strong>{{ symbol if symbol else '-' }}</strong>
         {% if mapping_confidence and mapping_confidence != 'high' and
         mapping_confidence != 'none' %}
-        <span title="Low confidence mapping" style="color: var(--warning-color, #f59e0b)">⚠️</span>
+        <span
+          title="Low confidence mapping"
+          style="color: var(--warning-color, #f59e0b)"
+          >⚠️</span
+        >
         {% endif %}
       </td>
       <td style="max-width: 300px">
         {{ h.security_name or '-' }} {% if is_estimated %}
-        <br /><span style="
+        <br /><span
+          style="
             font-size: 0.7em;
             color: var(--text-secondary, #888);
             background: var(--surface-color, #333);
             padding: 1px 4px;
             border-radius: 3px;
-          ">📊 Estimated NAV</span>
+          "
+          >📊 Estimated NAV</span
+        >
         {% endif %}
       </td>
       <td class="font-mono">
-        <a href="/notes/{{ h.security_code }}" style="color: var(--accent); text-decoration: none; font-weight: 500;">
+        <a
+          href="/notes/{{ h.security_code }}"
+          style="color: var(--accent); text-decoration: none; font-weight: 500"
+        >
           {{ h.security_code }}
         </a>
       </td>
