@@ -29,5 +29,21 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Diagnose Ruff lint
+        continue-on-error: true
+        run: uvx ruff check .
+
+      - name: Diagnose Ruff formatting
+        continue-on-error: true
+        run: uvx ruff format --check .
+
+      - name: Diagnose Prettier formatting
+        continue-on-error: true
+        run: npx -y prettier@3.9.6 --check "src/webapp/templates/**/*.html"
+
+      - name: Diagnose tests
+        continue-on-error: true
+        run: uv run pytest -q
+
       - name: Run non-destructive CI contract
         run: task ci
