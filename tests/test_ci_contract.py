@@ -23,7 +23,7 @@ def test_task_lint_uses_check_modes_only():
 
     assert "ruff check ." in lint_section
     assert "ruff format --check ." in lint_section
-    assert "prettier@3.6.2 --check" in lint_section
+    assert "prettier@3.9.6 --check" in lint_section
     assert "--fix" not in lint_section
     assert "--write" not in lint_section
 
@@ -50,7 +50,7 @@ def test_loader_normalizes_order_and_preserves_duplicate_trade_rows():
         "2024-01-02",
         "2024-01-03",
     ]
-    # Broker records are not silently discarded when two fills are identical.
+    # Identical broker records must not be silently discarded: separate fills can be identical.
     assert (result["security_code"] == "MSFT").sum() == 2
 
 
