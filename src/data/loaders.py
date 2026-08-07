@@ -21,7 +21,7 @@ class DataLoader:
         if df.empty:
             return df
         df = df.copy()
-        df.loc[:, "trade_date"] = pd.to_datetime(df["trade_date"], errors="coerce")
+        df["trade_date"] = pd.to_datetime(df["trade_date"], errors="coerce")
         df = df.dropna(subset=["trade_date"])
         if not df.empty:
             df = df.sort_values("trade_date").reset_index(drop=True)
@@ -59,13 +59,13 @@ class DataLoader:
             return df
 
         df = df.copy()
-        df.loc[:, "trade_date"] = df["trade_date"].apply(standardize_date)
-        df.loc[:, "settlement_date"] = df["settlement_date"].apply(standardize_date)
+        df["trade_date"] = df["trade_date"].apply(standardize_date)
+        df["settlement_date"] = df["settlement_date"].apply(standardize_date)
 
         numeric_columns = self.config.NUMERIC_COLUMNS
         for col in numeric_columns:
             if col in df.columns:
-                df.loc[:, col] = df[col].apply(clean_numeric)
+                df[col] = df[col].apply(clean_numeric)
 
         if "transaction_type" in df.columns:
 
@@ -77,12 +77,12 @@ class DataLoader:
                     return "sell"
                 return s.lower()
 
-            df.loc[:, "transaction_type"] = df["transaction_type"].apply(standardize_transaction_type)
+            df["transaction_type"] = df["transaction_type"].apply(standardize_transaction_type)
 
         if "currency" in df.columns:
-            df.loc[:, "currency"] = df["currency"].apply(lambda x: str(x).strip().upper() if pd.notna(x) else "JPY")
+            df["currency"] = df["currency"].apply(lambda x: str(x).strip().upper() if pd.notna(x) else "JPY")
 
-        df.loc[:, "data_source"] = source_file
+        df["data_source"] = source_file
 
         return df
 
@@ -393,11 +393,13 @@ class DataLoader:
         # Standardize transaction types
         if "transaction_type" in df.columns:
             df["transaction_type"] = df["transaction_type"].apply(
-                lambda x: "buy"
-                if str(x).upper() in ["BUY", "DEPOSIT"]
-                else "sell"
-                if str(x).upper() in ["SELL", "WITHDRAW"]
-                else str(x).lower()
+                lambda x: (
+                    "buy"
+                    if str(x).upper() in ["BUY", "DEPOSIT"]
+                    else "sell"
+                    if str(x).upper() in ["SELL", "WITHDRAW"]
+                    else str(x).lower()
+                )
             )
 
         df["data_source"] = file_path.name
@@ -573,7 +575,7 @@ class DataLoader:
             return combined_df
 
         combined_df = combined_df.copy()
-        combined_df.loc[:, "trade_date"] = pd.to_datetime(combined_df["trade_date"], errors="coerce")
+        combined_df["trade_date"] = pd.to_datetime(combined_df["trade_date"], errors="coerce")
         combined_df = combined_df.dropna(subset=["trade_date"])
         if not combined_df.empty:
             combined_df = combined_df.sort_values("trade_date").reset_index(drop=True)

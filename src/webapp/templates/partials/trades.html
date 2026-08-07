@@ -17,35 +17,54 @@
     price = t.market_price if t.market_price else 0 %} {% set amount =
     t.amount_jpy if t.amount_jpy else 0 %} {% set row_id = loop.index %} {% set
     has_symbol = t.security_code and t.security_code != 'None' %}
-    <tr {% if has_symbol %}style="cursor: pointer" onclick="toggleChart('{{ t.security_code }}', {{ row_id }})" {% endif
-      %}>
+    <tr
+      {%
+      if
+      has_symbol
+      %}style="cursor: pointer"
+      onclick="toggleChart('{{ t.security_code }}', {{ row_id }})"
+      {%
+      endif
+      %}
+    >
       <td style="width: 24px; text-align: center">
         {% if has_symbol %}
-        <span id="icon-{{ row_id }}" style="color: var(--text-secondary)">▶</span>
+        <span id="icon-{{ row_id }}" style="color: var(--text-secondary)"
+          >▶</span
+        >
         {% endif %}
       </td>
       <td>{{ t.trade_date[:10] if t.trade_date else '-' }}</td>
       <td>
         <strong>
           {% if t.security_code and t.security_code != 'None' %}
-          <a href="/notes/{{ t.security_code }}" style="color: var(--accent); text-decoration: none; font-weight: 500;">
+          <a
+            href="/notes/{{ t.security_code }}"
+            style="
+              color: var(--accent);
+              text-decoration: none;
+              font-weight: 500;
+            "
+          >
             {{ t.security_code }}
           </a>
-          {% else %}
-          -
-          {% endif %}
+          {% else %} - {% endif %}
         </strong>
       </td>
-      <td style="
+      <td
+        style="
           max-width: 250px;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
-        ">
+        "
+      >
         {{ t.security_name or '-' }}
       </td>
       <td>
-        <span style="color: {% if t.transaction_type == 'buy' %}var(--positive){% else %}var(--negative){% endif %};">
+        <span
+          style="color: {% if t.transaction_type == 'buy' %}var(--positive){% else %}var(--negative){% endif %};"
+        >
           {{ (t.transaction_type or '') | upper }}
         </span>
       </td>
@@ -65,8 +84,7 @@
         <div id="chart-container-{{ row_id }}"></div>
       </td>
     </tr>
-    {% endif %}
-    {% endfor %}
+    {% endif %} {% endfor %}
   </tbody>
 </table>
 
