@@ -50,9 +50,7 @@ def _read_csv(path: Path) -> tuple[list[str], list[dict[str, str]]]:
         return list(reader.fieldnames), list(reader)
 
 
-def _write_csv(
-    path: Path, fieldnames: list[str], rows: list[dict[str, object]]
-) -> None:
+def _write_csv(path: Path, fieldnames: list[str], rows: list[dict[str, object]]) -> None:
     with path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
@@ -91,8 +89,7 @@ def _source_ref(value: str) -> str:
 def _validate_case_id(case_id: str) -> None:
     if not CASE_ID_RE.fullmatch(case_id):
         raise OnboardingPackError(
-            "case_id must be an anonymous slug like 'case-demo-001' "
-            "(lowercase letters, digits, hyphens only)"
+            "case_id must be an anonymous slug like 'case-demo-001' (lowercase letters, digits, hyphens only)"
         )
 
 
@@ -101,9 +98,7 @@ def _sanitize_trades(
 ) -> tuple[list[str], list[dict[str, object]]]:
     missing = sorted(REQUIRED_TRADE_COLUMNS - set(fieldnames))
     if missing:
-        raise OnboardingPackError(
-            f"unsupported unified schema; missing columns: {', '.join(missing)}"
-        )
+        raise OnboardingPackError(f"unsupported unified schema; missing columns: {', '.join(missing)}")
 
     output_fields = [
         "case_id",
@@ -113,9 +108,7 @@ def _sanitize_trades(
     sanitized: list[dict[str, object]] = []
     for row in rows:
         item: dict[str, object] = {"case_id": case_id}
-        item.update(
-            {name: row.get(name, "") for name in fieldnames if name != "data_source"}
-        )
+        item.update({name: row.get(name, "") for name in fieldnames if name != "data_source"})
         item["source_ref"] = _source_ref(row.get("data_source", ""))
         sanitized.append(item)
     return output_fields, sanitized
@@ -133,9 +126,7 @@ def _build_holdings_and_exceptions(
         name = row.get("security_name", "").strip()
         tx_type = row.get("transaction_type", "").strip().lower()
         currency = row.get("currency", "").strip()
-        symbol = (
-            row.get("security_code") or row.get("original_security_code") or name
-        ).strip()
+        symbol = (row.get("security_code") or row.get("original_security_code") or name).strip()
 
         missing_fields = [
             field
@@ -201,28 +192,20 @@ def _build_holdings_and_exceptions(
                         "row_number": row_number,
                         "code": "NEGATIVE_INVENTORY",
                         "field": "quantity",
-                        "detail": (
-                            "sell quantity exceeds known inventory; holding was not "
-                            "silently clamped"
-                        ),
+                        "detail": ("sell quantity exceeds known inventory; holding was not silently clamped"),
                     }
                 )
                 continue
             average_cost = current_cost / current_qty if current_qty else 0.0
             position["quantity"] = current_qty - quantity
-            position["cost_basis_jpy"] = max(
-                0.0, current_cost - average_cost * quantity
-            )
+            position["cost_basis_jpy"] = max(0.0, current_cost - average_cost * quantity)
         else:
             exceptions.append(
                 {
                     "row_number": row_number,
                     "code": "NON_POSITION_TRANSACTION",
                     "field": "transaction_type",
-                    "detail": (
-                        f"{tx_type or 'blank'} does not change holdings and remains "
-                        "present in trades_unified.csv"
-                    ),
+                    "detail": (f"{tx_type or 'blank'} does not change holdings and remains present in trades_unified.csv"),
                 }
             )
 
@@ -289,22 +272,16 @@ def build_pack(*, case_id: str, unified_dir: Path, output_root: Path) -> Path:
     """Build one delivery directory from normalized, offline pipeline outputs."""
     _validate_case_id(case_id)
     if output_root.resolve() == unified_dir.resolve():
-        raise OnboardingPackError(
-            "output_root must be separate from the unified input directory"
-        )
+        raise OnboardingPackError("output_root must be separate from the unified input directory")
 
     trade_fields, trades = _read_csv(unified_dir / "trades_unified.csv")
     status_fields, status_rows = _read_csv(unified_dir / "pipeline_status.csv")
     if not trades:
         raise OnboardingPackError("trades_unified.csv contains no records")
 
-    sanitized_fields, sanitized_trades = _sanitize_trades(
-        case_id, trade_fields, trades
-    )
+    sanitized_fields, sanitized_trades = _sanitize_trades(case_id, trade_fields, trades)
     holdings, exceptions = _build_holdings_and_exceptions(case_id, trades)
-    status_output_fields, status_output_rows = _pipeline_rows(
-        case_id, status_fields, status_rows
-    )
+    status_output_fields, status_output_rows = _pipeline_rows(case_id, status_fields, status_rows)
 
     case_dir = output_root / case_id
     if case_dir.exists():
@@ -331,9 +308,7 @@ def build_pack(*, case_id: str, unified_dir: Path, output_root: Path) -> Path:
         ["case_id", "row_number", "code", "field", "detail"],
         [{"case_id": case_id, **row} for row in exceptions],
     )
-    _write_csv(
-        case_dir / "pipeline_status.csv", status_output_fields, status_output_rows
-    )
+    _write_csv(case_dir / "pipeline_status.csv", status_output_fields, status_output_rows)
     (case_dir / "portfolio_summary.html").write_text(
         _render_summary(case_id, trades, holdings, exceptions), encoding="utf-8"
     )
@@ -356,16 +331,12 @@ def build_pack(*, case_id: str, unified_dir: Path, output_root: Path) -> Path:
             "MARKET_VALUES_NOT_INFERRED",
         ],
     }
-    (case_dir / "manifest.json").write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
+    (case_dir / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return case_dir
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Build an anonymous TraHist IFA onboarding delivery pack"
-    )
+    parser = argparse.ArgumentParser(description="Build an anonymous TraHist IFA onboarding delivery pack")
     parser.add_argument("--case-id", required=True)
     parser.add_argument("--unified-dir", type=Path, default=Path("data/unified"))
     parser.add_argument("--output-root", type=Path, default=Path("data/onboarding"))
