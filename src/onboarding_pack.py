@@ -205,7 +205,9 @@ def _build_holdings_and_exceptions(
                     "row_number": row_number,
                     "code": "NON_POSITION_TRANSACTION",
                     "field": "transaction_type",
-                    "detail": (f"{tx_type or 'blank'} does not change holdings and remains present in trades_unified.csv"),
+                    "detail": (
+                        f"{tx_type or 'blank'} does not change holdings and remains present in trades_unified.csv"
+                    ),
                 }
             )
 
