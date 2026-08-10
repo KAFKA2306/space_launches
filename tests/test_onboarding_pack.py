@@ -21,15 +21,11 @@ TRADE_FIELDS = [
 def write_inputs(root: Path, rows: list[list[str]]) -> Path:
     unified = root / "unified"
     unified.mkdir()
-    with (unified / "trades_unified.csv").open(
-        "w", encoding="utf-8", newline=""
-    ) as handle:
+    with (unified / "trades_unified.csv").open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
         writer.writerow(TRADE_FIELDS)
         writer.writerows(rows)
-    with (unified / "pipeline_status.csv").open(
-        "w", encoding="utf-8", newline=""
-    ) as handle:
+    with (unified / "pipeline_status.csv").open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
         writer.writerow(["stage", "status"])
         writer.writerow(["normalize", "success"])
@@ -41,12 +37,8 @@ def load_fixture_cases() -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8"))["cases"]
 
 
-@pytest.mark.parametrize(
-    "fixture", load_fixture_cases(), ids=lambda fixture: fixture["case_id"]
-)
-def test_three_anonymous_fixtures_generate_complete_pack(
-    tmp_path: Path, fixture: dict
-) -> None:
+@pytest.mark.parametrize("fixture", load_fixture_cases(), ids=lambda fixture: fixture["case_id"])
+def test_three_anonymous_fixtures_generate_complete_pack(tmp_path: Path, fixture: dict) -> None:
     unified = write_inputs(tmp_path, fixture["trades"])
     case_dir = build_pack(
         case_id=fixture["case_id"],
@@ -84,9 +76,7 @@ def test_three_anonymous_fixtures_generate_complete_pack(
         "exceptions.csv",
         "pipeline_status.csv",
     ):
-        with (case_dir / csv_name).open(
-            "r", encoding="utf-8", newline=""
-        ) as handle:
+        with (case_dir / csv_name).open("r", encoding="utf-8", newline="") as handle:
             for row in csv.DictReader(handle):
                 assert row["case_id"] == fixture["case_id"]
 
@@ -94,12 +84,8 @@ def test_three_anonymous_fixtures_generate_complete_pack(
 def test_unsupported_schema_fails_closed(tmp_path: Path) -> None:
     unified = tmp_path / "unified"
     unified.mkdir()
-    (unified / "trades_unified.csv").write_text(
-        "trade_date,security_name\n2026-01-01,Fixture\n", encoding="utf-8"
-    )
-    (unified / "pipeline_status.csv").write_text(
-        "stage,status\nnormalize,success\n", encoding="utf-8"
-    )
+    (unified / "trades_unified.csv").write_text("trade_date,security_name\n2026-01-01,Fixture\n", encoding="utf-8")
+    (unified / "pipeline_status.csv").write_text("stage,status\nnormalize,success\n", encoding="utf-8")
 
     with pytest.raises(OnboardingPackError, match="unsupported unified schema"):
         build_pack(
@@ -164,14 +150,10 @@ def test_negative_inventory_is_explicit_exception_not_silent_drop(
         output_root=tmp_path / "out",
     )
 
-    with (case_dir / "exceptions.csv").open(
-        "r", encoding="utf-8", newline=""
-    ) as handle:
+    with (case_dir / "exceptions.csv").open("r", encoding="utf-8", newline="") as handle:
         exceptions = list(csv.DictReader(handle))
     assert [row["code"] for row in exceptions] == ["NEGATIVE_INVENTORY"]
-    with (case_dir / "holdings.csv").open(
-        "r", encoding="utf-8", newline=""
-    ) as handle:
+    with (case_dir / "holdings.csv").open("r", encoding="utf-8", newline="") as handle:
         assert list(csv.DictReader(handle)) == []
 
 
@@ -194,6 +176,4 @@ def test_existing_delivery_directory_is_not_overwritten(tmp_path: Path) -> None:
     output = tmp_path / "out"
     build_pack(case_id="case-repeat-safe", unified_dir=unified, output_root=output)
     with pytest.raises(OnboardingPackError, match="already exists"):
-        build_pack(
-            case_id="case-repeat-safe", unified_dir=unified, output_root=output
-        )
+        build_pack(case_id="case-repeat-safe", unified_dir=unified, output_root=output)
