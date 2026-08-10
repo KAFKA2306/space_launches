@@ -21,10 +21,11 @@ uv sync
 | **`task metrics`** | Show performance stats and asset allocation |
 | **`task serve`** | Launch the web dashboard |
 | `task report` | Generate static analysis files |
+| `task onboarding:pack -- --case-id case-demo-001` | Build an anonymous IFA delivery pack from offline unified outputs |
 | `task format` | Apply Ruff/Prettier fixes; intentionally modifies source files |
 | `task lint` | Check Ruff/Prettier formatting without modifying tracked files |
 | `task test` | Run pytest regression tests only; does not format or rewrite files |
-| `task ci` | Run lint → tests → `git diff --exit-code` tracked-file audit |
+| `task ci` | Run lint → tests → fixture pipeline regeneration → `git diff --exit-code` tracked-file audit |
 | `task clean` | Clean generated data |
 
 ### Design Principles
@@ -34,12 +35,13 @@ uv sync
 - **Pipeline Status**: Every run writes `data/unified/pipeline_status.csv`
 - **Single Source of Truth**: `data/unified/trades_unified.csv` is the authoritative data
 - **Non-destructive CI**: `task lint`, `task test`, and `task ci` must not rewrite tracked files. Apply intentional fixes only with `task format`.
+- **Privacy-minimal delivery**: the IFA onboarding pack consumes normalized outputs only, never bundles raw broker files, and uses anonymous case IDs.
 
 ### Quality and regression contract
 
 `task ci` is the clean-checkout gate used by GitHub Actions. It checks Python lint/format state, HTML formatting, runs the existing FF5 tests plus deterministic offline regression fixtures, then fails if any tracked file changed during validation.
 
-The fixture suite covers Japanese numeric normalization, invalid-date filtering and stable ordering, preservation of identical broker records, deterministic USD→JPY conversion with a fixed exchange rate, exact fund mapping, and rejection of unsafe Japanese-fund→US-ETF mapping. Market downloads are not required for these tests.
+The fixture suite covers Japanese numeric normalization, invalid-date filtering and stable ordering, preservation of identical broker records, deterministic USD→JPY conversion with a fixed exchange rate, exact fund mapping, rejection of unsafe Japanese-fund→US-ETF mapping, and three anonymous IFA onboarding-pack cases. Market downloads are not required for these tests.
 
 When a formatting check fails, run `task format`, review the resulting diff, and commit the intentional change. CI itself never applies `--fix` or `--write`.
 
@@ -50,7 +52,8 @@ data/
 ├── raw/          # Input: 証券会社CSVをここに配置
 ├── interim/      # Staging: 市場データ、正規化された取引
 ├── unified/      # Gold: trades_unified.csv, pipeline_status.csv
-└── reports/      # Output: チャート、JSON分析、CSVレポート
+├── reports/      # Output: チャート、JSON分析、CSVレポート
+└── onboarding/   # Output: anonymous IFA delivery packs (generated, not tracked)
 ```
 
 ## Key Features
@@ -59,6 +62,7 @@ data/
 - **JPY Unification**: foreign-currency prices and amounts are converted to JPY using stored historical FX data
 - **Separation of Concerns**: `fetch` と `metrics` を完全分離
 - **Offline-First**: `task run` はネットワーク不要、`task fetch:m` のみダウンロード
+- **IFA onboarding delivery**: normalized trades, holdings cost basis, static summary, exceptions, pipeline status, and a machine-readable manifest share one anonymous case ID. See [IFA onboarding service boundary](docs/business/ifa-onboarding.md).
 
 ## Resources Directory
 
@@ -74,6 +78,7 @@ data/
 - [Data Architecture & Formatting Standards](docs/DATA_STANDARDS.md)
 - [Design Specification](docs/DESIGN_SPEC.md) - Authoritative design reference
 - [Web Interface Documentation](docs/web_interface.md)
+- [IFA onboarding service boundary](docs/business/ifa-onboarding.md)
 
 ## License
 

@@ -52,12 +52,17 @@ tasks:
     cmds:
       - uv run python -m src.cli report {{.CLI_ARGS}}
 
+  onboarding:pack:
+    desc: "Build an anonymous IFA onboarding delivery from offline unified outputs"
+    cmds:
+      - uv run python -m src.onboarding_pack {{.CLI_ARGS}}
+
   # === Support Tasks ===
 
   clean:
     desc: "Delete generated data"
     cmds:
-      - rm -rf data/interim data/unified data/reports data/processed data/output
+      - rm -rf data/interim data/unified data/reports data/processed data/output data/onboarding
       - find . -type d -name "__pycache__" -exec rm -rf {} +
       - find . -type f -name "*.pyc" -delete
 
