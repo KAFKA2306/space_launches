@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "publisher": "Federal Aviation Administration",
+  "source_url": "https://www.faa.gov/newsroom/faa-streamlines-commercial-space-license-approvals",
+  "published_at": "2026-03-17",
+  "transition_deadline": "2026-03-09",
+  "regulation": "14 CFR Part 450",
+  "part450_license_count_since_2021_as_of_source": 14,
+  "transitioned_vehicle_programs": [
+    {"operator": "Blue Origin", "vehicle": "New Shepard"},
+    {"operator": "Firefly Aerospace", "vehicle": "Alpha"},
+    {"operator": "SpaceX", "vehicle": "Falcon 9 / Falcon Heavy"},
+    {"operator": "SpaceX", "vehicle": "Dragon"},
+    {"operator": "Rocket Lab", "vehicle": "Electron"},
+    {"operator": "United Launch Alliance", "vehicle": "Atlas / Vulcan"}
+  ],
+  "notes": [
+    "This source proves the Part 450 transition, not launch success or vehicle reuse.",
+    "Launch, recovery, reentry and reuse events must be stored as separate observations with their own operator or FAA evidence."
+  ]
+}
