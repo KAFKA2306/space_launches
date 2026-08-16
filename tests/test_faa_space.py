@@ -11,9 +11,14 @@ def test_parse_counts_from_faa_text():
 
 
 def test_discover_operational_links_requires_all_four_sources():
-    html = b'''<a href="/commercial">Recent Launch Data</a>
+    html = b"""<a href="/commercial">Recent Launch Data</a>
     <a href="https://explore.dot.gov/launches">Licensed Launches</a>
     <a href="https://explore.dot.gov/reentries">Licensed Reentries</a>
-    <a href="https://explore.dot.gov/permits">Permitted Launches</a>'''
+    <a href="https://explore.dot.gov/permits">Permitted Launches</a>"""
     links = discover_operational_links(html)
-    assert set(links) == {"recent_launch_data", "licensed_launches", "licensed_reentries", "permitted_launches"}
+    assert set(links) == {
+        "recent_launch_data",
+        "licensed_launches",
+        "licensed_reentries",
+        "permitted_launches",
+    }
