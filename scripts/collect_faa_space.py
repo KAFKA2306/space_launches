@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Collect FAA commercial-space cumulative counts and official operational-data links."""
+
 from __future__ import annotations
 
 import argparse
