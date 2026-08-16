@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "publisher": "Federal Aviation Administration",
+  "source_url": "https://www.faa.gov/newsroom/faa-streamlines-commercial-space-license-approvals",
+  "published_at": "2026-03-17",
+  "transition_deadline": "2026-03-09",
+  "regulation": "14 CFR Part 450",
+  "part450_license_count_since_2021_as_of_source": 14,
+  "transitioned_vehicle_programs": [
+    {"operator": "Blue Origin", "vehicle": "New Shepard", "reusable": true},
+    {"operator": "Firefly Aerospace", "vehicle": "Alpha", "reusable": false},
+    {"operator": "SpaceX", "vehicle": "Falcon 9 / Falcon Heavy", "reusable": true},
+    {"operator": "SpaceX", "vehicle": "Dragon", "reusable": true, "operation": "reentry"},
+    {"operator": "Rocket Lab", "vehicle": "Electron", "reusable": false},
+    {"operator": "United Launch Alliance", "vehicle": "Atlas / Vulcan", "reusable": false}
+  ],
+  "notes": [
+    "The reusable field describes the program's operational vehicle capability and is not a count of successful reuse events.",
+    "Launch and reentry event history must remain separate from license-transition facts."
+  ]
+}
