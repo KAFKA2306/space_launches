@@ -1,5 +1,8 @@
 # Trade History Analyzer (TraHist)
 
+[![CI](https://github.com/KAFKA2306/trahist/actions/workflows/ci.yml/badge.svg)](https://github.com/KAFKA2306/trahist/actions/workflows/ci.yml)
+[![FAA commercial-space source check](https://github.com/KAFKA2306/trahist/actions/workflows/source-check.yml/badge.svg)](https://github.com/KAFKA2306/trahist/actions/workflows/source-check.yml)
+
 複数の証券会社・通貨・商品名に分かれた取引履歴を、元明細を公開せずに同じ意味へ正規化し、**「今何を持っているか」「いくらで取得したか」「どの資産へ偏っているか」**を再計算可能な形で確認するための portfolio history tool です。
 
 > **現在の中心価値:** broker CSVを一つの表へ変換することではなく、取引履歴から holdings / cost basis / performance / asset allocation を同じ基準で検証できる状態を作ることです。raw broker files は公開artifactやIFA delivery packへ含めません。
