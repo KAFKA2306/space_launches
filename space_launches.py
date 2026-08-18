@@ -22,6 +22,7 @@ REUSE_EVENTS = DATA_DIR / "reuse-events.json"
 DEFAULT_DATA_ROOT = DATA_DIR / "space-launches"
 DEFAULT_API_DIR = ROOT / "api" / "v1" / "space-launches"
 USER_AGENT = "KAFKA2306 space-launches evidence 137051370+KAFKA2306@users.noreply.github.com"
+BLUE_ORIGIN_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
 START_DATE = date(2024, 1, 1)
 
 SOURCES = [
@@ -40,7 +41,7 @@ SOURCES = [
     {
         "source_id": "blueorigin-missions",
         "publisher": "Blue Origin",
-        "source_url": "https://www.blueorigin.com/missions",
+        "source_url": "https://www.blueorigin.com/ja-JP/missions",
         "required_markers": ["NG-3", "NG-2", "NG-1", "NS-25"],
     },
     {
@@ -127,11 +128,23 @@ def source_text(raw: bytes, content_type: str) -> str:
     return " ".join(html.unescape(text).split())
 
 
-def fetch_source(source: dict[str, Any], data_root: Path) -> dict[str, Any]:
+def request_headers(url: str) -> dict[str, str]:
     headers = {"User-Agent": USER_AGENT, "Accept-Encoding": "identity"}
-    if "content.spacex.com" in source["source_url"]:
+    if "content.spacex.com" in url:
         headers.update({"Accept": "application/json", "Origin": "https://www.spacex.com", "Referer": "https://www.spacex.com/"})
-    request = urllib.request.Request(source["source_url"], headers=headers)
+    elif "blueorigin.com" in url:
+        headers.update({
+            "User-Agent": BLUE_ORIGIN_USER_AGENT,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Referer": "https://www.blueorigin.com/",
+            "From": "137051370+KAFKA2306@users.noreply.github.com",
+        })
+    return headers
+
+
+def fetch_source(source: dict[str, Any], data_root: Path) -> dict[str, Any]:
+    request = urllib.request.Request(source["source_url"], headers=request_headers(source["source_url"]))
     raw = b""
     content_type = "application/octet-stream"
     last_error: Exception | None = None
@@ -145,7 +158,14 @@ def fetch_source(source: dict[str, Any], data_root: Path) -> dict[str, Any]:
         except (TimeoutError, urllib.error.URLError) as exc:
             last_error = exc
             if attempt < 3:
-                time.sleep(attempt)
+                delay = attempt
+                if isinstance(exc, urllib.error.HTTPError) and exc.code == 429:
+                    retry_after = exc.headers.get("Retry-After")
+                    if retry_after and retry_after.isdigit():
+                        delay = min(15, max(delay, int(retry_after)))
+                    else:
+                        delay = 5 * attempt
+                time.sleep(delay)
     else:
         raise RuntimeError(f"primary source unavailable: {source['source_id']}") from last_error
     if len(raw) < 800:
