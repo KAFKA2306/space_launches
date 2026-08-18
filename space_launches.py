@@ -22,7 +22,6 @@ REUSE_EVENTS = DATA_DIR / "reuse-events.json"
 DEFAULT_DATA_ROOT = DATA_DIR / "space-launches"
 DEFAULT_API_DIR = ROOT / "api" / "v1" / "space-launches"
 USER_AGENT = "KAFKA2306 space-launches evidence 137051370+KAFKA2306@users.noreply.github.com"
-BLUE_ORIGIN_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
 START_DATE = date(2024, 1, 1)
 
 SOURCES = [
@@ -37,12 +36,6 @@ SOURCES = [
         "publisher": "Rocket Lab",
         "source_url": "https://rocketlabcorp.com/missions/launches/",
         "required_markers": ["Completed Missions", "Electron", "Launch Complex 2"],
-    },
-    {
-        "source_id": "blueorigin-missions",
-        "publisher": "Blue Origin",
-        "source_url": "https://www.blueorigin.com/ja-JP/missions",
-        "required_markers": ["NG-3", "NG-2", "NG-1", "NS-25"],
     },
     {
         "source_id": "faa-part450-transition",
@@ -61,18 +54,6 @@ SOURCES = [
         "publisher": "SpaceX",
         "source_url": "https://content.spacex.com/api/spacex-website/missions/sl-6-59",
         "required_markers": ["21st flight", "Falcon 9", "missionId"],
-    },
-    {
-        "source_id": "blueorigin-ng1",
-        "publisher": "Blue Origin",
-        "source_url": "https://www.blueorigin.com/news/new-glenn-ng-1-mission",
-        "required_markers": ["January 16, 2025", "We lost the booster during descent"],
-    },
-    {
-        "source_id": "blueorigin-ng2",
-        "publisher": "Blue Origin",
-        "source_url": "https://www.blueorigin.com/missions/ng-2",
-        "required_markers": ["November 13, 2025", "landing the fully reusable first stage on Jacklyn"],
     },
     {
         "source_id": "rocketlab-four-of-a-kind",
@@ -131,14 +112,10 @@ def source_text(raw: bytes, content_type: str) -> str:
 def request_headers(url: str) -> dict[str, str]:
     headers = {"User-Agent": USER_AGENT, "Accept-Encoding": "identity"}
     if "content.spacex.com" in url:
-        headers.update({"Accept": "application/json", "Origin": "https://www.spacex.com", "Referer": "https://www.spacex.com/"})
-    elif "blueorigin.com" in url:
         headers.update({
-            "User-Agent": BLUE_ORIGIN_USER_AGENT,
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Referer": "https://www.blueorigin.com/",
-            "From": "137051370+KAFKA2306@users.noreply.github.com",
+            "Accept": "application/json",
+            "Origin": "https://www.spacex.com",
+            "Referer": "https://www.spacex.com/",
         })
     return headers
 
@@ -158,14 +135,7 @@ def fetch_source(source: dict[str, Any], data_root: Path) -> dict[str, Any]:
         except (TimeoutError, urllib.error.URLError) as exc:
             last_error = exc
             if attempt < 3:
-                delay = attempt
-                if isinstance(exc, urllib.error.HTTPError) and exc.code == 429:
-                    retry_after = exc.headers.get("Retry-After")
-                    if retry_after and retry_after.isdigit():
-                        delay = min(15, max(delay, int(retry_after)))
-                    else:
-                        delay = 5 * attempt
-                time.sleep(delay)
+                time.sleep(attempt)
     else:
         raise RuntimeError(f"primary source unavailable: {source['source_id']}") from last_error
     if len(raw) < 800:
@@ -194,6 +164,7 @@ def fetch_source(source: dict[str, Any], data_root: Path) -> dict[str, Any]:
         "size_bytes": len(raw),
         "content_type": content_type,
         "evidence_path": path.relative_to(data_root).as_posix(),
+        "verification_mode": "live_fetched_primary",
     }
 
 
@@ -266,6 +237,7 @@ def parse_spacex(raw: bytes, source: dict[str, Any], minimum: int = 50) -> list[
             "source_id": source["source_id"],
             "source_url": source["source_url"],
             "source_sha256": source["sha256"],
+            "source_verification_mode": "live_fetched_primary",
         })
     if len(records) < minimum:
         raise ValueError(f"SpaceX parser found too few 2024+ completed missions: {len(records)}")
@@ -291,6 +263,7 @@ def parse_rocketlab(raw: bytes, source: dict[str, Any]) -> tuple[list[dict[str, 
             "source_id": source["source_id"],
             "source_url": source["source_url"],
             "source_sha256": source["sha256"],
+            "source_verification_mode": "live_fetched_primary",
         }
         if parsed is not None and parsed >= START_DATE:
             completed.append({**record, "launch_date": parsed.isoformat(), "mission_state": "completed"})
@@ -301,34 +274,77 @@ def parse_rocketlab(raw: bytes, source: dict[str, Any]) -> tuple[list[dict[str, 
     return completed, upcoming
 
 
-def blue_origin_records(source: dict[str, Any], raw: bytes) -> list[dict[str, Any]]:
-    reviewed = json.loads(BLUE_ORIGIN.read_text(encoding="utf-8"))["records"]
-    text = source_text(raw, "text/html").casefold()
-    out = []
-    for row in reviewed:
-        if row["mission"].casefold() not in text:
-            raise ValueError(f"Blue Origin index no longer lists {row['mission']}")
-        out.append({
+def blue_origin_records() -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    raw = BLUE_ORIGIN.read_bytes()
+    doc = json.loads(raw)
+    source = doc["source"]
+    records = doc["records"]
+    if source.get("verification_mode") != "reviewed_primary_url" or not str(source.get("source_url", "")).startswith("https://www.blueorigin.com/"):
+        raise ValueError("Blue Origin reviewed source contract is invalid")
+    if len(records) < 15 or len({row["mission"] for row in records}) != len(records):
+        raise ValueError("Blue Origin reviewed mission ledger is incomplete or duplicated")
+    for row in records:
+        if row["launch_date"] < START_DATE.isoformat() or row.get("jurisdiction") != "US":
+            raise ValueError(f"Blue Origin reviewed mission is outside contract: {row}")
+    evidence_sha = sha256(raw)
+    out = [
+        {
             **row,
             "operator": "Blue Origin",
             "mission_state": "completed",
-            "source_id": source["source_id"],
+            "source_id": "blueorigin-missions-reviewed",
             "source_url": source["source_url"],
-            "source_sha256": source["sha256"],
-        })
-    return out
+            "source_reviewed_at": source["reviewed_at"],
+            "source_verification_mode": source["verification_mode"],
+            "live_fetch_status": source["live_fetch_status"],
+            "source_evidence_path": "data/blue-origin-launches.json",
+            "source_evidence_sha256": evidence_sha,
+        }
+        for row in records
+    ]
+    reviewed_source = {
+        "source_id": "blueorigin-missions-reviewed",
+        **source,
+        "evidence_path": "data/blue-origin-launches.json",
+        "evidence_sha256": evidence_sha,
+    }
+    return out, reviewed_source
 
 
-def enrich_static(records: list[dict[str, Any]], source_map: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+def enrich_static(records: list[dict[str, Any]], source_map: dict[str, dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     out = []
+    reviewed_sources = []
+    reviewed_evidence_sha = sha256(REUSE_EVENTS.read_bytes())
     for row in records:
-        source = source_map[row["source_id"]]
-        out.append({
+        source = source_map.get(row["source_id"])
+        if source is not None:
+            out.append({
+                **row,
+                "source_url": source["source_url"],
+                "source_sha256": source["sha256"],
+                "source_verification_mode": "live_fetched_primary",
+            })
+            continue
+        required = {"source_url", "source_reviewed_at", "source_verification_mode", "live_fetch_status"}
+        if not required <= row.keys() or not str(row["source_url"]).startswith("https://www.blueorigin.com/"):
+            raise ValueError(f"reviewed static source contract is incomplete: {row.get('source_id')}")
+        enriched = {
             **row,
-            "source_url": source["source_url"],
-            "source_sha256": source["sha256"],
+            "source_evidence_path": "data/reuse-events.json",
+            "source_evidence_sha256": reviewed_evidence_sha,
+        }
+        out.append(enriched)
+        reviewed_sources.append({
+            "source_id": row["source_id"],
+            "publisher": "Blue Origin",
+            "source_url": row["source_url"],
+            "reviewed_at": row["source_reviewed_at"],
+            "verification_mode": row["source_verification_mode"],
+            "live_fetch_status": row["live_fetch_status"],
+            "evidence_path": "data/reuse-events.json",
+            "evidence_sha256": reviewed_evidence_sha,
         })
-    return out
+    return out, reviewed_sources
 
 
 def validate_authorizations(rows: list[dict[str, Any]]) -> None:
@@ -363,16 +379,20 @@ def build_api(manifest: dict[str, Any], data_root: Path, api_dir: Path) -> dict[
     }
     spacex = parse_spacex(raw_by_id["spacex-launches"], source_map["spacex-launches"])
     rocketlab, planned = parse_rocketlab(raw_by_id["rocketlab-launches"], source_map["rocketlab-launches"])
-    blue = blue_origin_records(source_map["blueorigin-missions"], raw_by_id["blueorigin-missions"])
+    blue, blue_reviewed_source = blue_origin_records()
     completed = sorted(spacex + rocketlab + blue, key=lambda row: (row["launch_date"], row["operator"], row["mission"]))
 
-    auth_doc = json.loads(AUTH_REGISTRY.read_text(encoding="utf-8"))
-    authorizations = auth_doc["records"]
-    validate_authorizations(authorizations)
-    authorizations = enrich_static(authorizations, source_map)
-    reuse = enrich_static(json.loads(REUSE_EVENTS.read_text(encoding="utf-8"))["records"], source_map)
+    authorizations_raw = json.loads(AUTH_REGISTRY.read_text(encoding="utf-8"))["records"]
+    validate_authorizations(authorizations_raw)
+    authorizations, auth_reviewed = enrich_static(authorizations_raw, source_map)
+    if auth_reviewed:
+        raise ValueError("FAA authorizations must remain live-fetched primary evidence")
+    reuse_raw = json.loads(REUSE_EVENTS.read_text(encoding="utf-8"))["records"]
+    reuse, reuse_reviewed_sources = enrich_static(reuse_raw, source_map)
     validate_reuse_against_launches(reuse, completed)
 
+    reviewed_sources = [blue_reviewed_source, *reuse_reviewed_sources]
+    provenance = {**manifest, "reviewed_sources": reviewed_sources}
     by_month = Counter(row["launch_date"][:7] for row in completed)
     by_operator = Counter(row["operator"] for row in completed)
     us_launches = [
@@ -395,7 +415,9 @@ def build_api(manifest: dict[str, Any], data_root: Path, api_dir: Path) -> dict[
         "reuse_event_count": len(reuse),
         "first_launch_date": completed[0]["launch_date"],
         "last_launch_date": completed[-1]["launch_date"],
-        "primary_source_count": len(manifest["sources"]),
+        "live_primary_source_count": len(manifest["sources"]),
+        "reviewed_primary_source_count": len(reviewed_sources),
+        "primary_source_count": len(manifest["sources"]) + len(reviewed_sources),
     }
     api_dir.mkdir(parents=True, exist_ok=True)
     outputs = {
@@ -404,7 +426,7 @@ def build_api(manifest: dict[str, Any], data_root: Path, api_dir: Path) -> dict[
         "authorizations.json": {"schema_version": 1, "records": authorizations},
         "reuse-events.json": {"schema_version": 1, "records": reuse},
         "monthly-cadence.json": {"schema_version": 1, "records": [{"month": month, "launch_count": count} for month, count in sorted(by_month.items())]},
-        "provenance.json": manifest,
+        "provenance.json": provenance,
     }
     for name, payload in outputs.items():
         (api_dir / name).write_bytes(canonical_json(payload))
@@ -413,12 +435,16 @@ def build_api(manifest: dict[str, Any], data_root: Path, api_dir: Path) -> dict[
         "dataset": "Reusable launch primary evidence",
         "retrieved_at": manifest["retrieved_at"],
         "coverage": coverage,
+        "source_limitations": [
+            "Blue Origin primary pages return HTTP 429 to GitHub-hosted runners as of 2026-08-19; Blue Origin launch/reuse records are explicitly marked reviewed_primary_url and backed by committed evidence hashes rather than mislabeled as live fetched.",
+        ],
         "views": {name.removesuffix(".json").replace("-", "_"): name for name in outputs},
         "rules": [
             "completed and planned missions are separate tables",
             "launch cadence is derived only from completed mission dates",
             "reuse/recovery outcomes are recorded only when explicitly stated by an operator or regulator",
             "authorization records describe the evidenced program/license scope and do not invent per-flight license identifiers",
+            "live-fetched and reviewed-primary evidence modes are never conflated",
         ],
     }
     (api_dir / "index.json").write_bytes(canonical_json(index))
