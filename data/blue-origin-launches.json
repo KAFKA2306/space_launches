@@ -1,5 +1,13 @@
 {
   "schema_version": 1,
+  "source": {
+    "publisher": "Blue Origin",
+    "source_url": "https://www.blueorigin.com/missions",
+    "reviewed_at": "2026-08-19",
+    "verification_mode": "reviewed_primary_url",
+    "live_fetch_status": "blocked_on_github_actions_http_429",
+    "rule": "This committed reviewed ledger is not labeled as a live-fetched source snapshot. Derived records preserve this limitation explicitly."
+  },
   "records": [
     {"mission":"NS-25","launch_date":"2024-05-19","vehicle":"New Shepard","launch_site":"Launch Site One, West Texas","jurisdiction":"US"},
     {"mission":"NS-26","launch_date":"2024-08-29","vehicle":"New Shepard","launch_site":"Launch Site One, West Texas","jurisdiction":"US"},
