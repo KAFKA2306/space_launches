@@ -9,20 +9,25 @@ import space_launches as sl
 
 
 class SpaceLaunchEvidenceTests(unittest.TestCase):
-    def test_spacex_completed_table_parser_excludes_pre_2024(self) -> None:
-        raw = b'''<table><tr><th>Title</th><th>Return Site</th><th>Date</th><th>Launch Site</th></tr>
-        <tr><td>Recent Mission</td><td>ASDS</td><td>May 17, 2024</td><td>Florida</td></tr>
-        <tr><td>Old Mission</td><td>ASDS</td><td>Dec 1, 2023</td><td>Florida</td></tr></table>'''
-        source = {"source_id": "test", "source_url": "https://example.com", "sha256": "abc"}
-        original = sl.START_DATE
-        try:
-            sl.START_DATE = sl.date(2024, 1, 1)
-            with self.assertRaisesRegex(ValueError, "too few"):
-                sl.parse_spacex(raw, source)
-            rows = sl.parse_tables(raw)
-            self.assertEqual(rows[1][0], "Recent Mission")
-        finally:
-            sl.START_DATE = original
+    def test_spacex_cms_parser_excludes_nonfinal_and_pre_2024(self) -> None:
+        payload = [
+            {"missionStatus":"final","launchDate":"2024-05-17","launchTime":"20:32:00","launchSite":"SLC-40, Florida","link":"sl-6-59","title":"Starlink Mission","missionType":"starlink","vehicle":"Falcon 9","returnSite":"Droneship"},
+            {"missionStatus":"final","launchDate":"2023-12-01","launchTime":"00:00:00","launchSite":"SLC-40, Florida","link":"old","title":"Old","missionType":"starlink","vehicle":"Falcon 9","returnSite":"Droneship"},
+            {"missionStatus":"upcoming","launchDate":"2026-09-01","launchTime":"00:00:00","launchSite":"SLC-40, Florida","link":"future","title":"Future","missionType":"starlink","vehicle":"Falcon 9","returnSite":None},
+        ]
+        source = {"source_id":"test","source_url":"https://content.spacex.com/test","sha256":"abc"}
+        rows = sl.parse_spacex(json.dumps(payload).encode(), source, minimum=1)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["mission_id"], "sl-6-59")
+        self.assertEqual(rows[0]["launch_date"], "2024-05-17")
+        self.assertEqual(rows[0]["vehicle"], "Falcon 9")
+        self.assertEqual(rows[0]["mission_state"], "completed")
+
+    def test_spacex_cms_parser_fails_on_missing_identity(self) -> None:
+        payload = [{"missionStatus":"final","launchDate":"2024-05-17","link":"x","title":"X","vehicle":"Falcon 9"}]
+        source = {"source_id":"test","source_url":"https://content.spacex.com/test","sha256":"abc"}
+        with self.assertRaisesRegex(ValueError, "lacks identity"):
+            sl.parse_spacex(json.dumps(payload).encode(), source, minimum=1)
 
     def test_rocketlab_parser_keeps_planned_separate(self) -> None:
         completed_rows = ''.join(
@@ -30,7 +35,7 @@ class SpaceLaunchEvidenceTests(unittest.TestCase):
             for i in range(20)
         )
         raw = (f'<table>{completed_rows}<tr><td>Future</td><td>NET 2027</td><td>Electron</td><td>C</td><td>LC-1</td></tr></table>').encode()
-        source = {"source_id": "test", "source_url": "https://example.com", "sha256": "abc"}
+        source = {"source_id":"test","source_url":"https://example.com","sha256":"abc"}
         completed, planned = sl.parse_rocketlab(raw, source)
         self.assertEqual(len(completed), 20)
         self.assertEqual(len(planned), 1)
@@ -44,7 +49,9 @@ class SpaceLaunchEvidenceTests(unittest.TestCase):
             self.assertIn("outcome", row)
             self.assertIn("source_id", row)
             self.assertIn("event_type", row)
-        self.assertTrue(any(row.get("booster_flight_number") == 21 for row in rows))
+        spacex = next(row for row in rows if row["operator"] == "SpaceX")
+        self.assertEqual(spacex["mission_id"], "sl-6-59")
+        self.assertEqual(spacex["booster_flight_number"], 21)
         self.assertTrue(any(row["outcome"] == "lost_during_descent" for row in rows))
         self.assertTrue(any(row["outcome"] == "landed" for row in rows))
 
@@ -66,7 +73,7 @@ class SpaceLaunchEvidenceTests(unittest.TestCase):
             manifest = {
                 "schema_version": 1,
                 "retrieved_at": "2026-08-19T00:00:00+00:00",
-                "sources": [{"source_id": "x", "evidence_path": "raw/objects/x.html", "sha256": "wrong"}],
+                "sources": [{"source_id":"x","evidence_path":"raw/objects/x.html","sha256":"wrong"}],
             }
             (root / "raw" / "latest-manifest.json").write_text(json.dumps(manifest))
             with self.assertRaisesRegex(ValueError, "hash mismatch"):
