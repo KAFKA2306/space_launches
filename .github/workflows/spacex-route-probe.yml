@@ -24,11 +24,14 @@ jobs:
           import urllib.request
 
           root = 'https://www.spacex.com/launches/'
-          headers = {'User-Agent':'KAFKA2306 space-launches evidence 137051370+KAFKA2306@users.noreply.github.com','Accept-Encoding':'identity'}
+          headers = {
+              'User-Agent':'KAFKA2306 space-launches evidence 137051370+KAFKA2306@users.noreply.github.com',
+              'Accept-Encoding':'identity',
+          }
           req = urllib.request.Request(root, headers=headers)
           with urllib.request.urlopen(req, timeout=30) as r:
-              html = r.read().decode('utf-8', errors='replace')
-          scripts = re.findall(r'<script[^>]+src=["\']([^"\']+)', html, re.I)
+              page = r.read().decode('utf-8', errors='replace')
+          scripts = re.findall(r"<script[^>]+src=[\"']([^\"']+)", page, re.I)
           print('SCRIPTS', scripts)
           for src in scripts:
               url = urllib.parse.urljoin(root, src)
@@ -39,11 +42,11 @@ jobs:
                   text = raw.decode('utf-8', errors='replace')
                   print('BUNDLE', url, 'SIZE', len(raw))
                   patterns = [
-                      r'https?://[^"\' ]+',
-                      r'/api/[^"\' ]+',
-                      r'graphql[^"\' ]*',
-                      r'mission[-_A-Za-z]*history[^"\' ]*',
-                      r'launch(?:es)?[^"\' ]{0,120}',
+                      r"https?://[^\"' ]+",
+                      r"/api/[^\"' ]+",
+                      r"graphql[^\"' ]*",
+                      r"mission[-_A-Za-z]*history[^\"' ]*",
+                      r"launch(?:es)?[^\"' ]{0,120}",
                   ]
                   hits = []
                   for pattern in patterns:
@@ -51,7 +54,7 @@ jobs:
                           value = match if isinstance(match, str) else ''.join(match)
                           if value not in hits:
                               hits.append(value)
-                  for hit in hits[:80]:
+                  for hit in hits[:120]:
                       print('HIT', hit[:500])
               except Exception as exc:
                   print('BUNDLE_FAIL', url, type(exc).__name__, str(exc))
