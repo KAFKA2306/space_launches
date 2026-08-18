@@ -16,21 +16,32 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Inspect SpaceX mission service context
+      - name: Inspect SpaceX official launch JSON schema
         run: |
           python - <<'PY'
+          import json
           import urllib.request
-          url='https://www.spacex.com/main.8cc27b3a18b8afe1.js'
-          headers={'User-Agent':'KAFKA2306 space-launches evidence 137051370+KAFKA2306@users.noreply.github.com','Accept-Encoding':'identity'}
-          req=urllib.request.Request(url,headers=headers)
-          with urllib.request.urlopen(req,timeout=30) as r:
-              text=r.read().decode('utf-8',errors='replace')
-          for needle in ['launches-page-tiles','getUpcomingMissions','getCompletedMissions','launches-page-stats','getMissions']:
-              start=0
-              print('===',needle,'===')
-              while True:
-                  idx=text.find(needle,start)
-                  if idx < 0: break
-                  print(text[max(0,idx-700):idx+1200])
-                  start=idx+len(needle)
+
+          headers={
+              'User-Agent':'KAFKA2306 space-launches evidence 137051370+KAFKA2306@users.noreply.github.com',
+              'Accept':'application/json',
+              'Origin':'https://www.spacex.com',
+              'Referer':'https://www.spacex.com/',
+              'Accept-Encoding':'identity',
+          }
+          for url in [
+              'https://content.spacex.com/api/spacex-website/launches-page-tiles',
+              'https://content.spacex.com/api/spacex-website/launches-page-tiles/upcoming',
+          ]:
+              req=urllib.request.Request(url,headers=headers)
+              with urllib.request.urlopen(req,timeout=30) as r:
+                  raw=r.read()
+              payload=json.loads(raw)
+              print('URL',url,'TYPE',type(payload).__name__,'COUNT',len(payload) if hasattr(payload,'__len__') else None,'SIZE',len(raw))
+              if isinstance(payload,list):
+                  for row in payload[:2] + payload[-2:]:
+                      print(json.dumps(row,ensure_ascii=False,sort_keys=True)[:4000])
+              elif isinstance(payload,dict):
+                  print('KEYS',sorted(payload))
+                  print(json.dumps(payload,ensure_ascii=False,sort_keys=True)[:8000])
           PY
