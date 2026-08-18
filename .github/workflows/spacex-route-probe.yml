@@ -16,24 +16,43 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Probe official SpaceX launch routes
+      - name: Inspect official SpaceX frontend bundles
         run: |
           python - <<'PY'
+          import re
+          import urllib.parse
           import urllib.request
-          urls = [
-              'https://www.spacex.com/launches/',
-              'https://www.spacex.com/launches/mission-history/',
-              'https://www.spacex.com/launches/?os=___',
-          ]
-          for url in urls:
-              req = urllib.request.Request(url, headers={'User-Agent':'KAFKA2306 space-launches evidence 137051370+KAFKA2306@users.noreply.github.com','Accept-Encoding':'identity'})
-              with urllib.request.urlopen(req, timeout=30) as r:
-                  raw = r.read()
-              text = raw.decode('utf-8', errors='replace')
-              print('URL', url)
-              print('SIZE', len(raw), 'TR', text.lower().count('<tr'), 'TD', text.lower().count('<td'))
-              for marker in ['Completed missions','Falcon 9','Launch site','2026','SLC-40']:
-                  print('MARKER', marker, marker.casefold() in text.casefold())
-              idx = text.casefold().find('completed')
-              print('SNIP', text[max(0, idx-150):idx+500] if idx >= 0 else text[:500])
+
+          root = 'https://www.spacex.com/launches/'
+          headers = {'User-Agent':'KAFKA2306 space-launches evidence 137051370+KAFKA2306@users.noreply.github.com','Accept-Encoding':'identity'}
+          req = urllib.request.Request(root, headers=headers)
+          with urllib.request.urlopen(req, timeout=30) as r:
+              html = r.read().decode('utf-8', errors='replace')
+          scripts = re.findall(r'<script[^>]+src=["\']([^"\']+)', html, re.I)
+          print('SCRIPTS', scripts)
+          for src in scripts:
+              url = urllib.parse.urljoin(root, src)
+              try:
+                  req = urllib.request.Request(url, headers=headers)
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      raw = r.read()
+                  text = raw.decode('utf-8', errors='replace')
+                  print('BUNDLE', url, 'SIZE', len(raw))
+                  patterns = [
+                      r'https?://[^"\' ]+',
+                      r'/api/[^"\' ]+',
+                      r'graphql[^"\' ]*',
+                      r'mission[-_A-Za-z]*history[^"\' ]*',
+                      r'launch(?:es)?[^"\' ]{0,120}',
+                  ]
+                  hits = []
+                  for pattern in patterns:
+                      for match in re.findall(pattern, text, re.I):
+                          value = match if isinstance(match, str) else ''.join(match)
+                          if value not in hits:
+                              hits.append(value)
+                  for hit in hits[:80]:
+                      print('HIT', hit[:500])
+              except Exception as exc:
+                  print('BUNDLE_FAIL', url, type(exc).__name__, str(exc))
           PY
