@@ -18,12 +18,12 @@
 
 ## Source authority
 
-1. SpaceX公式completed mission index / mission pages
+1. SpaceX公式frontendが利用する `content.spacex.com` のlaunch CMS JSON / mission JSON
 2. Rocket Lab公式completed/upcoming mission index / mission releases
 3. Blue Origin公式mission index / mission releases
 4. FAA Part 450 transition / commercial-space licensing statements
 
-第三者launch aggregatorを正準sourceにしません。
+SpaceXは公開WebのJS shellをHTML解析せず、公式frontend自身が読む `launches-page-tiles` JSONの `missionStatus / launchDate / launchSite / vehicle / link` を正準化します。booster再利用の詳細は同じ公式CMSのmission JSONへ戻ります。第三者launch aggregatorを正準sourceにしません。
 
 ## Data contract
 
