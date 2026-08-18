@@ -1,0 +1,134 @@
+name: Space launches evidence
+
+on:
+  pull_request:
+    paths:
+      - space_launches.py
+      - test_space_launches.py
+      - data/authorization-registry.json
+      - data/blue-origin-launches.json
+      - data/reuse-events.json
+      - README.md
+      - AGENTS.md
+      - .github/workflows/space-launches-evidence.yml
+  push:
+    branches: [main]
+    paths:
+      - space_launches.py
+      - test_space_launches.py
+      - data/authorization-registry.json
+      - data/blue-origin-launches.json
+      - data/reuse-events.json
+      - README.md
+      - AGENTS.md
+      - .github/workflows/space-launches-evidence.yml
+  schedule:
+    - cron: '20 20 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: space-launches-evidence-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Compile and unit test
+        run: |
+          python -m py_compile space_launches.py test_space_launches.py
+          python -m unittest -v test_space_launches
+
+      - name: Collect primary launch evidence
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            python space_launches.py \
+              --data-root build/data/space-launches \
+              --api-dir build/api/v1/space-launches
+          else
+            python space_launches.py
+          fi
+
+      - name: Audit launch, authorization and reuse boundaries
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          if '${{ github.event_name }}' == 'pull_request':
+              data_root = Path('build/data/space-launches')
+              api = Path('build/api/v1/space-launches')
+          else:
+              data_root = Path('data/space-launches')
+              api = Path('api/v1/space-launches')
+
+          index = json.loads((api / 'index.json').read_text())
+          launches = json.loads((api / 'launches.json').read_text())['records']
+          planned = json.loads((api / 'planned.json').read_text())['records']
+          auth = json.loads((api / 'authorizations.json').read_text())['records']
+          reuse = json.loads((api / 'reuse-events.json').read_text())['records']
+          provenance = json.loads((api / 'provenance.json').read_text())
+          coverage = index['coverage']
+
+          assert coverage['operator_count'] == 3, coverage
+          assert coverage['completed_launch_count'] >= 80, coverage
+          assert set(coverage['operator_counts']) == {'Blue Origin','Rocket Lab','SpaceX'}, coverage
+          assert all(row['launch_date'] >= '2024-01-01' and row['mission_state'] == 'completed' for row in launches)
+          assert all(row['mission_state'] == 'planned' for row in planned)
+          assert coverage['authorization_record_count'] >= 5, coverage
+          assert coverage['reuse_event_count'] >= 4, coverage
+          assert any(row['outcome'] == 'lost_during_descent' for row in reuse)
+          assert any(row['outcome'] == 'landed' for row in reuse)
+          assert all('license_id' not in row for row in auth)
+          for source in provenance['sources']:
+              raw = (data_root / source['evidence_path']).read_bytes()
+              assert hashlib.sha256(raw).hexdigest() == source['sha256']
+          print(json.dumps(coverage, indent=2, sort_keys=True))
+          PY
+
+      - name: Rebuild API offline from raw evidence
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            DATA_ROOT=build/data/space-launches
+            API_ROOT=build/api/v1/space-launches
+          else
+            DATA_ROOT=data/space-launches
+            API_ROOT=api/v1/space-launches
+          fi
+          rm -rf build/rebuilt-space-launches
+          python space_launches.py \
+            --offline \
+            --data-root "$DATA_ROOT" \
+            --api-dir build/rebuilt-space-launches
+          diff -ru "$API_ROOT" build/rebuilt-space-launches
+
+      - name: Upload pull-request evidence
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: space-launches-evidence
+          path: build
+          retention-days: 30
+
+      - name: Commit changed evidence and views
+        if: github.event_name != 'pull_request'
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add data/space-launches api/v1/space-launches
+          if git diff --cached --quiet; then
+            echo 'No space launch evidence change.'
+            exit 0
+          fi
+          git commit -m 'data: update reusable launch evidence'
+          git push

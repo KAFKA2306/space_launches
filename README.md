@@ -1,175 +1,92 @@
-# Trade History Analyzer (TraHist)
+# Space Launches
 
-[![CI](https://github.com/KAFKA2306/trahist/actions/workflows/ci.yml/badge.svg)](https://github.com/KAFKA2306/trahist/actions/workflows/ci.yml)
+[![Space launches evidence](https://github.com/KAFKA2306/trahist/actions/workflows/space-launches-evidence.yml/badge.svg)](https://github.com/KAFKA2306/trahist/actions/workflows/space-launches-evidence.yml)
 
-複数の証券会社・通貨・商品名に分かれた取引履歴を、元明細を公開せずに同じ意味へ正規化し、**「今何を持っているか」「いくらで取得したか」「どの資産へ偏っているか」**を再計算可能な形で確認するための portfolio history tool です。
+**SpaceX / Blue Origin / Rocket Lab の再利用可能ロケット運用を、operator公式mission履歴とFAA一次情報から再生成可能な形で追跡する。**
 
-> **現在の中心価値:** broker CSVを一つの表へ変換することではなく、取引履歴から holdings / cost basis / performance / asset allocation を同じ基準で検証できる状態を作ることです。raw broker files は公開artifactやIFA delivery packへ含めません。
+このrepositoryは旧Trade History Analyzerではありません。broker CSV、portfolio、market-data、dashboard、IFA onboardingの旧surfaceは正準責務から削除します。
 
-## Vision
+## Canonical outputs
 
-異なるbrokerの画面やCSVを別々に眺める代わりに、取引履歴を安全に正規化し、**元取引まで遡れる一つのportfolio historyから保有状況を理解できる体験**を作ります。
+- [`api/v1/space-launches/index.json`](api/v1/space-launches/index.json) — coverage / contract
+- [`api/v1/space-launches/launches.json`](api/v1/space-launches/launches.json) — 2024年以降のcompleted mission
+- [`api/v1/space-launches/planned.json`](api/v1/space-launches/planned.json) — planned/upcoming。completedと混ぜない
+- [`api/v1/space-launches/authorizations.json`](api/v1/space-launches/authorizations.json) — FAA authorization/program scope
+- [`api/v1/space-launches/reuse-events.json`](api/v1/space-launches/reuse-events.json) — booster reflight/recovery/loss/landingを一次情報が明示したeventだけ保持
+- [`api/v1/space-launches/monthly-cadence.json`](api/v1/space-launches/monthly-cadence.json) — completed missionだけから導出した月次cadence
+- [`api/v1/space-launches/provenance.json`](api/v1/space-launches/provenance.json) — live raw evidenceとreviewed primary evidenceのprovenance
 
-成功条件は「CSV変換が通った」ことではありません。利用者が、どの取引がどのsymbolへ対応し、どの通貨・為替レートを通り、どのholdings / cost basisへ集計されたかを確認できることです。
+## Source authority
 
-## Design philosophy
+1. SpaceX公式frontendが利用する `content.spacex.com` のlaunch CMS JSON / mission JSON
+2. Rocket Lab公式completed/upcoming mission index / mission releases
+3. Blue Origin公式mission index / mission releases
+4. FAA Part 450 transition / commercial-space licensing statements
 
-- **Privacy first** — raw broker filesを公開・delivery artifactへ含めない。
-- **Fail closed mapping** — fund名からtickerを推測して別市場の商品へ誤対応させるより、未mappingとして止めることを優先する。
-- **FX is evidence, not decoration** — JPY換算では原通貨、取引日、`exchange_rate`をcanonical schemaへ残す。rateは`resources/forex_data.csv`のhistorical dataを使い、利用できない場合にfallback rateを使う現行実装があるため、fallback使用を市場観測値と同一視しない。
-- **Offline by default** — broker CSVの変換・canonical化・holdings/metrics計算と、network経由のmarket data更新を分離する。
-- **Recomputable outputs** — holdings / cost basis / metricsは正規化済み取引から再計算できる状態を保つ。
-- **Anonymous delivery** — IFA向けpackは匿名case IDとnormalized outputsだけから生成する。
-- **CI is not economic verification** — test/CI成功は、broker原票の完全性、市場価格の正しさ、投資成果を保証しない。
+SpaceXは公開WebのJS shellをHTML解析せず、公式frontend自身が読む `launches-page-tiles` JSONの `missionStatus / launchDate / launchSite / vehicle / link` を正準化します。booster再利用の詳細は同じ公式CMSのmission JSONへ戻ります。第三者launch aggregatorを正準sourceにしません。
 
-## Why / 差別化
+### Live と reviewed を混同しない
 
-TraHistの差別化はTaskfile、CSV、DuckDBなど個別技術ではありません。
+SpaceX / Rocket Lab / FAA はGitHub Actionsからlive取得し、raw responseをSHA-256 content-addressed保存します。
 
-**brokerごとに意味の違う取引履歴を一つのcanonical meaningへ揃えながら、mapping・currency conversion・例外を追跡し、raw個人明細を外へ出さずにportfolioを理解できること**を中心にします。
+Blue Origin公式ページは2026-08-19時点でGitHub-hosted runnerへHTTP 429を返すため、Blue Originの2024+ mission ledgerとNG-1/NG-2 reuse evidenceは `reviewed_primary_url` として明示的に分離しています。公式URL・review日・committed evidence hash・`live_fetch_status` を保持し、live取得済みとは表示しません。Blue Origin側のtransportが将来利用可能になれば、この境界を消さずlive evidenceへ昇格させます。
 
-特に、便利そうな自動補完よりも誤った金融データを作らないことを優先します。日本の投資信託名を似た米国ETFへ自動mappingすると、価格単位・通貨・市場・商品そのものが別物のまま評価額へ混入し得るため、unsafe cross-market mappingは拒否します。
+## Data contract
 
-## User journey
+- `completed` と `planned` は別tableです。延期・予定日を実績へ混ぜません。
+- cadenceはcompleted missionの日付だけから計算します。
+- first-stage reuse、recovery、landing、loss、reentryはoperator/FAAが明示した場合だけrecord化します。
+- launch回数からbooster再利用回数を推定しません。
+- FAAがprogram/portfolio authorizationだけを示す場合、存在しないper-flight license IDを作りません。
+- operator / vehicle / mission / launch site / date / source identityを保持します。
+- `live_fetched_primary` と `reviewed_primary_url` を同じverification stateとして扱いません。
+- 一次sourceの構造・markerが変わればfail closedします。
 
-```text
-raw broker CSVs
-    │  private / local
-    ▼
-offline normalize
-    │  broker, date, symbol, currency, exchange_rate
-    ▼
-data/unified/trades_unified.csv
-    │
-    ├─ verify mapping / exceptions / pipeline status
-    │
-    ├─ holdings / JPY cost basis
-    ├─ performance metrics / asset allocation
-    └─ anonymous IFA delivery pack
+## Reviewed static evidence
 
-network market refresh は別経路:
-task fetch:m → resources/forex_data.csv / market resources
-```
+- [`data/blue-origin-launches.json`](data/blue-origin-launches.json) — Blue Origin公式mission indexをreviewした2024+ mission ledger。live取得ではないことをmetadataで保持
+- [`data/authorization-registry.json`](data/authorization-registry.json) — FAA authorization scope。FAA sourceはlive verification対象
+- [`data/reuse-events.json`](data/reuse-events.json) — explicit reuse / recovery event。SpaceX/Rocket Labはlive source、Blue Originはreviewed primary sourceを明示
 
-`data/unified/trades_unified.csv` がcanonical transaction table、`data/unified/pipeline_status.csv` がpipeline statusです。raw inputとnetwork refreshを同じ処理に見せません。
+Derived APIにはsource URL・verification mode・SHA-256 evidenceを付与します。
 
-## Evidence / FX boundary
+## Current verified coverage
 
-canonical schemaでは最低限、`trade_date`、`symbol`、`transaction_type`、`amount`、`currency`、`exchange_rate`、`source_file`、`data_source`を区別します。詳細は[`docs/DATA_STANDARDS.md`](docs/DATA_STANDARDS.md)を参照してください。
+2026-08-19のPR verificationでは、2024-01-02〜2026-08-15について次を再生成しました。
 
-FX換算の現行境界:
+- completed missions: 468
+  - SpaceX: 406
+  - Rocket Lab: 45
+  - Blue Origin: 17
+- US launches: 417
+- Rocket Lab planned missions: 14
+- FAA authorization records: 5
+- explicit reuse/recovery events: 4
+- live primary sources: 6
+- reviewed primary sources: 3
 
-- `currency`は原取引通貨を保持します。
-- `exchange_rate`はJPY換算rateです。JPY取引は`1.0`です。
-- historical lookupは取引日を基準に`resources/forex_data.csv`を参照し、完全一致がなければ近い日付を使う実装があります。
-- forex dataが利用できない場合は設定済みfallback rateを使う経路があります。**fallbackは「その日の検証済み市場rate」ではありません。**
-- したがってportfolio valuationを監査するときは、rate・date・currencyだけでなく、そのrateがhistorical resource由来かfallbackかも実行log/入力resourceと合わせて確認します。
+この数字はREADMEを正本にはせず、[`index.json`](api/v1/space-launches/index.json) のcoverageを正準値とします。
 
-現行schemaは`exchange_rate`を保持しますが、各rowへ独立した`fx_source`列を必須化してはいません。source provenanceをrow単位で完全追跡する必要がある用途では、この点を未実装境界として扱います。
+## Rebuild
 
-## Offline / network boundary
-
-| Task | Network | Role |
-|---|---:|---|
-| `task fetch:c` | No | raw broker CSVをinterimへ読み込む |
-| `task run` | No | `fetch:c` → canonical/metrics計算 |
-| `task holdings` | No | current holdings / cost basisを表示 |
-| `task metrics` | No | performance / allocationを表示 |
-| `task fetch:m` | Yes | forex・market resourcesを更新 |
-| `task onboarding:pack -- --case-id case-demo-001` | No | unified outputsから匿名delivery packを生成 |
-
-`task fetch:m`で取得したmarket resourcesが存在することと、offline conversionが正しく完了したことは別の状態です。
-
-## IFA delivery / privacy
-
-`task onboarding:pack` は次の2ファイルだけを入力にします。
-
-```text
-data/unified/trades_unified.csv
-data/unified/pipeline_status.csv
-```
-
-raw broker CSVはpack generatorの入力にも納品物にも含めません。出力は`data/onboarding/<case-id>/`へ生成され、匿名case IDを使います。市場価格が別途検証されていない場合、holdingsは`valuation_status=COST_BASIS_ONLY`として現在価値を推測しません。
-
-詳細な契約は[`docs/business/ifa-onboarding.md`](docs/business/ifa-onboarding.md)を参照してください。
-
-## Performance interpretation boundary
-
-holdings、Sharpe等のperformance metric、asset allocationは**取引履歴を理解するための分析結果**です。売買推奨、将来リターン予測、利益保証ではありません。
-
-CI成功も、入力broker dataの経済的完全性、market dataの正確性、portfolio評価の妥当性を保証しません。結果を利用するときはcanonical trades、mapping、FX、exceptionsを併せて確認します。
-
-## Quick Start
+依存packageは不要です。Python標準ライブラリだけで実行します。
 
 ```bash
-git clone <repository-url>
-cd trahist
-uv sync
+python -m py_compile space_launches.py test_space_launches.py
+python -m unittest -v test_space_launches
+python space_launches.py
 ```
 
-## Usage - Task Commands
+保存済みraw evidenceだけから再生成:
 
-| Task | Action |
-|------|--------|
-| **`task fetch:c`** | **[Offline]** Load raw broker CSVs into interim; no market download |
-| **`task fetch:m`** | **[Network]** Update forex and market resources |
-| **`task run`** | **[Offline]** fetch:c → compute → status |
-| **`task holdings`** | List current portfolio positions and cost/value information available from current resources |
-| **`task metrics`** | Show performance stats and asset allocation |
-| **`task serve`** | Launch the local web dashboard |
-| `task report` | Generate static analysis files |
-| `task onboarding:pack -- --case-id case-demo-001` | Build anonymous IFA delivery from offline unified outputs |
-| `task format` | Apply Ruff/Prettier fixes; intentionally modifies source files |
-| `task lint` | Check Ruff/Prettier formatting without modifying tracked files |
-| `task test` | Run pytest regression tests only |
-| `task ci` | lint → tests → fixture replay → tracked-file diff audit |
-| `task clean` | Clean generated data |
-
-## Data Directory Structure
-
-```text
-data/
-├── raw/          # private input: broker CSVs
-├── interim/      # staging
-├── unified/      # canonical: trades_unified.csv, pipeline_status.csv
-├── reports/      # generated charts / JSON / CSV reports
-└── onboarding/   # anonymous IFA delivery packs; generated, not tracked
+```bash
+python space_launches.py --offline \
+  --data-root data/space-launches \
+  --api-dir build/rebuilt-space-launches
 ```
 
-## Key Features
+GitHub Actionsではlive一次source取得 → provenance/coverage audit → offline rebuild → byte diffを行います。main/schedule実行時だけ`data/space-launches/`と`api/v1/space-launches/`をcommitします。
 
-- **Fund Mapping**: `resources/securitycode2.csv`をmanual source of truthとして扱い、unsafe cross-market mappingをconverter側で拒否します。
-- **JPY Unification**: original currencyと`exchange_rate`を保持しながらJPY統合します。
-- **Separation of Concerns**: offline canonical conversionとnetwork market refreshを分離します。
-- **Holdings / Metrics**: normalized tradesからportfolio positionsと分析値を再計算します。
-- **IFA onboarding delivery**: normalized trades、cost-basis holdings、summary、exceptions、pipeline status、manifestを匿名case IDで束ねます。
+## Scope
 
-## Resources Directory
-
-| File | Purpose |
-|------|---------|
-| `securitycode2.csv` | Manual fund→ticker mappings |
-| `fund_dictionary.json` | Generated mapping dictionary / aliases |
-| `forex_data.csv` | Historical forex rates used by conversion |
-| `charts.csv` | Stock price history |
-
-## Quality and regression contract
-
-`task ci` はGitHub Actionsでも使うclean-checkout gateです。Python/HTMLのlint/format check、pytest、deterministic offline fixture replayを行い、validation中にtracked fileが変わると失敗します。
-
-fixture suiteは日本語数値normalization、invalid-date filtering、stable ordering、同一broker record保持、固定rateによるUSD→JPY conversion、exact fund mapping、unsafe Japanese-fund→US-ETF mapping拒否、匿名IFA onboarding casesを対象とします。market downloadはtestに必須ではありません。
-
-## Documentation
-
-- [Data Architecture & Formatting Standards](docs/DATA_STANDARDS.md)
-- [Design Specification](docs/DESIGN_SPEC.md)
-- [Web Interface Documentation](docs/web_interface.md)
-- [IFA onboarding service boundary](docs/business/ifa-onboarding.md)
-
-## Security / privacy
-
-公開repositoryやdelivery artifactへ、API key、credential、raw broker CSV、氏名・メールアドレス・口座番号などの識別情報を含めないでください。`source_file` / `data_source`を含むcanonical data自体も、公開前に個人情報・契約上の再配布条件を確認します。
-
-## License
-
-Personal Use Only.
+ARK Big Ideas 2026 `Reusable Rockets` の検証に必要な、launch cadence・vehicle/operator・FAA authorization・明示的reuse/recovery evidenceを担当します。宇宙企業の株価、売買判断、broker履歴は別責務です。

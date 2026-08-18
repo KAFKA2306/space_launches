@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "records": [
+    {"event_id":"spacex-sl6-59-booster-flight-21","operator":"SpaceX","mission":"Starlink 6-59","mission_id":"sl-6-59","event_date":"2024-05-17","vehicle":"Falcon 9","event_type":"booster_reflight","stage":"first_stage","booster_flight_number":21,"outcome":"launched","source_id":"spacex-starlink-2024-05-17"},
+    {"event_id":"rocketlab-four-of-a-kind-recovery","operator":"Rocket Lab","mission":"Four Of A Kind","event_date":"2024-01-31","vehicle":"Electron","event_type":"first_stage_recovery","stage":"first_stage","outcome":"successful_ocean_splashdown_and_recovery","source_id":"rocketlab-four-of-a-kind"},
+    {"event_id":"blueorigin-ng1-booster-loss","operator":"Blue Origin","mission":"NG-1","event_date":"2025-01-16","vehicle":"New Glenn","event_type":"first_stage_recovery","stage":"first_stage","booster_name":"So You’re Telling Me There’s a Chance","outcome":"lost_during_descent","source_id":"blueorigin-ng1-reviewed","source_url":"https://www.blueorigin.com/news/new-glenn-ng-1-mission","source_reviewed_at":"2026-08-19","source_verification_mode":"reviewed_primary_url","live_fetch_status":"blocked_on_github_actions_http_429"},
+    {"event_id":"blueorigin-ng2-booster-landing","operator":"Blue Origin","mission":"NG-2","event_date":"2025-11-13","vehicle":"New Glenn","event_type":"first_stage_recovery","stage":"first_stage","outcome":"landed","landing_site":"Jacklyn, Atlantic Ocean","source_id":"blueorigin-ng2-reviewed","source_url":"https://www.blueorigin.com/missions/ng-2","source_reviewed_at":"2026-08-19","source_verification_mode":"reviewed_primary_url","live_fetch_status":"blocked_on_github_actions_http_429"}
+  ]
+}

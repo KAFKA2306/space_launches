@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "records": [
+    {"operator":"SpaceX","vehicle_program":"Falcon 9 / Falcon Heavy","authorization_type":"FAA Part 450 transition evidence","effective_at":"2026-03-09","scope":"Legacy commercial space license transitioned to Part 450; Part 450 permits portfolio-style authorization across approved vehicle configurations, mission profiles and sites.","source_id":"faa-part450-transition"},
+    {"operator":"Blue Origin","vehicle_program":"New Shepard","authorization_type":"FAA Part 450 transition evidence","effective_at":"2026-03-09","scope":"Legacy commercial space license transitioned to Part 450.","source_id":"faa-part450-transition"},
+    {"operator":"Rocket Lab","vehicle_program":"Electron","authorization_type":"FAA Part 450 transition evidence","effective_at":"2026-03-09","scope":"Legacy commercial space license transitioned to Part 450.","source_id":"faa-part450-transition"},
+    {"operator":"Blue Origin","vehicle_program":"New Glenn","authorization_type":"FAA Part 450 commercial launch license","effective_at":"2024-12-27","scope":"Orbital missions from Cape Canaveral Space Force Station with a reusable New Glenn first stage landing on an Atlantic barge.","validity_text":"valid for five years","source_id":"faa-general-statements"},
+    {"operator":"SpaceX","vehicle_program":"Starship / Super Heavy","authorization_type":"FAA Part 450 license modification","effective_at":"2024-12-17","scope":"Flight 7 profile from Boca Chica including Super Heavy launch-site catch attempt and Starship controlled entry/water landing profile.","source_id":"faa-general-statements"}
+  ]
+}

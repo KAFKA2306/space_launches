@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "source": {
+    "publisher": "Blue Origin",
+    "source_url": "https://www.blueorigin.com/missions",
+    "reviewed_at": "2026-08-19",
+    "verification_mode": "reviewed_primary_url",
+    "live_fetch_status": "blocked_on_github_actions_http_429",
+    "rule": "This committed reviewed ledger is not labeled as a live-fetched source snapshot. Derived records preserve this limitation explicitly."
+  },
+  "records": [
+    {"mission":"NS-25","launch_date":"2024-05-19","vehicle":"New Shepard","launch_site":"Launch Site One, West Texas","jurisdiction":"US"},
+    {"mission":"NS-26","launch_date":"2024-08-29","vehicle":"New Shepard","launch_site":"Launch Site One, West Texas","jurisdiction":"US"},
+    {"mission":"NS-27","launch_date":"2024-10-23","vehicle":"New Shepard","launch_site":"Launch Site One, West Texas","jurisdiction":"US"},
+    {"mission":"NS-28","launch_date":"2024-11-22","vehicle":"New Shepard","launch_site":"Launch Site One, West Texas","jurisdiction":"US"},
+    {"mission":"NG-1","launch_date":"2025-01-16","vehicle":"New Glenn","launch_site":"Launch Complex 36, Cape Canaveral Space Force Station, Florida","jurisdiction":"US"},
+    {"mission":"NS-29","launch_date":"2025-02-04","vehicle":"New Shepard","launch_site":"Launch Site One, West Texas","jurisdiction":"US"},
+    {"mission":"NS-30","launch_date":"2025-02-25","vehicle":"New Shepard","launch_site":"Launch Site One, West Texas","jurisdiction":"US"},
+    {"mission":"NS-31","launch_date":"2025-04-14","vehicle":"New Shepard","launch_site":"Launch Site One, West Texas","jurisdiction":"US"},
+    {"mission":"NS-32","launch_date":"2025-05-31","vehicle":"New Shepard","launch_site":"Launch Site One, West Texas","jurisdiction":"US"},
+    {"mission":"NS-33","launch_date":"2025-06-29","vehicle":"New Shepard","launch_site":"Launch Site One, West Texas","jurisdiction":"US"},
+    {"mission":"NS-34","launch_date":"2025-08-03","vehicle":"New Shepard","launch_site":"Launch Site One, West Texas","jurisdiction":"US"},
+    {"mission":"NS-35","launch_date":"2025-09-18","vehicle":"New Shepard","launch_site":"Launch Site One, West Texas","jurisdiction":"US"},
+    {"mission":"NS-36","launch_date":"2025-10-08","vehicle":"New Shepard","launch_site":"Launch Site One, West Texas","jurisdiction":"US"},
+    {"mission":"NG-2","launch_date":"2025-11-13","vehicle":"New Glenn","launch_site":"Launch Complex 36, Cape Canaveral Space Force Station, Florida","jurisdiction":"US"},
+    {"mission":"NS-37","launch_date":"2025-12-20","vehicle":"New Shepard","launch_site":"Launch Site One, West Texas","jurisdiction":"US"},
+    {"mission":"NS-38","launch_date":"2026-01-22","vehicle":"New Shepard","launch_site":"Launch Site One, West Texas","jurisdiction":"US"},
+    {"mission":"NG-3","launch_date":"2026-04-19","vehicle":"New Glenn","launch_site":"Launch Complex 36, Cape Canaveral Space Force Station, Florida","jurisdiction":"US"}
+  ]
+}
