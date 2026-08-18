@@ -28,8 +28,8 @@ SOURCES = [
     {
         "source_id": "spacex-launches",
         "publisher": "SpaceX",
-        "source_url": "https://www.spacex.com/launches/",
-        "required_markers": ["Completed Missions", "Falcon 9", "Launch Site"],
+        "source_url": "https://content.spacex.com/api/spacex-website/launches-page-tiles",
+        "required_markers": ["missionStatus", "launchDate", "launchSite", "Falcon 9"],
     },
     {
         "source_id": "rocketlab-launches",
@@ -58,8 +58,8 @@ SOURCES = [
     {
         "source_id": "spacex-starlink-2024-05-17",
         "publisher": "SpaceX",
-        "source_url": "https://www.spacex.com/launches/sl-6-59",
-        "required_markers": ["May 17, 2024", "21st flight", "Falcon 9"],
+        "source_url": "https://content.spacex.com/api/spacex-website/missions/sl-6-59",
+        "required_markers": ["21st flight", "Falcon 9", "missionId"],
     },
     {
         "source_id": "blueorigin-ng1",
@@ -118,18 +118,20 @@ def sha256(raw: bytes) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
-def visible_text(raw: bytes) -> str:
+def source_text(raw: bytes, content_type: str) -> str:
     text = raw.decode("utf-8", errors="replace")
+    if content_type == "application/json" or text.lstrip().startswith(("{", "[")):
+        return text
     text = re.sub(r"(?is)<script.*?</script>|<style.*?</style>", " ", text)
     text = re.sub(r"(?s)<[^>]+>", " ", text)
     return " ".join(html.unescape(text).split())
 
 
 def fetch_source(source: dict[str, Any], data_root: Path) -> dict[str, Any]:
-    request = urllib.request.Request(
-        source["source_url"],
-        headers={"User-Agent": USER_AGENT, "Accept-Encoding": "identity"},
-    )
+    headers = {"User-Agent": USER_AGENT, "Accept-Encoding": "identity"}
+    if "content.spacex.com" in source["source_url"]:
+        headers.update({"Accept": "application/json", "Origin": "https://www.spacex.com", "Referer": "https://www.spacex.com/"})
+    request = urllib.request.Request(source["source_url"], headers=headers)
     raw = b""
     content_type = "application/octet-stream"
     last_error: Exception | None = None
@@ -148,14 +150,19 @@ def fetch_source(source: dict[str, Any], data_root: Path) -> dict[str, Any]:
         raise RuntimeError(f"primary source unavailable: {source['source_id']}") from last_error
     if len(raw) < 800:
         raise ValueError(f"primary source unexpectedly small: {source['source_id']}")
-    text = visible_text(raw).casefold()
+    text = source_text(raw, content_type).casefold()
     missing = [marker for marker in source["required_markers"] if marker.casefold() not in text]
     if missing:
         raise ValueError(f"source markers missing for {source['source_id']}: {missing}")
     digest = sha256(raw)
     objects = data_root / "raw" / "objects"
     objects.mkdir(parents=True, exist_ok=True)
-    suffix = ".html" if content_type in {"text/html", "application/xhtml+xml"} else ".bin"
+    if content_type == "application/json" or raw.lstrip().startswith((b"{", b"[")):
+        suffix = ".json"
+    elif content_type in {"text/html", "application/xhtml+xml"}:
+        suffix = ".html"
+    else:
+        suffix = ".bin"
     path = objects / f"{digest}{suffix}"
     if not path.exists():
         path.write_bytes(raw)
@@ -209,28 +216,41 @@ def parse_tables(raw: bytes) -> list[list[str]]:
     return parser.rows
 
 
-def parse_spacex(raw: bytes, source: dict[str, Any]) -> list[dict[str, Any]]:
+def parse_spacex(raw: bytes, source: dict[str, Any], minimum: int = 50) -> list[dict[str, Any]]:
+    payload = json.loads(raw)
+    if not isinstance(payload, list):
+        raise ValueError("SpaceX launch tiles must be a JSON list")
     records: list[dict[str, Any]] = []
-    for row in parse_tables(raw):
-        if len(row) < 4:
+    for row in payload:
+        if not isinstance(row, dict) or row.get("missionStatus") != "final":
             continue
-        mission_date = parse_date(row[2])
-        if mission_date is None or mission_date < START_DATE:
+        launch_date = parse_date(str(row.get("launchDate") or ""))
+        if launch_date is None or launch_date < START_DATE:
             continue
+        mission_id = str(row.get("link") or "").strip()
+        vehicle = str(row.get("vehicle") or "").strip()
+        launch_site = str(row.get("launchSite") or "").strip()
+        if not mission_id or not vehicle or not launch_site:
+            raise ValueError(f"SpaceX final mission lacks identity fields: {row.get('id')}")
         records.append({
             "operator": "SpaceX",
-            "mission": row[0],
-            "launch_date": mission_date.isoformat(),
-            "vehicle": "Falcon/Starship family (as listed by source)",
-            "launch_site": row[3],
-            "return_site": row[1] or None,
+            "mission_id": mission_id,
+            "mission": str(row.get("title") or mission_id).strip(),
+            "mission_type": row.get("missionType"),
+            "launch_date": launch_date.isoformat(),
+            "launch_time": row.get("launchTime"),
+            "vehicle": vehicle,
+            "launch_site": launch_site,
+            "return_site": row.get("returnSite"),
             "mission_state": "completed",
             "source_id": source["source_id"],
             "source_url": source["source_url"],
             "source_sha256": source["sha256"],
         })
-    if len(records) < 50:
+    if len(records) < minimum:
         raise ValueError(f"SpaceX parser found too few 2024+ completed missions: {len(records)}")
+    if len({row["mission_id"] for row in records}) != len(records):
+        raise ValueError("SpaceX 2024+ mission_id is not unique")
     return records
 
 
@@ -263,7 +283,7 @@ def parse_rocketlab(raw: bytes, source: dict[str, Any]) -> tuple[list[dict[str, 
 
 def blue_origin_records(source: dict[str, Any], raw: bytes) -> list[dict[str, Any]]:
     reviewed = json.loads(BLUE_ORIGIN.read_text(encoding="utf-8"))["records"]
-    text = visible_text(raw).casefold()
+    text = source_text(raw, "text/html").casefold()
     out = []
     for row in reviewed:
         if row["mission"].casefold() not in text:
@@ -300,6 +320,21 @@ def validate_authorizations(rows: list[dict[str, Any]]) -> None:
         raise ValueError("authorization registry lacks one of the required operators")
 
 
+def validate_reuse_against_launches(reuse: list[dict[str, Any]], launches: list[dict[str, Any]]) -> None:
+    spacex_by_id = {
+        row.get("mission_id"): row
+        for row in launches
+        if row.get("operator") == "SpaceX" and row.get("mission_id")
+    }
+    for row in reuse:
+        if row.get("operator") == "SpaceX" and row.get("mission_id"):
+            launch = spacex_by_id.get(row["mission_id"])
+            if launch is None:
+                raise ValueError(f"reuse event lacks matching SpaceX launch: {row['mission_id']}")
+            if launch["launch_date"] != row["event_date"]:
+                raise ValueError(f"reuse event date differs from SpaceX mission tile: {row['mission_id']}")
+
+
 def build_api(manifest: dict[str, Any], data_root: Path, api_dir: Path) -> dict[str, Any]:
     source_map = {row["source_id"]: row for row in manifest["sources"]}
     raw_by_id = {
@@ -316,10 +351,19 @@ def build_api(manifest: dict[str, Any], data_root: Path, api_dir: Path) -> dict[
     validate_authorizations(authorizations)
     authorizations = enrich_static(authorizations, source_map)
     reuse = enrich_static(json.loads(REUSE_EVENTS.read_text(encoding="utf-8"))["records"], source_map)
+    validate_reuse_against_launches(reuse, completed)
 
     by_month = Counter(row["launch_date"][:7] for row in completed)
     by_operator = Counter(row["operator"] for row in completed)
-    us_launches = [row for row in completed if row.get("jurisdiction") == "US" or any(token in str(row.get("launch_site", "")) for token in ("Florida", "California", "Texas", "Launch Complex 2", "Cape Canaveral", "Kennedy", "Vandenberg"))]
+    us_launches = [
+        row
+        for row in completed
+        if row.get("jurisdiction") == "US"
+        or any(
+            token in str(row.get("launch_site", ""))
+            for token in ("Florida", "California", "Texas", "Launch Complex 2", "Cape Canaveral", "Kennedy", "Vandenberg")
+        )
+    ]
     coverage = {
         "completed_launch_count": len(completed),
         "completed_2024_plus": len(completed),
