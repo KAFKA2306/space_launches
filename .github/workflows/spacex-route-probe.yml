@@ -23,18 +23,23 @@ jobs:
           import urllib.parse
           import urllib.request
 
-          root = 'https://www.spacex.com/launches/'
+          page_url = 'https://www.spacex.com/launches/'
+          site_root = 'https://www.spacex.com/'
           headers = {
               'User-Agent':'KAFKA2306 space-launches evidence 137051370+KAFKA2306@users.noreply.github.com',
               'Accept-Encoding':'identity',
           }
-          req = urllib.request.Request(root, headers=headers)
+          req = urllib.request.Request(page_url, headers=headers)
           with urllib.request.urlopen(req, timeout=30) as r:
               page = r.read().decode('utf-8', errors='replace')
+          print('BASE_TAGS', re.findall(r'<base[^>]+>', page, re.I))
           scripts = re.findall(r"<script[^>]+src=[\"']([^\"']+)", page, re.I)
           print('SCRIPTS', scripts)
           for src in scripts:
-              url = urllib.parse.urljoin(root, src)
+              if src.startswith('http'):
+                  url = src
+              else:
+                  url = urllib.parse.urljoin(site_root, src)
               try:
                   req = urllib.request.Request(url, headers=headers)
                   with urllib.request.urlopen(req, timeout=30) as r:
@@ -42,11 +47,11 @@ jobs:
                   text = raw.decode('utf-8', errors='replace')
                   print('BUNDLE', url, 'SIZE', len(raw))
                   patterns = [
-                      r"https?://[^\"' ]+",
-                      r"/api/[^\"' ]+",
-                      r"graphql[^\"' ]*",
-                      r"mission[-_A-Za-z]*history[^\"' ]*",
-                      r"launch(?:es)?[^\"' ]{0,120}",
+                      r"https?://[^\"' )]+",
+                      r"/api/[^\"' )]+",
+                      r"graphql[^\"' )]*",
+                      r"mission[-_A-Za-z]*history[^\"' )]*",
+                      r"launch(?:es)?[^\"' )]{0,160}",
                   ]
                   hits = []
                   for pattern in patterns:
@@ -54,8 +59,8 @@ jobs:
                           value = match if isinstance(match, str) else ''.join(match)
                           if value not in hits:
                               hits.append(value)
-                  for hit in hits[:120]:
-                      print('HIT', hit[:500])
+                  for hit in hits[:160]:
+                      print('HIT', hit[:600])
               except Exception as exc:
                   print('BUNDLE_FAIL', url, type(exc).__name__, str(exc))
           PY
