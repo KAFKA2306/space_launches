@@ -1,4 +1,0 @@
-trade_date,settlement_date,security_code,original_security_code,security_name,transaction_type,quantity,price,market_price,settlement_amount,amount_jpy,currency,fx_rate,market_value_jpy,is_investment_fund,fund_10000x_applied,ticker_mapped,account_type,data_source
-2024-01-02,2024-01-05,7203,7203,Fixture Motors,buy,2.0,2500.0,2500.0,5000.0,5000.0,JPY,1.0,5000.0,False,False,False,特定,tradehistory(jp).csv
-2024-01-02,2024-01-05,7203,7203,Fixture Motors,buy,2.0,2500.0,2500.0,5000.0,5000.0,JPY,1.0,5000.0,False,False,False,特定,tradehistory(jp).csv
-2024-01-03,2024-01-09,6758,6758,Fixture Electronics,sell,1.0,12000.0,12000.0,12000.0,12000.0,JPY,1.0,12000.0,False,False,False,特定,tradehistory(jp).csv
