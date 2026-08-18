@@ -1,0 +1,42 @@
+{
+  "coverage": {
+    "authorization_record_count": 5,
+    "completed_2024_plus": 468,
+    "completed_launch_count": 468,
+    "first_launch_date": "2024-01-02",
+    "last_launch_date": "2026-08-15",
+    "live_primary_source_count": 6,
+    "operator_count": 3,
+    "operator_counts": {
+      "Blue Origin": 17,
+      "Rocket Lab": 45,
+      "SpaceX": 406
+    },
+    "planned_rocketlab_count": 14,
+    "primary_source_count": 9,
+    "reuse_event_count": 4,
+    "reviewed_primary_source_count": 3,
+    "us_launch_count": 417
+  },
+  "dataset": "Reusable launch primary evidence",
+  "retrieved_at": "2026-08-18T21:23:02.071270+00:00",
+  "rules": [
+    "completed and planned missions are separate tables",
+    "launch cadence is derived only from completed mission dates",
+    "reuse/recovery outcomes are recorded only when explicitly stated by an operator or regulator",
+    "authorization records describe the evidenced program/license scope and do not invent per-flight license identifiers",
+    "live-fetched and reviewed-primary evidence modes are never conflated"
+  ],
+  "schema_version": 1,
+  "source_limitations": [
+    "Blue Origin primary pages return HTTP 429 to GitHub-hosted runners as of 2026-08-19; Blue Origin launch/reuse records are explicitly marked reviewed_primary_url and backed by committed evidence hashes rather than mislabeled as live fetched."
+  ],
+  "views": {
+    "authorizations": "authorizations.json",
+    "launches": "launches.json",
+    "monthly_cadence": "monthly-cadence.json",
+    "planned": "planned.json",
+    "provenance": "provenance.json",
+    "reuse_events": "reuse-events.json"
+  }
+}

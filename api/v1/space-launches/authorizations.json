@@ -1,0 +1,61 @@
+{
+  "records": [
+    {
+      "authorization_type": "FAA Part 450 transition evidence",
+      "effective_at": "2026-03-09",
+      "operator": "SpaceX",
+      "scope": "Legacy commercial space license transitioned to Part 450; Part 450 permits portfolio-style authorization across approved vehicle configurations, mission profiles and sites.",
+      "source_id": "faa-part450-transition",
+      "source_sha256": "600b8010707e27e917a2747515fe4a76e5dd5b6b117309796637247d3f8d1c48",
+      "source_url": "https://www.faa.gov/newsroom/faa-streamlines-commercial-space-license-approvals",
+      "source_verification_mode": "live_fetched_primary",
+      "vehicle_program": "Falcon 9 / Falcon Heavy"
+    },
+    {
+      "authorization_type": "FAA Part 450 transition evidence",
+      "effective_at": "2026-03-09",
+      "operator": "Blue Origin",
+      "scope": "Legacy commercial space license transitioned to Part 450.",
+      "source_id": "faa-part450-transition",
+      "source_sha256": "600b8010707e27e917a2747515fe4a76e5dd5b6b117309796637247d3f8d1c48",
+      "source_url": "https://www.faa.gov/newsroom/faa-streamlines-commercial-space-license-approvals",
+      "source_verification_mode": "live_fetched_primary",
+      "vehicle_program": "New Shepard"
+    },
+    {
+      "authorization_type": "FAA Part 450 transition evidence",
+      "effective_at": "2026-03-09",
+      "operator": "Rocket Lab",
+      "scope": "Legacy commercial space license transitioned to Part 450.",
+      "source_id": "faa-part450-transition",
+      "source_sha256": "600b8010707e27e917a2747515fe4a76e5dd5b6b117309796637247d3f8d1c48",
+      "source_url": "https://www.faa.gov/newsroom/faa-streamlines-commercial-space-license-approvals",
+      "source_verification_mode": "live_fetched_primary",
+      "vehicle_program": "Electron"
+    },
+    {
+      "authorization_type": "FAA Part 450 commercial launch license",
+      "effective_at": "2024-12-27",
+      "operator": "Blue Origin",
+      "scope": "Orbital missions from Cape Canaveral Space Force Station with a reusable New Glenn first stage landing on an Atlantic barge.",
+      "source_id": "faa-general-statements",
+      "source_sha256": "e233ad69a205179d8c872998092c4d707921300cac99d900d95855cebd3d01e8",
+      "source_url": "https://www.faa.gov/newsroom/statements/general-statements",
+      "source_verification_mode": "live_fetched_primary",
+      "validity_text": "valid for five years",
+      "vehicle_program": "New Glenn"
+    },
+    {
+      "authorization_type": "FAA Part 450 license modification",
+      "effective_at": "2024-12-17",
+      "operator": "SpaceX",
+      "scope": "Flight 7 profile from Boca Chica including Super Heavy launch-site catch attempt and Starship controlled entry/water landing profile.",
+      "source_id": "faa-general-statements",
+      "source_sha256": "e233ad69a205179d8c872998092c4d707921300cac99d900d95855cebd3d01e8",
+      "source_url": "https://www.faa.gov/newsroom/statements/general-statements",
+      "source_verification_mode": "live_fetched_primary",
+      "vehicle_program": "Starship / Super Heavy"
+    }
+  ],
+  "schema_version": 1
+}

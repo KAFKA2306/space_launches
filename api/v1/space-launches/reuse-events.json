@@ -1,0 +1,71 @@
+{
+  "records": [
+    {
+      "booster_flight_number": 21,
+      "event_date": "2024-05-17",
+      "event_id": "spacex-sl6-59-booster-flight-21",
+      "event_type": "booster_reflight",
+      "mission": "Starlink 6-59",
+      "mission_id": "sl-6-59",
+      "operator": "SpaceX",
+      "outcome": "launched",
+      "source_id": "spacex-starlink-2024-05-17",
+      "source_sha256": "22e28d6c9cb6d62c28752027c35839885535b5bec723e23b6340ebbe67f514a5",
+      "source_url": "https://content.spacex.com/api/spacex-website/missions/sl-6-59",
+      "source_verification_mode": "live_fetched_primary",
+      "stage": "first_stage",
+      "vehicle": "Falcon 9"
+    },
+    {
+      "event_date": "2024-01-31",
+      "event_id": "rocketlab-four-of-a-kind-recovery",
+      "event_type": "first_stage_recovery",
+      "mission": "Four Of A Kind",
+      "operator": "Rocket Lab",
+      "outcome": "successful_ocean_splashdown_and_recovery",
+      "source_id": "rocketlab-four-of-a-kind",
+      "source_sha256": "0b53870b7f8766b0f7303dc16b27b90e2ed321356d6c0b08d5b51afa75175d8e",
+      "source_url": "https://rocketlabcorp.com/updates/rocket-lab-successfully-launches-first-electron-mission-of-busy-2024-launch-schedule/",
+      "source_verification_mode": "live_fetched_primary",
+      "stage": "first_stage",
+      "vehicle": "Electron"
+    },
+    {
+      "booster_name": "So You’re Telling Me There’s a Chance",
+      "event_date": "2025-01-16",
+      "event_id": "blueorigin-ng1-booster-loss",
+      "event_type": "first_stage_recovery",
+      "live_fetch_status": "blocked_on_github_actions_http_429",
+      "mission": "NG-1",
+      "operator": "Blue Origin",
+      "outcome": "lost_during_descent",
+      "source_evidence_path": "data/reuse-events.json",
+      "source_evidence_sha256": "14b4b659b4e5412df1f2a0d5d2635808512bb566fe44fdcea1d2b59913475535",
+      "source_id": "blueorigin-ng1-reviewed",
+      "source_reviewed_at": "2026-08-19",
+      "source_url": "https://www.blueorigin.com/news/new-glenn-ng-1-mission",
+      "source_verification_mode": "reviewed_primary_url",
+      "stage": "first_stage",
+      "vehicle": "New Glenn"
+    },
+    {
+      "event_date": "2025-11-13",
+      "event_id": "blueorigin-ng2-booster-landing",
+      "event_type": "first_stage_recovery",
+      "landing_site": "Jacklyn, Atlantic Ocean",
+      "live_fetch_status": "blocked_on_github_actions_http_429",
+      "mission": "NG-2",
+      "operator": "Blue Origin",
+      "outcome": "landed",
+      "source_evidence_path": "data/reuse-events.json",
+      "source_evidence_sha256": "14b4b659b4e5412df1f2a0d5d2635808512bb566fe44fdcea1d2b59913475535",
+      "source_id": "blueorigin-ng2-reviewed",
+      "source_reviewed_at": "2026-08-19",
+      "source_url": "https://www.blueorigin.com/missions/ng-2",
+      "source_verification_mode": "reviewed_primary_url",
+      "stage": "first_stage",
+      "vehicle": "New Glenn"
+    }
+  ],
+  "schema_version": 1
+}
