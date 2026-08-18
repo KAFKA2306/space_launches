@@ -14,7 +14,7 @@
 - [`api/v1/space-launches/authorizations.json`](api/v1/space-launches/authorizations.json) — FAA authorization/program scope
 - [`api/v1/space-launches/reuse-events.json`](api/v1/space-launches/reuse-events.json) — booster reflight/recovery/loss/landingを一次情報が明示したeventだけ保持
 - [`api/v1/space-launches/monthly-cadence.json`](api/v1/space-launches/monthly-cadence.json) — completed missionだけから導出した月次cadence
-- [`api/v1/space-launches/provenance.json`](api/v1/space-launches/provenance.json) — raw source URL / SHA-256 / retrieval evidence
+- [`api/v1/space-launches/provenance.json`](api/v1/space-launches/provenance.json) — live raw evidenceとreviewed primary evidenceのprovenance
 
 ## Source authority
 
@@ -25,6 +25,12 @@
 
 SpaceXは公開WebのJS shellをHTML解析せず、公式frontend自身が読む `launches-page-tiles` JSONの `missionStatus / launchDate / launchSite / vehicle / link` を正準化します。booster再利用の詳細は同じ公式CMSのmission JSONへ戻ります。第三者launch aggregatorを正準sourceにしません。
 
+### Live と reviewed を混同しない
+
+SpaceX / Rocket Lab / FAA はGitHub Actionsからlive取得し、raw responseをSHA-256 content-addressed保存します。
+
+Blue Origin公式ページは2026-08-19時点でGitHub-hosted runnerへHTTP 429を返すため、Blue Originの2024+ mission ledgerとNG-1/NG-2 reuse evidenceは `reviewed_primary_url` として明示的に分離しています。公式URL・review日・committed evidence hash・`live_fetch_status` を保持し、live取得済みとは表示しません。Blue Origin側のtransportが将来利用可能になれば、この境界を消さずlive evidenceへ昇格させます。
+
 ## Data contract
 
 - `completed` と `planned` は別tableです。延期・予定日を実績へ混ぜません。
@@ -33,15 +39,33 @@ SpaceXは公開WebのJS shellをHTML解析せず、公式frontend自身が読む
 - launch回数からbooster再利用回数を推定しません。
 - FAAがprogram/portfolio authorizationだけを示す場合、存在しないper-flight license IDを作りません。
 - operator / vehicle / mission / launch site / date / source identityを保持します。
+- `live_fetched_primary` と `reviewed_primary_url` を同じverification stateとして扱いません。
 - 一次sourceの構造・markerが変わればfail closedします。
 
 ## Reviewed static evidence
 
-- [`data/blue-origin-launches.json`](data/blue-origin-launches.json) — Blue Origin mission indexからreviewした2024+ mission ledger
-- [`data/authorization-registry.json`](data/authorization-registry.json) — FAA authorization scope
-- [`data/reuse-events.json`](data/reuse-events.json) — explicit reuse / recovery event
+- [`data/blue-origin-launches.json`](data/blue-origin-launches.json) — Blue Origin公式mission indexをreviewした2024+ mission ledger。live取得ではないことをmetadataで保持
+- [`data/authorization-registry.json`](data/authorization-registry.json) — FAA authorization scope。FAA sourceはlive verification対象
+- [`data/reuse-events.json`](data/reuse-events.json) — explicit reuse / recovery event。SpaceX/Rocket Labはlive source、Blue Originはreviewed primary sourceを明示
 
-これらのrecordはlive source evidenceへ再結合され、source URL・SHA-256はderived API側へ付与されます。
+Derived APIにはsource URL・verification mode・SHA-256 evidenceを付与します。
+
+## Current verified coverage
+
+2026-08-19のPR verificationでは、2024-01-02〜2026-08-15について次を再生成しました。
+
+- completed missions: 468
+  - SpaceX: 406
+  - Rocket Lab: 45
+  - Blue Origin: 17
+- US launches: 417
+- Rocket Lab planned missions: 14
+- FAA authorization records: 5
+- explicit reuse/recovery events: 4
+- live primary sources: 6
+- reviewed primary sources: 3
+
+この数字はREADMEを正本にはせず、[`index.json`](api/v1/space-launches/index.json) のcoverageを正準値とします。
 
 ## Rebuild
 
