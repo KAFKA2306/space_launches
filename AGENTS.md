@@ -12,6 +12,17 @@ This repository owns primary-source evidence for reusable commercial launch acti
 4. FAA commercial-space licensing statements and Part 450 transition evidence
 5. Derived views rebuilt from stored raw evidence
 
+## Autonomous execution
+
+1. Re-read current `main`, README, open Issues/PRs, canonical launch/reuse evidence, workflows/tests and public outputs before choosing work.
+2. Continue one existing canonical workline for the same operational outcome before creating another collector, dataset, branch or Issue.
+3. Prefer newly verified completed/reentry/reuse events, identity/status corrections, deterministic cadence/reuse views, public usability, then simplification that removes recurring work.
+4. Require primary event evidence and stable identity before counting a mission, recovery or reuse occurrence.
+5. Run the smallest relevant checks, then exact-revision/production verification when the repository contract requires it.
+6. Stop at the fixed point. Do not fill schedule gaps or future launch outcomes by inference, and do not churn a blocked source if external state has not changed.
+
+Cross-repository ARK/market forecast comparison belongs in `investor2`; do not duplicate forecast authority here. Do not execute trades, transfers or account actions.
+
 ## Evidence rules
 
 - Completed and planned missions are separate tables.
@@ -29,4 +40,8 @@ python -m py_compile space_launches.py test_space_launches.py
 python -m unittest -v test_space_launches
 ```
 
-Production evidence additionally requires the `Space launches evidence` workflow to pass live source verification, coverage audit, and offline deterministic rebuild.
+Production evidence additionally requires the `Space launches evidence` workflow to pass live source verification, coverage audit, and offline deterministic rebuild. A layer that did not run is not PASS.
+
+## Completion report
+
+Report verified launch/reuse evidence Before -> After, primary/raw evidence and canonical artifact, Issue/PR/commit/check/public evidence when applicable, duplicate/manual work removed, and the remaining verified blocker.
