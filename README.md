@@ -1,83 +1,71 @@
-# Space Launches
+# Space Launches — reusable launch primary evidence
 
-[![Space launches evidence](https://github.com/KAFKA2306/trahist/actions/workflows/space-launches-evidence.yml/badge.svg)](https://github.com/KAFKA2306/trahist/actions/workflows/space-launches-evidence.yml)
+[![Space launches evidence](https://github.com/KAFKA2306/space_launches/actions/workflows/space-launches-evidence.yml/badge.svg)](https://github.com/KAFKA2306/space_launches/actions/workflows/space-launches-evidence.yml)
+[![Deploy Pages](https://github.com/KAFKA2306/space_launches/actions/workflows/pages.yml/badge.svg)](https://github.com/KAFKA2306/space_launches/actions/workflows/pages.yml)
 
-**SpaceX / Blue Origin / Rocket Lab の再利用可能ロケット運用を、operator公式mission履歴とFAA一次情報から再生成可能な形で追跡する。**
+SpaceX / Blue Origin / Rocket Lab のlaunch・reuse evidenceをoperator公式mission履歴とFAA一次情報から再生成可能な形で追跡します。
 
-このrepositoryは旧Trade History Analyzerではありません。broker CSV、portfolio、market-data、dashboard、IFA onboardingの旧surfaceは正準責務から削除します。
+## Public dashboard
+
+- Daily entry point: https://kafka2306.github.io/space_launches/
+- latest **completed** mission
+- completed launch count over the latest 7 / 30 days and year-to-date
+- latest explicitly evidenced reuse / recovery event
+- future missions shown only as a separate **verified schedule window** at the precision stated by the source
+- every public fact links back to canonical data or primary evidence
+
+Pagesは`api/v1/space-launches/`をread-onlyで投影します。`planned`、authorization、completed mission、reuse eventを同じ状態として扱いません。
 
 ## Canonical outputs
 
-- [`api/v1/space-launches/index.json`](api/v1/space-launches/index.json) — coverage / contract
-- [`api/v1/space-launches/launches.json`](api/v1/space-launches/launches.json) — 2024年以降のcompleted mission
-- [`api/v1/space-launches/planned.json`](api/v1/space-launches/planned.json) — planned/upcoming。completedと混ぜない
+- [`api/v1/space-launches/index.json`](api/v1/space-launches/index.json) — current coverage / rules / source limitations
+- [`api/v1/space-launches/launches.json`](api/v1/space-launches/launches.json) — completed missions
+- [`api/v1/space-launches/planned.json`](api/v1/space-launches/planned.json) — planned/upcoming missions, separate from completed
+- [`api/v1/space-launches/reuse-events.json`](api/v1/space-launches/reuse-events.json) — explicit booster reflight/recovery/loss/landing events
+- [`api/v1/space-launches/monthly-cadence.json`](api/v1/space-launches/monthly-cadence.json) — cadence derived only from completed missions
 - [`api/v1/space-launches/authorizations.json`](api/v1/space-launches/authorizations.json) — FAA authorization/program scope
-- [`api/v1/space-launches/reuse-events.json`](api/v1/space-launches/reuse-events.json) — booster reflight/recovery/loss/landingを一次情報が明示したeventだけ保持
-- [`api/v1/space-launches/monthly-cadence.json`](api/v1/space-launches/monthly-cadence.json) — completed missionだけから導出した月次cadence
-- [`api/v1/space-launches/provenance.json`](api/v1/space-launches/provenance.json) — live raw evidenceとreviewed primary evidenceのprovenance
+- [`api/v1/space-launches/provenance.json`](api/v1/space-launches/provenance.json) — evidence provenance and verification mode
+
+`index.json` is the authority for current counts and dates; README does not duplicate a hand-maintained coverage snapshot.
 
 ## Source authority
 
-1. SpaceX公式frontendが利用する `content.spacex.com` のlaunch CMS JSON / mission JSON
-2. Rocket Lab公式completed/upcoming mission index / mission releases
-3. Blue Origin公式mission index / mission releases
-4. FAA Part 450 transition / commercial-space licensing statements
+1. SpaceX official `content.spacex.com` launch CMS / mission JSON
+2. Rocket Lab official completed/upcoming mission index and mission releases
+3. Blue Origin official mission index / mission releases
+4. FAA commercial-space licensing statements
 
-SpaceXは公開WebのJS shellをHTML解析せず、公式frontend自身が読む `launches-page-tiles` JSONの `missionStatus / launchDate / launchSite / vehicle / link` を正準化します。booster再利用の詳細は同じ公式CMSのmission JSONへ戻ります。第三者launch aggregatorを正準sourceにしません。
+Third-party launch aggregators are not canonical sources.
 
-### Live と reviewed を混同しない
+### Live and reviewed evidence remain separate
 
-SpaceX / Rocket Lab / FAA はGitHub Actionsからlive取得し、raw responseをSHA-256 content-addressed保存します。
+SpaceX / Rocket Lab / FAA sources are fetched live in GitHub Actions and stored with SHA-256 provenance.
 
-Blue Origin公式ページは2026-08-19時点でGitHub-hosted runnerへHTTP 429を返すため、Blue Originの2024+ mission ledgerとNG-1/NG-2 reuse evidenceは `reviewed_primary_url` として明示的に分離しています。公式URL・review日・committed evidence hash・`live_fetch_status` を保持し、live取得済みとは表示しません。Blue Origin側のtransportが将来利用可能になれば、この境界を消さずlive evidenceへ昇格させます。
+Blue Origin official pages have returned HTTP 429 to GitHub-hosted runners. Blue Origin mission/reuse evidence is therefore explicitly represented as `reviewed_primary_url`, with official URL, review date and committed evidence hash. It is never labeled as live-fetched evidence.
 
 ## Data contract
 
-- `completed` と `planned` は別tableです。延期・予定日を実績へ混ぜません。
-- cadenceはcompleted missionの日付だけから計算します。
-- first-stage reuse、recovery、landing、loss、reentryはoperator/FAAが明示した場合だけrecord化します。
-- launch回数からbooster再利用回数を推定しません。
-- FAAがprogram/portfolio authorizationだけを示す場合、存在しないper-flight license IDを作りません。
-- operator / vehicle / mission / launch site / date / source identityを保持します。
-- `live_fetched_primary` と `reviewed_primary_url` を同じverification stateとして扱いません。
-- 一次sourceの構造・markerが変わればfail closedします。
+- `completed` and `planned` are separate tables
+- launch cadence uses completed mission dates only
+- a future schedule is displayed only at the date precision stated by the source; no exact date is invented
+- first-stage reuse / recovery / landing / loss is recorded only when explicitly stated by an operator or regulator
+- launch count is not used to infer booster reuse count
+- FAA program authorization is not presented as mission completion or an invented per-flight license
+- operator / vehicle / mission / launch site / date / source identity are retained
+- `live_fetched_primary` and `reviewed_primary_url` remain distinct verification states
+- source schema drift or missing required markers fails closed
 
-## Reviewed static evidence
+## Rebuild and verification
 
-- [`data/blue-origin-launches.json`](data/blue-origin-launches.json) — Blue Origin公式mission indexをreviewした2024+ mission ledger。live取得ではないことをmetadataで保持
-- [`data/authorization-registry.json`](data/authorization-registry.json) — FAA authorization scope。FAA sourceはlive verification対象
-- [`data/reuse-events.json`](data/reuse-events.json) — explicit reuse / recovery event。SpaceX/Rocket Labはlive source、Blue Originはreviewed primary sourceを明示
-
-Derived APIにはsource URL・verification mode・SHA-256 evidenceを付与します。
-
-## Current verified coverage
-
-2026-08-19のPR verificationでは、2024-01-02〜2026-08-15について次を再生成しました。
-
-- completed missions: 468
-  - SpaceX: 406
-  - Rocket Lab: 45
-  - Blue Origin: 17
-- US launches: 417
-- Rocket Lab planned missions: 14
-- FAA authorization records: 5
-- explicit reuse/recovery events: 4
-- live primary sources: 6
-- reviewed primary sources: 3
-
-この数字はREADMEを正本にはせず、[`index.json`](api/v1/space-launches/index.json) のcoverageを正準値とします。
-
-## Rebuild
-
-依存packageは不要です。Python標準ライブラリだけで実行します。
+No external Python package is required for the canonical collector.
 
 ```bash
 python -m py_compile space_launches.py test_space_launches.py
-python -m unittest -v test_space_launches
+python -m unittest -v test_space_launches test_sanitize_external_evidence
 python space_launches.py
 ```
 
-保存済みraw evidenceだけから再生成:
+Offline deterministic rebuild:
 
 ```bash
 python space_launches.py --offline \
@@ -85,8 +73,9 @@ python space_launches.py --offline \
   --api-dir build/rebuilt-space-launches
 ```
 
-GitHub Actionsではlive一次source取得 → provenance/coverage audit → offline rebuild → byte diffを行います。main/schedule実行時だけ`data/space-launches/`と`api/v1/space-launches/`をcommitします。
+- `Space launches evidence` performs live source collection, provenance/coverage audit and byte-for-byte offline rebuild verification.
+- `Deploy Pages` validates the public dashboard contract on pull requests and, on main, deploys canonical JSON with `deployment.json`, then verifies the exact deployed commit.
 
 ## Scope
 
-ARK Big Ideas 2026 `Reusable Rockets` の検証に必要な、launch cadence・vehicle/operator・FAA authorization・明示的reuse/recovery evidenceを担当します。宇宙企業の株価、売買判断、broker履歴は別責務です。
+This repository owns launch cadence, vehicle/operator evidence, FAA authorization scope and explicit reuse/recovery evidence for the Reusable Rockets theme. Stock prices, portfolio decisions and broker history are outside this repository.
