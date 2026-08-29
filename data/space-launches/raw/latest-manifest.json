@@ -1,5 +1,5 @@
 {
-  "retrieved_at": "2026-08-28T04:22:51.056252+00:00",
+  "retrieved_at": "2026-08-29T02:50:08.214858+00:00",
   "schema_version": 1,
   "sources": [
     {
@@ -17,41 +17,41 @@
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/3fb2a18b6a61aded5eedd30ed23bbc7b80364d07ed45b7398c4435289841096b.html",
+      "evidence_path": "raw/objects/803c281071c8e6a5a1da15072331b207bfd57f0b5c63416836dcce84991f343a.html",
       "publisher": "Rocket Lab",
-      "sha256": "3fb2a18b6a61aded5eedd30ed23bbc7b80364d07ed45b7398c4435289841096b",
-      "size_bytes": 186008,
+      "sha256": "803c281071c8e6a5a1da15072331b207bfd57f0b5c63416836dcce84991f343a",
+      "size_bytes": 186030,
       "source_id": "rocketlab-launches",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "1f3e4dd540bc386fe596446db98d7254c219439f252476d6ad4f6a6de978d93c",
-      "upstream_size_bytes": 188372,
+      "upstream_sha256": "d19f189bd589b7b53b99d35817ad816589bf67d8195266242c57e8b646b4f0fe",
+      "upstream_size_bytes": 188394,
       "verification_mode": "live_fetched_primary"
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/fd0a7ea3573f593908959c122a44fae26ddc3dc9f62ddb4000a0d3180d7138d5.html",
+      "evidence_path": "raw/objects/c5e52617e0255e06df45e61fe5a8d847d352c9039654bf2823e813642926fac9.html",
       "publisher": "Federal Aviation Administration",
-      "sha256": "fd0a7ea3573f593908959c122a44fae26ddc3dc9f62ddb4000a0d3180d7138d5",
-      "size_bytes": 102271,
+      "sha256": "c5e52617e0255e06df45e61fe5a8d847d352c9039654bf2823e813642926fac9",
+      "size_bytes": 102241,
       "source_id": "faa-part450-transition",
       "source_url": "https://www.faa.gov/newsroom/faa-streamlines-commercial-space-license-approvals",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "b8015f812e6f5faebfcecca4c90b8b6413892a3742134b852ba6309831ac7515",
-      "upstream_size_bytes": 108624,
+      "upstream_sha256": "42e4cec24dd565c188c3deb336638046ff714b43c385e75f3018b45b37c86195",
+      "upstream_size_bytes": 108594,
       "verification_mode": "live_fetched_primary"
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/b5ca065d54524aa01115cede34c581c19c30a9fe6bb770b754393f0d08a449cd.html",
+      "evidence_path": "raw/objects/7b4a1b7509b1d30af95b6f364f652f380882edfc2c5b56e936db4241bcbb0415.html",
       "publisher": "Federal Aviation Administration",
-      "sha256": "b5ca065d54524aa01115cede34c581c19c30a9fe6bb770b754393f0d08a449cd",
-      "size_bytes": 500718,
+      "sha256": "7b4a1b7509b1d30af95b6f364f652f380882edfc2c5b56e936db4241bcbb0415",
+      "size_bytes": 500688,
       "source_id": "faa-general-statements",
       "source_url": "https://www.faa.gov/newsroom/statements/general-statements",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "e7f14755d4e561c00b4ca0911bd5998c8b210abd9a90601d4b82f873e531495d",
-      "upstream_size_bytes": 507071,
+      "upstream_sha256": "95abd279cb90262adb545a036d4ba78b2ed668efc5838245b19d98b173046ad7",
+      "upstream_size_bytes": 507041,
       "verification_mode": "live_fetched_primary"
     },
     {
@@ -69,14 +69,14 @@
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/3bc9092551f6a1e66061f6bb8e79f34099cc77d38b1d1d5c0357202e1986c5cb.html",
+      "evidence_path": "raw/objects/dbdd9a7b61c28941e3b1207915b1e469558239c68a1de792a301c1694cc8c4db.html",
       "publisher": "Rocket Lab",
-      "sha256": "3bc9092551f6a1e66061f6bb8e79f34099cc77d38b1d1d5c0357202e1986c5cb",
+      "sha256": "dbdd9a7b61c28941e3b1207915b1e469558239c68a1de792a301c1694cc8c4db",
       "size_bytes": 71567,
       "source_id": "rocketlab-four-of-a-kind",
       "source_url": "https://rocketlabcorp.com/updates/rocket-lab-successfully-launches-first-electron-mission-of-busy-2024-launch-schedule/",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "bc6d62c7c990f715b70542e7446264e1dc6e6d015a443facb927af42aefd2ac4",
+      "upstream_sha256": "f57f944ac9e044032f222610bd7243123d2df507c2a05d6d941789d68d4ec464",
       "upstream_size_bytes": 75068,
       "verification_mode": "live_fetched_primary"
     }

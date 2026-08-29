@@ -8,7 +8,7 @@
       "operator": "Rocket Lab",
       "planned_date_text": "NET 31 August",
       "source_id": "rocketlab-launches",
-      "source_sha256": "3fb2a18b6a61aded5eedd30ed23bbc7b80364d07ed45b7398c4435289841096b",
+      "source_sha256": "803c281071c8e6a5a1da15072331b207bfd57f0b5c63416836dcce84991f343a",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -21,7 +21,7 @@
       "operator": "Rocket Lab",
       "planned_date_text": "2026",
       "source_id": "rocketlab-launches",
-      "source_sha256": "3fb2a18b6a61aded5eedd30ed23bbc7b80364d07ed45b7398c4435289841096b",
+      "source_sha256": "803c281071c8e6a5a1da15072331b207bfd57f0b5c63416836dcce84991f343a",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -34,7 +34,7 @@
       "operator": "Rocket Lab",
       "planned_date_text": "2026",
       "source_id": "rocketlab-launches",
-      "source_sha256": "3fb2a18b6a61aded5eedd30ed23bbc7b80364d07ed45b7398c4435289841096b",
+      "source_sha256": "803c281071c8e6a5a1da15072331b207bfd57f0b5c63416836dcce84991f343a",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -47,7 +47,7 @@
       "operator": "Rocket Lab",
       "planned_date_text": "NET 2027",
       "source_id": "rocketlab-launches",
-      "source_sha256": "3fb2a18b6a61aded5eedd30ed23bbc7b80364d07ed45b7398c4435289841096b",
+      "source_sha256": "803c281071c8e6a5a1da15072331b207bfd57f0b5c63416836dcce84991f343a",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -60,7 +60,7 @@
       "operator": "Rocket Lab",
       "planned_date_text": "NET June 2027",
       "source_id": "rocketlab-launches",
-      "source_sha256": "3fb2a18b6a61aded5eedd30ed23bbc7b80364d07ed45b7398c4435289841096b",
+      "source_sha256": "803c281071c8e6a5a1da15072331b207bfd57f0b5c63416836dcce84991f343a",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -73,7 +73,7 @@
       "operator": "Rocket Lab",
       "planned_date_text": "NET June 2027",
       "source_id": "rocketlab-launches",
-      "source_sha256": "3fb2a18b6a61aded5eedd30ed23bbc7b80364d07ed45b7398c4435289841096b",
+      "source_sha256": "803c281071c8e6a5a1da15072331b207bfd57f0b5c63416836dcce84991f343a",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -86,7 +86,7 @@
       "operator": "Rocket Lab",
       "planned_date_text": "Undisclosed",
       "source_id": "rocketlab-launches",
-      "source_sha256": "3fb2a18b6a61aded5eedd30ed23bbc7b80364d07ed45b7398c4435289841096b",
+      "source_sha256": "803c281071c8e6a5a1da15072331b207bfd57f0b5c63416836dcce84991f343a",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "HASTE"
@@ -99,7 +99,7 @@
       "operator": "Rocket Lab",
       "planned_date_text": "Undisclosed",
       "source_id": "rocketlab-launches",
-      "source_sha256": "3fb2a18b6a61aded5eedd30ed23bbc7b80364d07ed45b7398c4435289841096b",
+      "source_sha256": "803c281071c8e6a5a1da15072331b207bfd57f0b5c63416836dcce84991f343a",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "HASTE"
@@ -112,7 +112,7 @@
       "operator": "Rocket Lab",
       "planned_date_text": "Undisclosed",
       "source_id": "rocketlab-launches",
-      "source_sha256": "3fb2a18b6a61aded5eedd30ed23bbc7b80364d07ed45b7398c4435289841096b",
+      "source_sha256": "803c281071c8e6a5a1da15072331b207bfd57f0b5c63416836dcce84991f343a",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "HASTE"
@@ -125,7 +125,7 @@
       "operator": "Rocket Lab",
       "planned_date_text": "Undisclosed",
       "source_id": "rocketlab-launches",
-      "source_sha256": "3fb2a18b6a61aded5eedd30ed23bbc7b80364d07ed45b7398c4435289841096b",
+      "source_sha256": "803c281071c8e6a5a1da15072331b207bfd57f0b5c63416836dcce84991f343a",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "HASTE"
@@ -138,7 +138,7 @@
       "operator": "Rocket Lab",
       "planned_date_text": "Undisclosed",
       "source_id": "rocketlab-launches",
-      "source_sha256": "3fb2a18b6a61aded5eedd30ed23bbc7b80364d07ed45b7398c4435289841096b",
+      "source_sha256": "803c281071c8e6a5a1da15072331b207bfd57f0b5c63416836dcce84991f343a",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "HASTE"
@@ -151,7 +151,7 @@
       "operator": "Rocket Lab",
       "planned_date_text": "Undisclosed",
       "source_id": "rocketlab-launches",
-      "source_sha256": "3fb2a18b6a61aded5eedd30ed23bbc7b80364d07ed45b7398c4435289841096b",
+      "source_sha256": "803c281071c8e6a5a1da15072331b207bfd57f0b5c63416836dcce84991f343a",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "HASTE"
@@ -164,7 +164,7 @@
       "operator": "Rocket Lab",
       "planned_date_text": "Undisclosed",
       "source_id": "rocketlab-launches",
-      "source_sha256": "3fb2a18b6a61aded5eedd30ed23bbc7b80364d07ed45b7398c4435289841096b",
+      "source_sha256": "803c281071c8e6a5a1da15072331b207bfd57f0b5c63416836dcce84991f343a",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "HASTE"
@@ -177,7 +177,7 @@
       "operator": "Rocket Lab",
       "planned_date_text": "Undisclosed",
       "source_id": "rocketlab-launches",
-      "source_sha256": "3fb2a18b6a61aded5eedd30ed23bbc7b80364d07ed45b7398c4435289841096b",
+      "source_sha256": "803c281071c8e6a5a1da15072331b207bfd57f0b5c63416836dcce84991f343a",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "HASTE"
