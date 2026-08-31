@@ -1,5 +1,5 @@
 {
-  "retrieved_at": "2026-08-30T22:48:31.575412+00:00",
+  "retrieved_at": "2026-08-31T23:53:41.588828+00:00",
   "reviewed_sources": [
     {
       "evidence_path": "data/blue-origin-launches.json",
@@ -50,15 +50,15 @@
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/164f819c356349219843087bf2f2a780b67f50b212ce08a105de3cd7024bf95a.html",
+      "evidence_path": "raw/objects/0be995e26f841aca013f90d976d3e8a610bd5bdca952be2f74919f295ae11d8d.html",
       "publisher": "Rocket Lab",
-      "sha256": "164f819c356349219843087bf2f2a780b67f50b212ce08a105de3cd7024bf95a",
-      "size_bytes": 186033,
+      "sha256": "0be995e26f841aca013f90d976d3e8a610bd5bdca952be2f74919f295ae11d8d",
+      "size_bytes": 186579,
       "source_id": "rocketlab-launches",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "41876afea2958ab561681cc9ef1dc2f459c53e898b2a8e44b775ed5b18228bc2",
-      "upstream_size_bytes": 188397,
+      "upstream_sha256": "31b1aabcdf454fe524f354e8af020aac83fbc0414ce24c676d681174ac2ef686",
+      "upstream_size_bytes": 188943,
       "verification_mode": "live_fetched_primary"
     },
     {
@@ -102,15 +102,15 @@
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/b30d53ae30883c2d202c1e3d7b949c08a12830da8415da69b0f7fa52fdabf10d.html",
+      "evidence_path": "raw/objects/74712d015ccf6bb62393fd963820fe3d36e9b19a958bb17e2ff71cd031ad594b.html",
       "publisher": "Rocket Lab",
-      "sha256": "b30d53ae30883c2d202c1e3d7b949c08a12830da8415da69b0f7fa52fdabf10d",
-      "size_bytes": 71567,
+      "sha256": "74712d015ccf6bb62393fd963820fe3d36e9b19a958bb17e2ff71cd031ad594b",
+      "size_bytes": 72113,
       "source_id": "rocketlab-four-of-a-kind",
       "source_url": "https://rocketlabcorp.com/updates/rocket-lab-successfully-launches-first-electron-mission-of-busy-2024-launch-schedule/",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "3efcc56eb5879239f674d147c8706bee496e5981ff5d48114a08942a374e291b",
-      "upstream_size_bytes": 75068,
+      "upstream_sha256": "fa4dd432230d303e472c507cfa1ca93bb67ca8978e758e604de5aff83385a221",
+      "upstream_size_bytes": 75614,
       "verification_mode": "live_fetched_primary"
     }
   ]
