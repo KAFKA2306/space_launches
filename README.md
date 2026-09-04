@@ -1,3 +1,5 @@
+https://kafka2306.github.io/space_launches/
+
 # Space Launches — reusable launch primary evidence
 
 [![Space launches evidence](https://github.com/KAFKA2306/space_launches/actions/workflows/space-launches-evidence.yml/badge.svg)](https://github.com/KAFKA2306/space_launches/actions/workflows/space-launches-evidence.yml)
@@ -7,7 +9,6 @@ SpaceX / Blue Origin / Rocket Lab のlaunch・reuse evidenceをoperator公式mis
 
 ## Public dashboard
 
-- Daily entry point: https://kafka2306.github.io/space_launches/
 - latest **completed** mission
 - completed launch count over the latest 7 / 30 days and year-to-date
 - latest explicitly evidenced reuse / recovery event

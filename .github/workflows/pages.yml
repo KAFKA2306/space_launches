@@ -53,7 +53,9 @@ jobs:
           assert any(r.get('source_verification_mode')=='reviewed_primary_url' for r in reuse)
           assert any(r.get('source_verification_mode')=='live_fetched_primary' for r in launches)
           html=Path('web/index.html').read_text()
-          for marker in ('Latest completed mission','Verified schedule window','completed only','source_verification_mode'):
+          for marker in ('id="mission"','id="seven"','id="thirty"','id="ytd"','id="cadence"','id="planned"','id="error"','source_verification_mode'):
+              assert marker in html, marker
+          for marker in ('最後に完了した打上げ','確認済みの予定','完了した打上げのみ','正準データの取得に失敗しました'):
               assert marker in html, marker
           start=html.index('<script type="module">')+len('<script type="module">')
           end=html.index('</script>',start)
@@ -103,7 +105,8 @@ jobs:
                   assert dep['source_commit']==expected
                   assert idx['coverage']['completed_launch_count']>0
                   assert '最後に何が宇宙へ上がった' in html
-                  assert 'Verified schedule window' in html
+                  assert '確認済みの予定' in html
+                  assert 'id="error"' in html
                   print({'page_url':base,'source_commit':expected,'last_launch_date':idx['coverage']['last_launch_date']})
                   break
               except Exception as exc:
