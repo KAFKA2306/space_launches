@@ -1,5 +1,5 @@
 {
-  "retrieved_at": "2026-09-05T22:04:28.050720+00:00",
+  "retrieved_at": "2026-09-05T23:08:47.240523+00:00",
   "reviewed_sources": [
     {
       "evidence_path": "data/blue-origin-launches.json",
@@ -14,7 +14,7 @@
     },
     {
       "evidence_path": "data/reuse-events.json",
-      "evidence_sha256": "14b4b659b4e5412df1f2a0d5d2635808512bb566fe44fdcea1d2b59913475535",
+      "evidence_sha256": "3a4eac5320b7f8bf57586257bebdcaa360440cab6ddd25ca263028c174219af4",
       "live_fetch_status": "blocked_on_github_actions_http_429",
       "publisher": "Blue Origin",
       "reviewed_at": "2026-08-19",
@@ -24,12 +24,22 @@
     },
     {
       "evidence_path": "data/reuse-events.json",
-      "evidence_sha256": "14b4b659b4e5412df1f2a0d5d2635808512bb566fe44fdcea1d2b59913475535",
-      "live_fetch_status": "blocked_on_github_actions_http_429",
+      "evidence_sha256": "3a4eac5320b7f8bf57586257bebdcaa360440cab6ddd25ca263028c174219af4",
+      "live_fetch_status": "not_live_fetched_in_this_run",
       "publisher": "Blue Origin",
-      "reviewed_at": "2026-08-19",
+      "reviewed_at": "2026-09-06",
       "source_id": "blueorigin-ng2-reviewed",
-      "source_url": "https://www.blueorigin.com/missions/ng-2",
+      "source_url": "https://www.blueorigin.com/news/new-glenn-launches-nasa-escapade-lands-fully-reusable-booster",
+      "verification_mode": "reviewed_primary_url"
+    },
+    {
+      "evidence_path": "data/reuse-events.json",
+      "evidence_sha256": "3a4eac5320b7f8bf57586257bebdcaa360440cab6ddd25ca263028c174219af4",
+      "live_fetch_status": "not_live_fetched_in_this_run",
+      "publisher": "Blue Origin",
+      "reviewed_at": "2026-09-06",
+      "source_id": "blueorigin-ng3-reflight-reviewed",
+      "source_url": "https://www.blueorigin.com/news/new-glenn-ng-3-mission",
       "verification_mode": "reviewed_primary_url"
     }
   ],
@@ -57,7 +67,7 @@
       "source_id": "rocketlab-launches",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "8c3c5b40666ae6ce93d9348fbf53f6aaae127a232bb21c89a705e183a15a4b45",
+      "upstream_sha256": "cf78a71641c4188e5e9d1cb67f3bab520a2c3d67c9aa6af550a7a349e9026ab0",
       "upstream_size_bytes": 189022,
       "verification_mode": "live_fetched_primary"
     },
@@ -102,14 +112,14 @@
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/c7d7b3a2a1add16c765a482f21e4ece836dd70e55de701b9b05a7365a0124821.html",
+      "evidence_path": "raw/objects/a31fb14248bf86d000118df8baba429527859b730264359a61d451fa75b65f3e.html",
       "publisher": "Rocket Lab",
-      "sha256": "c7d7b3a2a1add16c765a482f21e4ece836dd70e55de701b9b05a7365a0124821",
+      "sha256": "a31fb14248bf86d000118df8baba429527859b730264359a61d451fa75b65f3e",
       "size_bytes": 72151,
       "source_id": "rocketlab-four-of-a-kind",
       "source_url": "https://rocketlabcorp.com/updates/rocket-lab-successfully-launches-first-electron-mission-of-busy-2024-launch-schedule/",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "2a4aee1876584dddd1b9fc9faddf7bbae7b5fbc1f52c60361cbf484c86aa818e",
+      "upstream_sha256": "6c0344ad62c9a6f1ce61cd0af9b8c8e96689cafb53efe76630d93f09237e3456",
       "upstream_size_bytes": 75660,
       "verification_mode": "live_fetched_primary"
     }
