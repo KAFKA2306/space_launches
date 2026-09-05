@@ -32,6 +32,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: space-launches-evidence-${{ github.ref }}
@@ -149,6 +150,7 @@ jobs:
           retention-days: 30
 
       - name: Commit changed evidence and views
+        id: commit
         if: github.event_name != 'pull_request'
         run: |
           git config user.name github-actions[bot]
@@ -156,7 +158,15 @@ jobs:
           git add data/space-launches api/v1/space-launches
           if git diff --cached --quiet; then
             echo 'No space launch evidence change.'
-            exit 0
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+          else
+            git commit -m 'data: update reusable launch evidence'
+            git push
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
           fi
-          git commit -m 'data: update reusable launch evidence'
-          git push
+
+      - name: Publish changed canonical API
+        if: github.event_name != 'pull_request' && steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref main
