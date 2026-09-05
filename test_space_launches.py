@@ -44,7 +44,7 @@ class SpaceLaunchEvidenceTests(unittest.TestCase):
 
     def test_static_reuse_events_are_explicit(self) -> None:
         rows = json.loads(sl.REUSE_EVENTS.read_text(encoding="utf-8"))["records"]
-        self.assertGreaterEqual(len(rows), 4)
+        self.assertGreaterEqual(len(rows), 5)
         for row in rows:
             self.assertIn("outcome", row)
             self.assertIn("source_id", row)
@@ -52,6 +52,13 @@ class SpaceLaunchEvidenceTests(unittest.TestCase):
         spacex = next(row for row in rows if row["operator"] == "SpaceX")
         self.assertEqual(spacex["mission_id"], "sl-6-59")
         self.assertEqual(spacex["booster_flight_number"], 21)
+        ng2 = next(row for row in rows if row["event_id"] == "blueorigin-ng2-booster-landing")
+        ng3 = next(row for row in rows if row["event_id"] == "blueorigin-ng3-never-tell-me-the-odds-reflight")
+        self.assertEqual(ng2["booster_name"], "Never Tell Me The Odds")
+        self.assertEqual(ng3["booster_name"], ng2["booster_name"])
+        self.assertEqual(ng3["previous_mission"], "NG-2")
+        self.assertEqual(ng3["previous_event_date"], ng2["event_date"])
+        self.assertEqual(ng3["turnaround_days"], 157)
         self.assertTrue(any(row["outcome"] == "lost_during_descent" for row in rows))
         self.assertTrue(any(row["outcome"] == "landed" for row in rows))
 
