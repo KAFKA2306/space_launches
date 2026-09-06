@@ -13,13 +13,13 @@
       "SpaceX": 413
     },
     "planned_rocketlab_count": 13,
-    "primary_source_count": 10,
-    "reuse_event_count": 5,
-    "reviewed_primary_source_count": 4,
+    "primary_source_count": 11,
+    "reuse_event_count": 6,
+    "reviewed_primary_source_count": 5,
     "us_launch_count": 424
   },
   "dataset": "Reusable launch primary evidence",
-  "retrieved_at": "2026-09-05T23:10:41.939805+00:00",
+  "retrieved_at": "2026-09-06T00:06:22.847775+00:00",
   "rules": [
     "completed and planned missions are separate tables",
     "launch cadence is derived only from completed mission dates",
