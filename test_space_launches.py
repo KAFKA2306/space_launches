@@ -44,7 +44,7 @@ class SpaceLaunchEvidenceTests(unittest.TestCase):
 
     def test_static_reuse_events_are_explicit(self) -> None:
         rows = json.loads(sl.REUSE_EVENTS.read_text(encoding="utf-8"))["records"]
-        self.assertGreaterEqual(len(rows), 6)
+        self.assertGreaterEqual(len(rows), 9)
         for row in rows:
             self.assertIn("outcome", row)
             self.assertIn("source_id", row)
@@ -57,6 +57,19 @@ class SpaceLaunchEvidenceTests(unittest.TestCase):
         self.assertEqual(ns8["previous_mission"], "NS-7")
         self.assertEqual(ns8["previous_event_date"], "2017-12-12")
         self.assertEqual(ns8["turnaround_days"], 138)
+        new_shepard_series = [
+            ("blueorigin-ns11-ns10-vehicle-reflight", "NS-10", "2019-01-23", 4, 5, 99),
+            ("blueorigin-ns12-ns11-vehicle-reflight", "NS-11", "2019-05-02", 5, 6, 223),
+            ("blueorigin-ns13-ns12-vehicle-reflight", "NS-12", "2019-12-11", 6, 7, 307),
+        ]
+        for event_id, previous_mission, previous_date, previous_flight, flight, turnaround in new_shepard_series:
+            row = next(record for record in rows if record["event_id"] == event_id)
+            self.assertEqual(row["vehicle"], "New Shepard")
+            self.assertEqual(row["previous_mission"], previous_mission)
+            self.assertEqual(row["previous_event_date"], previous_date)
+            self.assertEqual(row["previous_vehicle_flight_number"], previous_flight)
+            self.assertEqual(row["vehicle_flight_number"], flight)
+            self.assertEqual(row["turnaround_days"], turnaround)
         ng2 = next(row for row in rows if row["event_id"] == "blueorigin-ng2-booster-landing")
         ng3 = next(row for row in rows if row["event_id"] == "blueorigin-ng3-never-tell-me-the-odds-reflight")
         self.assertEqual(ng2["booster_name"], "Never Tell Me The Odds")
