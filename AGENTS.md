@@ -1,69 +1,36 @@
-# AGENTS.md
+# Space Launches Agent Contract
 
-## Repository responsibility
+`AGENTS.md` is the only repository-wide agent instruction source. Tool-specific instruction files must not duplicate it.
 
-This repository owns primary-source evidence for reusable commercial launch activity. Do not reintroduce the former broker trade-history, portfolio, market-data, dashboard, or IFA-onboarding surfaces.
+## Data ownership
 
-## Canonical sources
+This repository owns primary-source evidence for commercial launch activity and reuse. Market/forecast comparison belongs elsewhere.
 
-1. SpaceX official completed mission index and mission pages
-2. Rocket Lab official completed/upcoming mission index and operator releases
-3. Blue Origin official mission index and mission releases
-4. FAA commercial-space licensing statements and Part 450 transition evidence
-5. Derived views rebuilt from stored raw evidence
+Use official operator mission records and FAA evidence where applicable. Preserve operator, vehicle, mission, site, date, source identity, and raw provenance required by the current schema.
 
-## Autonomous execution
+Completed and planned missions are separate. Compute cadence only from completed missions. Record recovery, landing, loss, reentry, or reuse only when primary evidence states it. Do not infer future launch outcomes or per-flight license identifiers from broader authorization.
 
-1. Re-read current `main`, README, open Issues/PRs, canonical launch/reuse evidence, workflows/tests and public outputs before choosing work.
-2. Continue one existing canonical workline for the same operational outcome before creating another collector, dataset, branch or Issue.
-3. Prefer newly verified completed/reentry/reuse events, identity/status corrections, deterministic cadence/reuse views, public usability, then simplification that removes recurring work.
-4. Require primary event evidence and stable identity before counting a mission, recovery or reuse occurrence.
-5. Run the smallest relevant checks and verify the exact reviewed revision before merge.
-6. Stop at the fixed point. Do not fill schedule gaps or future launch outcomes by inference, and do not churn a blocked source if external state has not changed.
+## Execution
 
-Cross-repository ARK/market forecast comparison belongs in `investor2`; do not duplicate forecast authority here. Do not execute trades, transfers or account actions.
+- Prefer current user instruction, current primary evidence, and current code/tests over historical prose.
+- Proceed with read-only and reversible work without unnecessary confirmation.
+- Reuse one canonical workline and one collector/data path per outcome.
+- Delete duplicate paths rather than adding compatibility fallbacks.
+- Fail closed when source identity or structure is unknown.
 
-## Evidence rules
+## Verification
 
-- Completed and planned missions are separate tables.
-- Launch cadence is computed only from completed missions.
-- Booster reuse, recovery, landing, loss, or reentry is recorded only when a primary source explicitly states it.
-- Do not infer a per-flight FAA license identifier when the source only provides program/portfolio authorization.
-- Preserve the operator/vehicle/mission/site/date/source identity and raw SHA-256 provenance.
-- Unknown or changed source structure fails closed.
-- Delete obsolete duplicate paths instead of adding compatibility fallbacks.
-
-## Branch lifecycle
-
-- Aside from the default branch and unavoidable platform-managed/protected branches, a persistent branch is permitted only while it is the head branch of a currently open PR.
-- Creating a work branch creates an obligation to open or reuse its canonical PR immediately; do not use branches as backlog, continuation state, backup, archive, or evidence storage.
-- After a PR is merged or closed, delete its head branch after verifying PR/main state. A branch with no open PR is an orphan and must be deleted.
-- Before and after work, compare repository branches with open PR heads. Do not report cleanup/fixed point while an orphan task branch remains.
-- If the available tool cannot delete a branch, record that as a tooling blocker and do not claim cleanup complete. Never create another orphan branch as a workaround.
-
-## Merge and release are separate
-
-### PR merge conditions
-
-A PR may merge when the deterministic repository-local launch/reuse contract is correct on the exact head revision: identity/status/provenance semantics hold, focused tests pass, offline/generated views are reproducible where affected, and no unresolved review or correctness blocker remains.
-
-A future mission outcome, live operator/FAA fetch after merge, production publication, or public endpoint availability is **not** a merge condition unless the PR specifically changes the release/live-acquisition mechanism and that mechanism must be validated before merge.
-
-### Product/data release conditions
-
-Release is a separate post-merge decision. Treat launch/reuse evidence as released only after the merged `main` revision is read back and the release requirements in scope are actually executed, including live primary-source verification when required, published/generated artifacts, public surface if any, deployment identity, and rollback/rebuild path.
-
-A merged PR does not prove a mission occurred or production data were released. A release/live-source blocker may block release without invalidating a correctly merged repository change. Report merge and release independently.
-
-## Required checks
+Use the smallest relevant checks first:
 
 ```bash
 python -m py_compile space_launches.py test_space_launches.py
 python -m unittest -v test_space_launches
 ```
 
-These checks are merge evidence. The `Space launches evidence` workflow or equivalent live source/coverage run is release evidence when live production acquisition is in scope. A layer that did not run is not PASS.
+Broaden to live source acquisition or public release checks only when the requested outcome requires them.
 
-## Completion report
+Merge proves repository correctness for the reviewed revision. Release requires the merged revision and the actual live/published data or surface to be verified separately.
 
-Report verified launch/reuse evidence Before -> After, primary/raw evidence and canonical artifact, Issue/PR/commit/check evidence, then report `merged` and `released` separately with direct evidence for each. Include branch cleanup state, duplicate/manual work removed and the remaining verified blocker.
+## Completion
+
+Re-read before writes, read back after writes, and stop when the requested evidence or release state is directly verified. Unchecked layers remain `UNVERIFIED`.
