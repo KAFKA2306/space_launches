@@ -44,7 +44,7 @@ class SpaceLaunchEvidenceTests(unittest.TestCase):
 
     def test_static_reuse_events_are_explicit(self) -> None:
         rows = json.loads(sl.REUSE_EVENTS.read_text(encoding="utf-8"))["records"]
-        self.assertGreaterEqual(len(rows), 9)
+        self.assertGreaterEqual(len(rows), 11)
         for row in rows:
             self.assertIn("outcome", row)
             self.assertIn("source_id", row)
@@ -52,12 +52,9 @@ class SpaceLaunchEvidenceTests(unittest.TestCase):
         spacex = next(row for row in rows if row["operator"] == "SpaceX")
         self.assertEqual(spacex["mission_id"], "sl-6-59")
         self.assertEqual(spacex["booster_flight_number"], 21)
-        ns8 = next(row for row in rows if row["event_id"] == "blueorigin-ns8-ns7-vehicle-reflight")
-        self.assertEqual(ns8["vehicle"], "New Shepard")
-        self.assertEqual(ns8["previous_mission"], "NS-7")
-        self.assertEqual(ns8["previous_event_date"], "2017-12-12")
-        self.assertEqual(ns8["turnaround_days"], 138)
         new_shepard_series = [
+            ("blueorigin-ns3-ns2-vehicle-reflight", "NS-2", "2015-11-23", 1, 2, 60),
+            ("blueorigin-ns4-ns3-vehicle-reflight", "NS-3", "2016-01-22", 2, 3, 71),
             ("blueorigin-ns11-ns10-vehicle-reflight", "NS-10", "2019-01-23", 4, 5, 99),
             ("blueorigin-ns12-ns11-vehicle-reflight", "NS-11", "2019-05-02", 5, 6, 223),
             ("blueorigin-ns13-ns12-vehicle-reflight", "NS-12", "2019-12-11", 6, 7, 307),
@@ -70,6 +67,11 @@ class SpaceLaunchEvidenceTests(unittest.TestCase):
             self.assertEqual(row["previous_vehicle_flight_number"], previous_flight)
             self.assertEqual(row["vehicle_flight_number"], flight)
             self.assertEqual(row["turnaround_days"], turnaround)
+        ns8 = next(row for row in rows if row["event_id"] == "blueorigin-ns8-ns7-vehicle-reflight")
+        self.assertEqual(ns8["vehicle"], "New Shepard")
+        self.assertEqual(ns8["previous_mission"], "NS-7")
+        self.assertEqual(ns8["previous_event_date"], "2017-12-12")
+        self.assertEqual(ns8["turnaround_days"], 138)
         ng2 = next(row for row in rows if row["event_id"] == "blueorigin-ng2-booster-landing")
         ng3 = next(row for row in rows if row["event_id"] == "blueorigin-ng3-never-tell-me-the-odds-reflight")
         self.assertEqual(ng2["booster_name"], "Never Tell Me The Odds")
