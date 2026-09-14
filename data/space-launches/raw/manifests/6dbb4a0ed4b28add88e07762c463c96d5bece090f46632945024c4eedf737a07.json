@@ -1,5 +1,5 @@
 {
-  "retrieved_at": "2026-09-13T22:27:29.529509+00:00",
+  "retrieved_at": "2026-09-14T23:11:07.670529+00:00",
   "schema_version": 1,
   "sources": [
     {
@@ -24,7 +24,7 @@
       "source_id": "rocketlab-launches",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "1426f46c78fe8be469108da46e6e7e9c1d9faf4296c87bc85f6aec85b3348a52",
+      "upstream_sha256": "910fd0df76dbc11035be425391fa1f85f83eb1aaec4542ec7f95660d7d302a0e",
       "upstream_size_bytes": 190250,
       "verification_mode": "live_fetched_primary"
     },
@@ -69,14 +69,14 @@
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/c1c25062f1767e596f4ed8f78281db450b215bb9c5e9883559fd989874101246.html",
+      "evidence_path": "raw/objects/5db1df482a4d0012e804a099b582de7adbddf5bd946df4ab052f65c9b72bfbbb.html",
       "publisher": "Rocket Lab",
-      "sha256": "c1c25062f1767e596f4ed8f78281db450b215bb9c5e9883559fd989874101246",
+      "sha256": "5db1df482a4d0012e804a099b582de7adbddf5bd946df4ab052f65c9b72bfbbb",
       "size_bytes": 72221,
       "source_id": "rocketlab-four-of-a-kind",
       "source_url": "https://rocketlabcorp.com/updates/rocket-lab-successfully-launches-first-electron-mission-of-busy-2024-launch-schedule/",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "c3cf25a613e3966a68d6955798b1eef0b3fc2547b37780b1f729a5ea67a6ef0b",
+      "upstream_sha256": "3bbe2e0dce9cf160f5a8e706e2ce67b6c8e360c2ab18e9fb57ef47e8b93290bc",
       "upstream_size_bytes": 75730,
       "verification_mode": "live_fetched_primary"
     }
