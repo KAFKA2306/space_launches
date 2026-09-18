@@ -1,5 +1,5 @@
 {
-  "retrieved_at": "2026-09-17T22:52:28.493460+00:00",
+  "retrieved_at": "2026-09-18T22:37:49.766151+00:00",
   "reviewed_sources": [
     {
       "evidence_path": "data/blue-origin-launches.json",
@@ -127,7 +127,7 @@
       "source_id": "rocketlab-launches",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "32d63cf720edcfdf84e978ede64554f5e4956eb79476388a11d14be5a6fb4f99",
+      "upstream_sha256": "e07cec0daad2c8346b883a12fb292c973c43ccb429da8e839626e845d318d8ea",
       "upstream_size_bytes": 192065,
       "verification_mode": "live_fetched_primary"
     },
@@ -146,15 +146,15 @@
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/6f5220e6a936cc4c050a0c2199990fb6256b01997afff83be82cf969d19cb861.html",
+      "evidence_path": "raw/objects/ff15f7a2b6ccd9b1d6d1d452592bfe82ffe93baed168fb81bb01ea7b1e98f763.html",
       "publisher": "Federal Aviation Administration",
-      "sha256": "6f5220e6a936cc4c050a0c2199990fb6256b01997afff83be82cf969d19cb861",
-      "size_bytes": 500688,
+      "sha256": "ff15f7a2b6ccd9b1d6d1d452592bfe82ffe93baed168fb81bb01ea7b1e98f763",
+      "size_bytes": 504910,
       "source_id": "faa-general-statements",
       "source_url": "https://www.faa.gov/newsroom/statements/general-statements",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "6d25bc1eff156aba72a9151133181ed63a2ef271420691d4155a3a3654f16ec0",
-      "upstream_size_bytes": 507041,
+      "upstream_sha256": "6310f2f0132c940eebff7a8282f691c3cdf8bcfd18a3deb4daf6646be043f201",
+      "upstream_size_bytes": 511263,
       "verification_mode": "live_fetched_primary"
     },
     {
@@ -172,14 +172,14 @@
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/fbb91e3d8a6cb6c423af4c3bdf6833f44a3642f692d13db3e1217b280bb7c340.html",
+      "evidence_path": "raw/objects/643e7c973f1b90d285a8103b7a1ac9a027b4de8c163d6290530ecabffb542c95.html",
       "publisher": "Rocket Lab",
-      "sha256": "fbb91e3d8a6cb6c423af4c3bdf6833f44a3642f692d13db3e1217b280bb7c340",
+      "sha256": "643e7c973f1b90d285a8103b7a1ac9a027b4de8c163d6290530ecabffb542c95",
       "size_bytes": 72437,
       "source_id": "rocketlab-four-of-a-kind",
       "source_url": "https://rocketlabcorp.com/updates/rocket-lab-successfully-launches-first-electron-mission-of-busy-2024-launch-schedule/",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "d09176623dca55919ab33ad5db868985186f7b51a9d82942047c8cd562ac7d0a",
+      "upstream_sha256": "2d2aa4f224f37607d131d94d35e225f219e3e38d550f1937d35d4626fad1dea2",
       "upstream_size_bytes": 75946,
       "verification_mode": "live_fetched_primary"
     }
