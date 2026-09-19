@@ -1,5 +1,5 @@
 {
-  "retrieved_at": "2026-09-18T22:37:49.766151+00:00",
+  "retrieved_at": "2026-09-19T22:20:41.627502+00:00",
   "reviewed_sources": [
     {
       "evidence_path": "data/blue-origin-launches.json",
@@ -107,28 +107,28 @@
   "sources": [
     {
       "content_type": "application/json",
-      "evidence_path": "raw/objects/effd0fe92c8527848625650e0c469605534a0b6058dacdcd67c6d93b94999237.json",
+      "evidence_path": "raw/objects/c3eb4a36cf378f5075429219b6bbc5ac3ea6bcbb7b312af62e72054fb828cf62.json",
       "publisher": "SpaceX",
-      "sha256": "effd0fe92c8527848625650e0c469605534a0b6058dacdcd67c6d93b94999237",
-      "size_bytes": 2814295,
+      "sha256": "c3eb4a36cf378f5075429219b6bbc5ac3ea6bcbb7b312af62e72054fb828cf62",
+      "size_bytes": 2818892,
       "source_id": "spacex-launches",
       "source_url": "https://content.spacex.com/api/spacex-website/launches-page-tiles",
       "storage_transform": "none",
-      "upstream_sha256": "effd0fe92c8527848625650e0c469605534a0b6058dacdcd67c6d93b94999237",
-      "upstream_size_bytes": 2814295,
+      "upstream_sha256": "c3eb4a36cf378f5075429219b6bbc5ac3ea6bcbb7b312af62e72054fb828cf62",
+      "upstream_size_bytes": 2818892,
       "verification_mode": "live_fetched_primary"
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/5b73ca5243ca6304026167fd51f1d6b355429f42b675fe1df3977355d8fc705f.html",
+      "evidence_path": "raw/objects/728bf470cf197daf1d50efc43d86443f7c9cfdfb08792be1228553f525627b65.html",
       "publisher": "Rocket Lab",
-      "sha256": "5b73ca5243ca6304026167fd51f1d6b355429f42b675fe1df3977355d8fc705f",
-      "size_bytes": 189693,
+      "sha256": "728bf470cf197daf1d50efc43d86443f7c9cfdfb08792be1228553f525627b65",
+      "size_bytes": 190973,
       "source_id": "rocketlab-launches",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "e07cec0daad2c8346b883a12fb292c973c43ccb429da8e839626e845d318d8ea",
-      "upstream_size_bytes": 192065,
+      "upstream_sha256": "ad2012c18b90c89c1b783bb65a2d89550e215ea10b9527cdbb349776264e1d19",
+      "upstream_size_bytes": 193345,
       "verification_mode": "live_fetched_primary"
     },
     {
@@ -172,15 +172,15 @@
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/643e7c973f1b90d285a8103b7a1ac9a027b4de8c163d6290530ecabffb542c95.html",
+      "evidence_path": "raw/objects/132304b2ce81b1645c8ec1503e6296abd6d5a2b571508f47ab9eef4fbd09189e.html",
       "publisher": "Rocket Lab",
-      "sha256": "643e7c973f1b90d285a8103b7a1ac9a027b4de8c163d6290530ecabffb542c95",
-      "size_bytes": 72437,
+      "sha256": "132304b2ce81b1645c8ec1503e6296abd6d5a2b571508f47ab9eef4fbd09189e",
+      "size_bytes": 72160,
       "source_id": "rocketlab-four-of-a-kind",
       "source_url": "https://rocketlabcorp.com/updates/rocket-lab-successfully-launches-first-electron-mission-of-busy-2024-launch-schedule/",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "2d2aa4f224f37607d131d94d35e225f219e3e38d550f1937d35d4626fad1dea2",
-      "upstream_size_bytes": 75946,
+      "upstream_sha256": "9e922355d77818950af3bbb416c8b702126040bbfd4827890fd5552287e0ed5a",
+      "upstream_size_bytes": 75669,
       "verification_mode": "live_fetched_primary"
     }
   ]
