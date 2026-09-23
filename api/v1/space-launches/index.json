@@ -19,7 +19,7 @@
     "us_launch_count": 429
   },
   "dataset": "Reusable launch primary evidence",
-  "retrieved_at": "2026-09-22T22:59:27.966481+00:00",
+  "retrieved_at": "2026-09-23T22:58:40.539522+00:00",
   "rules": [
     "completed and planned missions are separate tables",
     "launch cadence is derived only from completed mission dates",
