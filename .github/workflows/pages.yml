@@ -27,7 +27,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
       - name: Validate canonical launch boundaries
         run: |
           python -m json.tool api/v1/space-launches/index.json >/dev/null
@@ -72,7 +72,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
       - name: Build Pages artifact from canonical API
         run: |
           mkdir -p web/api/v1
@@ -83,12 +83,12 @@ jobs:
           from pathlib import Path
           Path('web/deployment.json').write_text(json.dumps({'source_commit':os.environ['GITHUB_SHA']},indent=2)+'\n')
           PY
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b
+      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa
         with:
           path: web
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e
       - name: Verify exact deployed revision and canonical surface
         env:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
