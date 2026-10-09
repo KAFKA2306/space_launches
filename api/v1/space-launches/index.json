@@ -1,8 +1,8 @@
 {
   "coverage": {
     "authorization_record_count": 5,
-    "completed_2024_plus": 489,
-    "completed_launch_count": 489,
+    "completed_2024_plus": 490,
+    "completed_launch_count": 490,
     "first_launch_date": "2024-01-02",
     "last_launch_date": "2026-10-01",
     "live_primary_source_count": 6,
@@ -10,16 +10,16 @@
     "operator_counts": {
       "Blue Origin": 17,
       "Rocket Lab": 50,
-      "SpaceX": 422
+      "SpaceX": 423
     },
     "planned_rocketlab_count": 13,
     "primary_source_count": 16,
     "reuse_event_count": 11,
     "reviewed_primary_source_count": 10,
-    "us_launch_count": 432
+    "us_launch_count": 433
   },
   "dataset": "Reusable launch primary evidence",
-  "retrieved_at": "2026-10-08T00:14:36.104142+00:00",
+  "retrieved_at": "2026-10-09T00:26:05.117728+00:00",
   "rules": [
     "completed and planned missions are separate tables",
     "launch cadence is derived only from completed mission dates",
