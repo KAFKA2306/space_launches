@@ -1,18 +1,18 @@
 {
-  "retrieved_at": "2026-10-15T23:05:26.544377+00:00",
+  "retrieved_at": "2026-10-16T22:52:49.507149+00:00",
   "schema_version": 1,
   "sources": [
     {
       "content_type": "application/json",
-      "evidence_path": "raw/objects/85566837c57cf90d5ad7e5192f8a21ab87e717b620dc61523a22ab7f8b65c9f5.json",
+      "evidence_path": "raw/objects/d1a47a65adcc89f76c1b97e1ddac241a3319b07c87dd87f657939528207fed7e.json",
       "publisher": "SpaceX",
-      "sha256": "85566837c57cf90d5ad7e5192f8a21ab87e717b620dc61523a22ab7f8b65c9f5",
-      "size_bytes": 2865777,
+      "sha256": "d1a47a65adcc89f76c1b97e1ddac241a3319b07c87dd87f657939528207fed7e",
+      "size_bytes": 2865780,
       "source_id": "spacex-launches",
       "source_url": "https://content.spacex.com/api/spacex-website/launches-page-tiles",
       "storage_transform": "none",
-      "upstream_sha256": "85566837c57cf90d5ad7e5192f8a21ab87e717b620dc61523a22ab7f8b65c9f5",
-      "upstream_size_bytes": 2865777,
+      "upstream_sha256": "d1a47a65adcc89f76c1b97e1ddac241a3319b07c87dd87f657939528207fed7e",
+      "upstream_size_bytes": 2865780,
       "verification_mode": "live_fetched_primary"
     },
     {
@@ -24,34 +24,34 @@
       "source_id": "rocketlab-launches",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "5d8498cf0fedd3f18b872c029255591fe864ef99812446c2cf9d61085d4a82dc",
+      "upstream_sha256": "be51f49b606837849cedbe5cca58b88f0486b14e6ad4d3a9149eea896a1d871c",
       "upstream_size_bytes": 197023,
       "verification_mode": "live_fetched_primary"
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/08c9972e80291fbf961a1a41fa4af7ac049a92e38d287c37b081edd937cdc058.html",
+      "evidence_path": "raw/objects/7b91c17e5733d9ba1623212aab73c81a9e97a96dd358ef205b4a85444732fa41.html",
       "publisher": "Federal Aviation Administration",
-      "sha256": "08c9972e80291fbf961a1a41fa4af7ac049a92e38d287c37b081edd937cdc058",
-      "size_bytes": 102297,
+      "sha256": "7b91c17e5733d9ba1623212aab73c81a9e97a96dd358ef205b4a85444732fa41",
+      "size_bytes": 102171,
       "source_id": "faa-part450-transition",
       "source_url": "https://www.faa.gov/newsroom/faa-streamlines-commercial-space-license-approvals",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "fbc4665b5a24c4c3ebc2f7fd195f2dee27b6fd0c52d205708f9cfa53d7f74065",
-      "upstream_size_bytes": 108650,
+      "upstream_sha256": "4ff23754d61489a2a58769ee1e79b64e879d05f766cc2dd7ba280fe03a24b695",
+      "upstream_size_bytes": 108524,
       "verification_mode": "live_fetched_primary"
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/05362ae35e8a4b64809f3d0ccc16eb9743b0b8757bd923e8e816d12b5ee5d15f.html",
+      "evidence_path": "raw/objects/41e7959e21e032dc24539eb3a29c207903f28b2484343e85fde0374ba429df44.html",
       "publisher": "Federal Aviation Administration",
-      "sha256": "05362ae35e8a4b64809f3d0ccc16eb9743b0b8757bd923e8e816d12b5ee5d15f",
-      "size_bytes": 504966,
+      "sha256": "41e7959e21e032dc24539eb3a29c207903f28b2484343e85fde0374ba429df44",
+      "size_bytes": 504840,
       "source_id": "faa-general-statements",
       "source_url": "https://www.faa.gov/newsroom/statements/general-statements",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "5594a0d2b900f455058fe602cf801d8df4b87bd726fde682628d385cf120775a",
-      "upstream_size_bytes": 511319,
+      "upstream_sha256": "fe1fce74dfedcbaa863737b80886f56c27506358a5b7382740be743f380373dc",
+      "upstream_size_bytes": 511193,
       "verification_mode": "live_fetched_primary"
     },
     {
@@ -69,14 +69,14 @@
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/41b12c53a2d6423c94600976e6280a581c1ba1db9b14899ac236fca3c8550c62.html",
+      "evidence_path": "raw/objects/d39a36adfbe4f44e94c42cf5b3c3449e1de9704919acd809e63070dedec40c0a.html",
       "publisher": "Rocket Lab",
-      "sha256": "41b12c53a2d6423c94600976e6280a581c1ba1db9b14899ac236fca3c8550c62",
+      "sha256": "d39a36adfbe4f44e94c42cf5b3c3449e1de9704919acd809e63070dedec40c0a",
       "size_bytes": 72365,
       "source_id": "rocketlab-four-of-a-kind",
       "source_url": "https://rocketlabcorp.com/updates/rocket-lab-successfully-launches-first-electron-mission-of-busy-2024-launch-schedule/",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "bd2a1ef3560e75f75098995d283cff90fdb564b2343dbfde9f558123acb3cfd4",
+      "upstream_sha256": "2666ecf95dd0955c0b4bfd15e1c29f67dac01f174799e91ebde592e325876aca",
       "upstream_size_bytes": 75874,
       "verification_mode": "live_fetched_primary"
     }
