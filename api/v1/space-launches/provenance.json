@@ -1,5 +1,5 @@
 {
-  "retrieved_at": "2026-10-21T23:24:50.755221+00:00",
+  "retrieved_at": "2026-10-22T23:26:14.445699+00:00",
   "reviewed_sources": [
     {
       "evidence_path": "data/blue-origin-launches.json",
@@ -120,41 +120,41 @@
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/b61be9854db986d18fc0c64194510e12cdd9a84b0678247eaf36b7235d103429.html",
+      "evidence_path": "raw/objects/5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db.html",
       "publisher": "Rocket Lab",
-      "sha256": "b61be9854db986d18fc0c64194510e12cdd9a84b0678247eaf36b7235d103429",
+      "sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
       "size_bytes": 194651,
       "source_id": "rocketlab-launches",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "3183e7f858e6d87934343da1e9521eaa379266df55811e3dbee7711ecd662827",
+      "upstream_sha256": "9db85dd32913d04869a0a7f777985b1f7b36d2c3eb9f6aa8efc8a703e4ccd28f",
       "upstream_size_bytes": 197023,
       "verification_mode": "live_fetched_primary"
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/7b91c17e5733d9ba1623212aab73c81a9e97a96dd358ef205b4a85444732fa41.html",
+      "evidence_path": "raw/objects/ed51ebbf83b276b922e15dbf99fbe9605ae7a3ae38db8c1bcd926cba3a2ec079.html",
       "publisher": "Federal Aviation Administration",
-      "sha256": "7b91c17e5733d9ba1623212aab73c81a9e97a96dd358ef205b4a85444732fa41",
-      "size_bytes": 102171,
+      "sha256": "ed51ebbf83b276b922e15dbf99fbe9605ae7a3ae38db8c1bcd926cba3a2ec079",
+      "size_bytes": 102824,
       "source_id": "faa-part450-transition",
       "source_url": "https://www.faa.gov/newsroom/faa-streamlines-commercial-space-license-approvals",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "4ff23754d61489a2a58769ee1e79b64e879d05f766cc2dd7ba280fe03a24b695",
-      "upstream_size_bytes": 108524,
+      "upstream_sha256": "5a8728ded32f3b99b35455e133c3cc0904c466c27fcb8548f6b8f1a32a3cc647",
+      "upstream_size_bytes": 109177,
       "verification_mode": "live_fetched_primary"
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/41e7959e21e032dc24539eb3a29c207903f28b2484343e85fde0374ba429df44.html",
+      "evidence_path": "raw/objects/3b6ee3b6414e439a9d2946d1ff4af8947c095918deea17926f27c3b7fb2c0b83.html",
       "publisher": "Federal Aviation Administration",
-      "sha256": "41e7959e21e032dc24539eb3a29c207903f28b2484343e85fde0374ba429df44",
-      "size_bytes": 504840,
+      "sha256": "3b6ee3b6414e439a9d2946d1ff4af8947c095918deea17926f27c3b7fb2c0b83",
+      "size_bytes": 505493,
       "source_id": "faa-general-statements",
       "source_url": "https://www.faa.gov/newsroom/statements/general-statements",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "fe1fce74dfedcbaa863737b80886f56c27506358a5b7382740be743f380373dc",
-      "upstream_size_bytes": 511193,
+      "upstream_sha256": "5a820fa7717896fded4648f8344392707d2ceec87225362b958319b42fe3382c",
+      "upstream_size_bytes": 511846,
       "verification_mode": "live_fetched_primary"
     },
     {
@@ -172,14 +172,14 @@
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/b2a7dc94be22fa9094a2e8c12fc71fc6f6b8ca6a2b1b9a58b53a0df8249b4425.html",
+      "evidence_path": "raw/objects/cba265017e770068c17b1f2a5e686fee96faa59a215d3c27a50467d9fdc9bcb2.html",
       "publisher": "Rocket Lab",
-      "sha256": "b2a7dc94be22fa9094a2e8c12fc71fc6f6b8ca6a2b1b9a58b53a0df8249b4425",
+      "sha256": "cba265017e770068c17b1f2a5e686fee96faa59a215d3c27a50467d9fdc9bcb2",
       "size_bytes": 72365,
       "source_id": "rocketlab-four-of-a-kind",
       "source_url": "https://rocketlabcorp.com/updates/rocket-lab-successfully-launches-first-electron-mission-of-busy-2024-launch-schedule/",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "d87d58b4fd324e239b05bd10254b790a687a4f3f39d78674a2688142126648f0",
+      "upstream_sha256": "77d4ee45026851052f1d115cd94ca7c979a8c7cd73d5e3a7b63df2b17eea9653",
       "upstream_size_bytes": 75874,
       "verification_mode": "live_fetched_primary"
     }
