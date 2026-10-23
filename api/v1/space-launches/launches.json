@@ -168,7 +168,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -261,7 +261,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -418,7 +418,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -479,7 +479,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -732,7 +732,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -969,7 +969,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -1046,7 +1046,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -1123,7 +1123,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -1344,7 +1344,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -1405,7 +1405,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -1658,7 +1658,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -1943,7 +1943,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -2164,7 +2164,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "HASTE"
@@ -2177,7 +2177,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -2398,7 +2398,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -2795,7 +2795,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -2872,7 +2872,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -3061,7 +3061,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -3090,7 +3090,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -3167,7 +3167,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -3580,7 +3580,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -3737,7 +3737,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -3830,7 +3830,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -3971,7 +3971,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -3984,7 +3984,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -4301,7 +4301,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -4410,7 +4410,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -4903,7 +4903,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -5108,7 +5108,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -5249,7 +5249,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "HASTE"
@@ -5278,7 +5278,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -5515,7 +5515,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -5576,7 +5576,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -5605,7 +5605,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -5778,7 +5778,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -5839,7 +5839,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -6044,7 +6044,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "HASTE"
@@ -6121,7 +6121,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -6262,7 +6262,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -6307,7 +6307,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -6512,7 +6512,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -6685,7 +6685,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -6906,7 +6906,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -6983,7 +6983,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -7284,7 +7284,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -7393,7 +7393,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -7486,7 +7486,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -7547,7 +7547,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -7592,7 +7592,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -7621,7 +7621,7 @@
       "mission_state": "completed",
       "operator": "Rocket Lab",
       "source_id": "rocketlab-launches",
-      "source_sha256": "5fa64ace2c1e4bb3901d6d73be792f3c3f633c290186de4b2d780ec4468491db",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Electron"
@@ -7753,6 +7753,19 @@
       "source_url": "https://content.spacex.com/api/spacex-website/launches-page-tiles",
       "source_verification_mode": "live_fetched_primary",
       "vehicle": "Falcon 9"
+    },
+    {
+      "customer": "HawkEye 360",
+      "launch_date": "2026-10-23",
+      "launch_site": "Launch Complex 1",
+      "mission": "We're Not Hawking Around",
+      "mission_state": "completed",
+      "operator": "Rocket Lab",
+      "source_id": "rocketlab-launches",
+      "source_sha256": "ce7cc9c12ec2ca0c4da40f1dd6fd18a714a104e60a98921baf2931dc17cc1146",
+      "source_url": "https://rocketlabcorp.com/missions/launches/",
+      "source_verification_mode": "live_fetched_primary",
+      "vehicle": "Electron"
     }
   ],
   "schema_version": 1
