@@ -24,7 +24,7 @@
       "operator": "Rocket Lab",
       "outcome": "successful_ocean_splashdown_and_recovery",
       "source_id": "rocketlab-four-of-a-kind",
-      "source_sha256": "9bbdf1b4c094f49a79f8979e31fbb8c5699eebc5d0df8ce7a70ac84fae68373a",
+      "source_sha256": "a0da498caf46dfbf11abebbec4b14faae0dde8da63e884b7bb77dc9f5373b4dd",
       "source_url": "https://rocketlabcorp.com/updates/rocket-lab-successfully-launches-first-electron-mission-of-busy-2024-launch-schedule/",
       "source_verification_mode": "live_fetched_primary",
       "stage": "first_stage",
