@@ -1,5 +1,5 @@
 {
-  "retrieved_at": "2026-11-11T00:41:29.007398+00:00",
+  "retrieved_at": "2026-11-12T01:55:26.046443+00:00",
   "reviewed_sources": [
     {
       "evidence_path": "data/blue-origin-launches.json",
@@ -127,7 +127,7 @@
       "source_id": "rocketlab-launches",
       "source_url": "https://rocketlabcorp.com/missions/launches/",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "8fbe0a433bb19d49f025c0d6f497d8d414deb9ab9d3ef4b03d7900e63bdea276",
+      "upstream_sha256": "d93b177d4e72b3332928f23051e05db9d644a7f3021bfc24b8828a5a0dc27744",
       "upstream_size_bytes": 197171,
       "verification_mode": "live_fetched_primary"
     },
@@ -172,14 +172,14 @@
     },
     {
       "content_type": "text/html",
-      "evidence_path": "raw/objects/f33bc074b2fd15628e7857cfeaca06bddfee30bbdb54cb83bdb31874fe421f2b.html",
+      "evidence_path": "raw/objects/4dea4f80d73425736ff8c6a83c8fae781cfb5975750ababf143ceadc72b7089a.html",
       "publisher": "Rocket Lab",
-      "sha256": "f33bc074b2fd15628e7857cfeaca06bddfee30bbdb54cb83bdb31874fe421f2b",
+      "sha256": "4dea4f80d73425736ff8c6a83c8fae781cfb5975750ababf143ceadc72b7089a",
       "size_bytes": 72569,
       "source_id": "rocketlab-four-of-a-kind",
       "source_url": "https://rocketlabcorp.com/updates/rocket-lab-successfully-launches-first-electron-mission-of-busy-2024-launch-schedule/",
       "storage_transform": "strip_script_style_and_redact_credentials",
-      "upstream_sha256": "9e0df8cd173fb8194763d85035d1887d55418ba0b2df7e75779ed1923fac0eba",
+      "upstream_sha256": "fd907dcf50aec2cedc93eef2ba94e8063b372f95aeef4acfa8f8e639ef6a10e7",
       "upstream_size_bytes": 76254,
       "verification_mode": "live_fetched_primary"
     }
