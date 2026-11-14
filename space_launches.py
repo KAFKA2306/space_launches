@@ -265,9 +265,9 @@ def parse_rocketlab(raw: bytes, source: dict[str, Any]) -> tuple[list[dict[str, 
             "source_sha256": source["sha256"],
             "source_verification_mode": "live_fetched_primary",
         }
-        if parsed is not None and parsed >= START_DATE:
+        if parsed is not None and START_DATE <= parsed <= date.today():
             completed.append({**record, "launch_date": parsed.isoformat(), "mission_state": "completed"})
-        elif parsed is None and any(token in row[1].casefold() for token in ("net", "2026", "2027", "undisclosed")):
+        elif (parsed is not None and parsed > date.today()) or (parsed is None and any(token in row[1].casefold() for token in ("net", "2026", "2027", "undisclosed"))):
             upcoming.append({**record, "planned_date_text": row[1], "mission_state": "planned"})
     if len(completed) < 20:
         raise ValueError(f"Rocket Lab parser found too few 2024+ completed missions: {len(completed)}")
