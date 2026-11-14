@@ -42,6 +42,20 @@ class SpaceLaunchEvidenceTests(unittest.TestCase):
         self.assertTrue(all(row["mission_state"] == "completed" for row in completed))
         self.assertEqual(planned[0]["mission_state"], "planned")
 
+    def test_rocketlab_future_dated_mission_is_not_completed(self) -> None:
+        future = "31 Dec 2099"
+        completed_rows = ''.join(
+            f'<tr><td>M{i}</td><td>21 Mar 2024</td><td>Electron</td><td>C{i}</td><td>Launch Complex 2</td></tr>'
+            for i in range(20)
+        )
+        future_row = f'<tr><td>Future</td><td>{future}</td><td>Electron</td><td>C</td><td>LC-1</td></tr>'
+        source = {"source_id": "test", "source_url": "https://example.com", "sha256": "abc"}
+        completed, planned = sl.parse_rocketlab(f'<table>{completed_rows}{future_row}</table>'.encode(), source)
+        self.assertEqual(len(completed), 20)
+        self.assertEqual(len(planned), 1)
+        self.assertEqual(planned[0]["planned_date_text"], future)
+        self.assertEqual(planned[0]["mission_state"], "planned")
+
     def test_static_reuse_events_are_explicit(self) -> None:
         rows = json.loads(sl.REUSE_EVENTS.read_text(encoding="utf-8"))["records"]
         self.assertGreaterEqual(len(rows), 11)
