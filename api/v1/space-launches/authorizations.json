@@ -39,7 +39,7 @@
       "operator": "Blue Origin",
       "scope": "Orbital missions from Cape Canaveral Space Force Station with a reusable New Glenn first stage landing on an Atlantic barge.",
       "source_id": "faa-general-statements",
-      "source_sha256": "59d3aa8b11b335430a7b36a970257b622344aaa4e58cc1606f7abc52e8342144",
+      "source_sha256": "2517f4c44e6b070898838fb715e1f7766b75fded56d6adeca4fb8eacd13e34cb",
       "source_url": "https://www.faa.gov/newsroom/statements/general-statements",
       "source_verification_mode": "live_fetched_primary",
       "validity_text": "valid for five years",
@@ -51,7 +51,7 @@
       "operator": "SpaceX",
       "scope": "Flight 7 profile from Boca Chica including Super Heavy launch-site catch attempt and Starship controlled entry/water landing profile.",
       "source_id": "faa-general-statements",
-      "source_sha256": "59d3aa8b11b335430a7b36a970257b622344aaa4e58cc1606f7abc52e8342144",
+      "source_sha256": "2517f4c44e6b070898838fb715e1f7766b75fded56d6adeca4fb8eacd13e34cb",
       "source_url": "https://www.faa.gov/newsroom/statements/general-statements",
       "source_verification_mode": "live_fetched_primary",
       "vehicle_program": "Starship / Super Heavy"
