@@ -6,7 +6,7 @@
       "operator": "SpaceX",
       "scope": "Legacy commercial space license transitioned to Part 450; Part 450 permits portfolio-style authorization across approved vehicle configurations, mission profiles and sites.",
       "source_id": "faa-part450-transition",
-      "source_sha256": "68f67c147379c6b48db55ea5992c44b66551778c3d98753b247383fce9156e79",
+      "source_sha256": "a36f3ec6f02f0010f91e8960de22c558fbb0eb180b5c6742d18eef483df9ce9a",
       "source_url": "https://www.faa.gov/newsroom/faa-streamlines-commercial-space-license-approvals",
       "source_verification_mode": "live_fetched_primary",
       "vehicle_program": "Falcon 9 / Falcon Heavy"
@@ -17,7 +17,7 @@
       "operator": "Blue Origin",
       "scope": "Legacy commercial space license transitioned to Part 450.",
       "source_id": "faa-part450-transition",
-      "source_sha256": "68f67c147379c6b48db55ea5992c44b66551778c3d98753b247383fce9156e79",
+      "source_sha256": "a36f3ec6f02f0010f91e8960de22c558fbb0eb180b5c6742d18eef483df9ce9a",
       "source_url": "https://www.faa.gov/newsroom/faa-streamlines-commercial-space-license-approvals",
       "source_verification_mode": "live_fetched_primary",
       "vehicle_program": "New Shepard"
@@ -28,7 +28,7 @@
       "operator": "Rocket Lab",
       "scope": "Legacy commercial space license transitioned to Part 450.",
       "source_id": "faa-part450-transition",
-      "source_sha256": "68f67c147379c6b48db55ea5992c44b66551778c3d98753b247383fce9156e79",
+      "source_sha256": "a36f3ec6f02f0010f91e8960de22c558fbb0eb180b5c6742d18eef483df9ce9a",
       "source_url": "https://www.faa.gov/newsroom/faa-streamlines-commercial-space-license-approvals",
       "source_verification_mode": "live_fetched_primary",
       "vehicle_program": "Electron"
@@ -39,7 +39,7 @@
       "operator": "Blue Origin",
       "scope": "Orbital missions from Cape Canaveral Space Force Station with a reusable New Glenn first stage landing on an Atlantic barge.",
       "source_id": "faa-general-statements",
-      "source_sha256": "98e3bb97ddb389ad44f97d5151528886a91a7e5ee3c593c93e81aea425a30bb6",
+      "source_sha256": "bb4f1c4bb91f260712a9a5884c0509b9186fab87023920400c4908c07fed21f8",
       "source_url": "https://www.faa.gov/newsroom/statements/general-statements",
       "source_verification_mode": "live_fetched_primary",
       "validity_text": "valid for five years",
@@ -51,7 +51,7 @@
       "operator": "SpaceX",
       "scope": "Flight 7 profile from Boca Chica including Super Heavy launch-site catch attempt and Starship controlled entry/water landing profile.",
       "source_id": "faa-general-statements",
-      "source_sha256": "98e3bb97ddb389ad44f97d5151528886a91a7e5ee3c593c93e81aea425a30bb6",
+      "source_sha256": "bb4f1c4bb91f260712a9a5884c0509b9186fab87023920400c4908c07fed21f8",
       "source_url": "https://www.faa.gov/newsroom/statements/general-statements",
       "source_verification_mode": "live_fetched_primary",
       "vehicle_program": "Starship / Super Heavy"
