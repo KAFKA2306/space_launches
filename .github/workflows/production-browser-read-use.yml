@@ -42,10 +42,12 @@ jobs:
             '--headless=new',
             '--no-sandbox',
             '--disable-gpu',
+            '--disable-dev-shm-usage',
+            '--remote-allow-origins=*',
             '--remote-debugging-port=9222',
             '--user-data-dir=/tmp/space-launches-browser',
             'about:blank'
-          ], { stdio: 'ignore' });
+          ], { stdio: ['ignore', 'ignore', 'inherit'] });
 
           const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
           async function retry(fn, attempts = 40) {
