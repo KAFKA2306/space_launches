@@ -133,6 +133,28 @@ jobs:
             if (mobile.scrollWidth > mobile.width + 1) throw new Error(`Horizontal overflow: ${mobile.scrollWidth} > ${mobile.width}`);
             if (!mobile.mission || !mobile.seven || !mobile.thirty || !mobile.ytd) throw new Error(`First-view decision fields missing: ${JSON.stringify(mobile)}`);
 
+            const expected = await evaluate(`(async () => {
+              const [index, launches] = await Promise.all(['index', 'launches'].map(async name => {
+                const response = await fetch('api/v1/space-launches/' + name + '.json', { cache: 'no-store' });
+                if (!response.ok) throw new Error('Canonical JSON unavailable: ' + name);
+                return response.json();
+              }));
+              const asof = index.retrieved_at.slice(0, 10);
+              const records = launches.records.filter(record => record.mission_state === 'completed' && record.launch_date <= asof);
+              const before = days => new Date(Date.parse(asof) - days * 86400000).toISOString().slice(0, 10);
+              return {
+                asof,
+                seven: records.filter(record => record.launch_date > before(7)).length,
+                thirty: records.filter(record => record.launch_date > before(30)).length,
+                ytd: records.filter(record => record.launch_date.startsWith(asof.slice(0, 4))).length
+              };
+            })()`);
+            for (const key of ['seven', 'thirty', 'ytd']) {
+              if (Number(mobile[key]) !== expected[key]) throw new Error('Canonical count mismatch for ' + key + ': displayed ' + mobile[key] + ', expected ' + expected[key] + ' as of ' + expected.asof);
+            }
+            const windowLabels = await evaluate("[...document.querySelectorAll('.headline .label')].map(node => node.textContent.trim())");
+            if (!windowLabels.includes('取得時点の直近7日') || !windowLabels.includes('取得時点の直近30日')) throw new Error('Reference date is not explained in the UI');
+
             const cadence = await evaluate(`(() => [...document.querySelectorAll('#cadence .trend-label')].map(node => ({
               text: node.textContent.trim(),
               count: node.querySelector('strong')?.textContent.trim() || ''
