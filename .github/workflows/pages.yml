@@ -15,6 +15,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: read
   pages: write
   id-token: write
@@ -87,6 +88,24 @@ jobs:
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa
         with:
           path: web
+      - name: Wait for Pages artifact indexing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            if artifacts=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?per_page=100"); then
+              if jq -e 'any(.artifacts[]?; .name == "github-pages" and .expired == false and .size_in_bytes > 0)' <<<"$artifacts" >/dev/null; then
+                echo "github-pages artifact is indexed"
+                exit 0
+              fi
+            else
+              echo "GitHub Actions artifact API request failed (attempt ${attempt}/30)" >&2
+            fi
+            if [ "$attempt" -lt 30 ]; then sleep 2; fi
+          done
+          echo "::error::github-pages artifact was not indexed within 60 seconds" >&2
+          exit 1
       - id: deployment
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e
       - name: Verify exact deployed revision and canonical surface
